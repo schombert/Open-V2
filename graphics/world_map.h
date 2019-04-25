@@ -55,9 +55,11 @@ namespace graphics {
 		uint16_t const* primary_data = nullptr;
 		uint32_t handle = 0;
 		uint32_t corner_handle = 0;
-		uint32_t shadows_handle = 0;
+		std::atomic<uint32_t> shadows_handle = 0;
 		int32_t width = 0;
 		int32_t height = 0;
+
+		std::atomic<uint32_t> background_handle = 0;
 	};
 
 	enum class projection_type {
@@ -140,12 +142,12 @@ namespace graphics {
 		map_state state;
 
 		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
-		void initialize(open_gl_wrapper&, scenario::scenario_manager& s, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void initialize(open_gl_wrapper&, scenario::scenario_manager& s, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void render(open_gl_wrapper&, world_state const& ws);
 	};
 
 	uint16_t get_value_from_data(int32_t i, int32_t j, uint16_t* data, int32_t width, int32_t height);
-	map_data_textures create_data_textures(uint16_t const* map_data, int32_t width, int32_t height);
+	void create_data_textures(map_data_textures& result, uint16_t const* map_data, int32_t width, int32_t height);
 	void update_map_colors(graphics::map_display& map, world_state& ws);
 	provinces::borders_manager::border_block create_border_block_data(provinces::province_manager const& province_m, int32_t block_i, int32_t block_j, uint16_t const* map_data, int32_t width, int32_t height);
 	Eigen::Vector3f globe_point_from_position(float x_off, float y_off, float top_latitude, float bottom_latitude);

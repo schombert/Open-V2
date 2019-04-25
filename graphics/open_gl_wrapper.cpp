@@ -757,6 +757,22 @@ namespace graphics {
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 	}
 
+	void open_gl_wrapper::render_textured_rect_direct(float x, float y, float width, float height, uint32_t handle) {
+		glBindVertexArray(global_square_vao);
+
+		glBindVertexBuffer(0, global_sqaure_buffer, 0, sizeof(GLfloat) * 4); 
+			
+		glUniform4f(parameters::drawing_rectangle, x, y, width, height);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, handle);
+
+		GLuint subroutines[2] = { parameters::enabled, parameters::no_filter };
+		glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+	}
+
 	void open_gl_wrapper::render_linegraph(color_modification enabled, float x, float y, float width, float height, lines& l) {
 		glBindVertexArray(global_square_vao);
 

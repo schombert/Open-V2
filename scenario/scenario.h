@@ -681,9 +681,18 @@ namespace scenario {
 		constexpr uint32_t window_mode_two = 658ui32;
 		constexpr uint32_t projection_one = 659ui32;
 		constexpr uint32_t projection_two = 660ui32;
+		constexpr uint32_t zoom_one = 661ui32;
+		constexpr uint32_t zoom_two = 662ui32;
 
-		constexpr uint32_t count = 661ui32;
+		constexpr uint32_t count = 663ui32;
 	}
+
+
+	constexpr uint32_t zoom_labels[] = {
+		scenario::fixed_ui::zoom_one,
+		scenario::fixed_ui::zoom_two,
+	};
+	constexpr auto zoom_type_count = std::extent_v<decltype(zoom_labels)>;
 
 	constexpr uint32_t projection_labels[] = {
 		scenario::fixed_ui::projection_one,
@@ -715,8 +724,8 @@ namespace scenario {
 	constexpr auto ui_scale_count = std::extent_v<decltype(ui_scales)>;
 
 	enum class zoom_type : int8_t {
-		to_center,
-		to_cursor
+		to_center = 0,
+		to_cursor = 1
 	};
 
 	struct game_settings {

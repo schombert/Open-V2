@@ -22,7 +22,10 @@ void menu::graphics_button::button_function(ui::simple_button<graphics_button>&,
 
 void menu::sound_button::button_function(ui::simple_button<sound_button>&, world_state & ws) {}
 
-void menu::controls_button::button_function(ui::simple_button<controls_button>&, world_state & ws) {}
+void menu::controls_button::button_function(ui::simple_button<controls_button>&, world_state & ws) {
+	ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.controls->associated_object));
+	ui::hide(*(ws.w.menu_w.win->associated_object));
+}
 
 menu::menu_window::menu_window() : win(std::make_unique<menu_window_t>()), graphics(std::make_unique<graphics_panel_t>()),
 	sound(std::make_unique<sound_panel_t>()), controls(std::make_unique<controls_panel_t>()) {}
@@ -49,6 +52,7 @@ void menu::menu_window::show_menu_window(world_state & ws) {
 void menu::menu_window::init_menu_window(world_state & ws) {
 	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_main_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_graphics_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *(this->graphics));
+	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_controls_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *(this->controls));
 }
 
 void menu::graphics_menu_close_button::button_function(ui::simple_button<graphics_menu_close_button>&, world_state & ws) {
@@ -85,5 +89,23 @@ void menu::ui_scale_text::update(ui::tagged_gui_object box, ui::text_box_line_ma
 	char16_t local_buffer[16];
 	put_value_in_buffer(local_buffer, display_type::fp_two_places, scenario::ui_scales[ws.s.settings.ui_scale]);
 	ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
+	lm.finish_current_line();
+}
+
+void menu::controls_menu_close_button::button_function(ui::simple_button<controls_menu_close_button>&, world_state & ws) {
+	// todo: save settings if changed
+	ui::make_visible_immediate(*(ws.w.menu_w.win->associated_object));
+	ui::hide(*(ws.w.menu_w.controls->associated_object));
+}
+
+void menu::zoom_mode_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	ui::add_linear_text(
+		ui::xy_pair{ 0, 0 },
+		ws.s.fixed_ui_text[scenario::zoom_labels[int32_t(ws.s.settings.zoom_setting)]],
+		fmt,
+		ws.s.gui_m,
+		ws.w.gui_m,
+		box,
+		lm);
 	lm.finish_current_line();
 }

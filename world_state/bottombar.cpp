@@ -17,7 +17,7 @@ namespace current_state {
 	}
 	void ledger_button::button_function(ui::simple_button<ledger_button>& self, world_state & ws) {}
 	void goto_button::button_function(ui::simple_button<goto_button>& self, world_state & ws) {
-		ws.w.find_w.show_find_window(ws.w.gui_m);
+		ws.w.find_w.show_find_window(ws);
 	}
 	void goto_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::find_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);

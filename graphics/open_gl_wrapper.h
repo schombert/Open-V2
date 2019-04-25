@@ -70,6 +70,7 @@ namespace graphics {
 		void render_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_outlined_text(const char16_t* codepoints, uint32_t count, color_modification enabled, float x, float baseline_y, float size, const color& c, font& f);
 		void render_tinted_textured_rect(float x, float y, float width, float height, float r, float g, float b, texture& t, rotation rot = rotation::upright);
+		void render_textured_rect_direct(float x, float y, float width, float height, uint32_t handle);
 
 		friend scissor_rect;
 	};

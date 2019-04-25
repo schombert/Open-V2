@@ -1020,8 +1020,7 @@ namespace graphics {
 	//.....................
 
 
-	map_data_textures create_data_textures(uint16_t const* map_data, int32_t width, int32_t height) {
-		map_data_textures result;
+	void create_data_textures(map_data_textures& result, uint16_t const* map_data, int32_t width, int32_t height) {
 		result.width = width;
 		result.height = height;
 		result.primary_data = map_data;
@@ -1072,8 +1071,6 @@ namespace graphics {
 
 
 		delete[] corners;
-
-		return result;
 	}
 
 	void color_maps::bind_colors() {
@@ -1335,7 +1332,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper& ogl, scenario::scenario_manager& s, std::string shadows_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper& ogl, scenario::scenario_manager& s, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -1350,7 +1347,7 @@ namespace graphics {
 		long_step = 6.28318530718f / static_cast<float>(width);
 		left_long = left_longitude;
 
-		data_textures = create_data_textures(map_data, width, height);
+		create_data_textures(data_textures, map_data, width, height);
 		colors.create_color_textures();
 
 		const auto [v, e, c] = create_patches_buffers_b(width, height, state.get_globe_unbuffered(), top_lat, lat_step, long_step);
@@ -1363,37 +1360,77 @@ namespace graphics {
 		border_shader_handle = compile_borders_program();
 		init_border_graphics(s.province_m.borders);
 
-		unsigned char pixel[3] = { 255, 255, 255 };
+		{
+			unsigned char pixel[3] = { 255, 255, 255 };
+			uint32_t temp_handle = 0;
+			glGenTextures(1, &temp_handle);
+			glBindTexture(GL_TEXTURE_RECTANGLE, temp_handle);
+			glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, 1, 1);
+			glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-		glGenTextures(1, &data_textures.shadows_handle);
-		glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
-		glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, 1, 1);
-		glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			data_textures.shadows_handle.store(temp_handle, std::memory_order_release);
+		}
+
+		{
+			unsigned char pixel[3] = { 128, 128, 128 };
+			uint32_t temp_handle = 0;
+			glGenTextures(1, &temp_handle);
+			glBindTexture(GL_TEXTURE_2D, temp_handle);
+			glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, 1, 1);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, pixel);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+			data_textures.background_handle.store(temp_handle, std::memory_order_release);
+		}
 
 		if(shadows_file.length() != 0) {
-			std::thread st([&ogl, shadows_file, ptr_to_sh = &data_textures.shadows_handle]() {
+			std::thread st([&ogl, shadows_file, bg_file, ptr_to_sh = &data_textures.shadows_handle, ptr_to_bh = &data_textures.background_handle]() {
 				ogl.bind_to_shadows_thread();
 
-				int32_t swidth = 0;
-				int32_t sheight = 0;
-				int32_t shchannel = 3;
-				unsigned char* shadows_data = SOIL_load_image(shadows_file.c_str(), &swidth, &sheight, &shchannel, 3);
+				{
+					int32_t swidth = 0;
+					int32_t sheight = 0;
+					int32_t shchannel = 4;
+					unsigned char* bg_data = SOIL_load_image(bg_file.c_str(), &swidth, &sheight, &shchannel, 4);
 
-				uint32_t temp_handle;
-				glGenTextures(1, &temp_handle);
-				glBindTexture(GL_TEXTURE_RECTANGLE, temp_handle);
+					uint32_t temp_handle;
+					glGenTextures(1, &temp_handle);
+					glBindTexture(GL_TEXTURE_2D, temp_handle);
 
-				glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, swidth, sheight);
-				glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, swidth, sheight, GL_RGB, GL_UNSIGNED_BYTE, shadows_data);
+					glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, swidth, sheight);
+					glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, swidth, sheight, GL_RGBA, GL_UNSIGNED_BYTE, bg_data);
 
-				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-				glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 
-				*ptr_to_sh = temp_handle;
+					ptr_to_bh->store(temp_handle, std::memory_order_release);
 
-				SOIL_free_image_data(shadows_data);
+					SOIL_free_image_data(bg_data);
+				}
+
+				{
+					int32_t swidth = 0;
+					int32_t sheight = 0;
+					int32_t shchannel = 3;
+					unsigned char* shadows_data = SOIL_load_image(shadows_file.c_str(), &swidth, &sheight, &shchannel, 3);
+
+					uint32_t temp_handle;
+					glGenTextures(1, &temp_handle);
+					glBindTexture(GL_TEXTURE_RECTANGLE, temp_handle);
+
+					glTexStorage2D(GL_TEXTURE_RECTANGLE, 1, GL_RGB8, swidth, sheight);
+					glTexSubImage2D(GL_TEXTURE_RECTANGLE, 0, 0, 0, swidth, sheight, GL_RGB, GL_UNSIGNED_BYTE, shadows_data);
+
+					glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_RECTANGLE, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+					ptr_to_sh->store(temp_handle, std::memory_order_release);
+
+					SOIL_free_image_data(shadows_data);
+				}
 			});
 			st.detach();
 		}
@@ -1419,8 +1456,11 @@ namespace graphics {
 		glDisable(GL_DEPTH_TEST);
 	}
 
-	void map_display::render(open_gl_wrapper &, world_state const& ws) {
+	void map_display::render(open_gl_wrapper & ogl, world_state const& ws) {
 		if (ready) {
+			ogl.use_default_program();
+			ogl.render_textured_rect_direct(0.0f, 0.0f, float(ws.w.gui_m.width()), float(ws.w.gui_m.height()), data_textures.background_handle.load(std::memory_order_acquire));
+
 			glUseProgram(shader_handle);
 
 
@@ -1429,7 +1469,7 @@ namespace graphics {
 			glActiveTexture(GL_TEXTURE3);
 			glBindTexture(GL_TEXTURE_2D, data_textures.corner_handle);
 			glActiveTexture(GL_TEXTURE4);
-			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle);
+			glBindTexture(GL_TEXTURE_RECTANGLE, data_textures.shadows_handle.load(std::memory_order_acquire));
 
 			colors.bind_colors();
 

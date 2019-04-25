@@ -36,13 +36,14 @@ int main(int, char**);
 struct gui_window_handler {
 	world_state& s;
 	std::string shadows_file;
+	std::string map_bg_file;
 
 	
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
 	bool map_dragging = false;
 	std::pair<int32_t, int32_t> map_drag_start;
 
-	gui_window_handler(world_state& snm, std::string const& shadows) : s(snm), shadows_file(shadows) {
+	gui_window_handler(world_state& snm, std::string const& shadows, std::string const& bg) : s(snm), shadows_file(shadows), map_bg_file(bg) {
 		s.w.map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
 	}
 
@@ -128,7 +129,14 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::scroll& ss, ui::window_base&) {
 		if (!s.w.gui_m.on_scroll(s, ss)) {
-			s.w.map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
+			if(s.s.settings.zoom_setting == scenario::zoom_type::to_center) {
+				s.w.map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
+			} else {
+				auto const old_cursor = s.w.map.state.get_vector_for(s.w.map.state.normalize_screen_coordinates(ss.x,ss.y, s.w.gui_m.width(), s.w.gui_m.height()));
+				s.w.map.state.rescale_by(float(pow(2, ss.amount / 2.0f)));
+				auto const new_cursor = s.w.map.state.get_unrotated_vector_for(s.w.map.state.normalize_screen_coordinates(ss.x, ss.y, s.w.gui_m.width(), s.w.gui_m.height()));
+				s.w.map.state.move_vector_to(old_cursor, new_cursor);
+			}
 		}
 	}
 	void operator()(const ui::mouse_drag& m, ui::window_base&) {
@@ -154,7 +162,7 @@ struct gui_window_handler {
 		s.s.gui_m.fonts.load_fonts(ogl);
 	
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		s.w.map.initialize(ogl, s.s, shadows_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		s.w.map.initialize(ogl, s.s, shadows_file, map_bg_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 		s.w.map.state.resize(s.w.gui_m.width(), s.w.gui_m.height());
 		s.w.bottombar_w.update_location(s);
 	}
@@ -494,11 +502,16 @@ int main(int , char **) {
 
 	{
 		const auto map_dir = fs.get_root().get_directory(u"\\map");
-		
+		const auto gfx_dir = fs.get_root().get_directory(u"\\gfx");
+		const auto interface_dir = gfx_dir.get_directory(u"\\interface");
+
 		auto map_peek = map_dir.peek_file(u"shadows.png");
 		std::string shadows = map_peek ? UTF16toUTF8(map_peek->file_path() + u'\\' + map_peek->file_name()) : std::string();
 
-		ui::window<gui_window_handler> test_window(850, 650, ws, shadows);
+		auto bg_peek = interface_dir.peek_file(u"background_map.dds");
+		std::string map_bg = bg_peek ? UTF16toUTF8(bg_peek->file_path() + u'\\' + bg_peek->file_name()) : std::string();
+
+		ui::window<gui_window_handler> test_window(850, 650, ws, shadows, map_bg);
 
 		std::cout << "test window created" << std::endl;
 		getchar();

@@ -47,9 +47,6 @@ namespace menu {
 	};
 
 	
-	class sound_panel_t {};
-	class controls_panel_t {};
-
 	class graphics_menu_close_button {
 	public:
 		void button_function(ui::simple_button<graphics_menu_close_button>&, world_state& ws);
@@ -90,6 +87,34 @@ namespace menu {
 		void button_function(ui::simple_button<ui_scale_button<is_left>>&, world_state& ws);
 		void update(ui::simple_button<ui_scale_button<is_left>>& self, world_state& ws);
 	};
+
+
+	class controls_menu_close_button {
+	public:
+		void button_function(ui::simple_button<controls_menu_close_button>&, world_state& ws);
+	};
+
+
+	class zoom_mode_text {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	template<bool is_left>
+	class zoom_mode_button {
+	public:
+		void button_function(ui::simple_button<zoom_mode_button<is_left>>&, world_state& ws);
+		void update(ui::simple_button<zoom_mode_button<is_left>>& self, world_state& ws);
+	};
+
+	class sound_panel_t {};
+	class controls_panel_t : public ui::gui_window<
+		CT_STRING("close_button"), ui::simple_button<controls_menu_close_button>,
+		CT_STRING("zoom_mode_value"), ui::display_text<zoom_mode_text>,
+		CT_STRING("zoom_mode_left"), ui::simple_button<zoom_mode_button<true>>,
+		CT_STRING("zoom_mode_right"), ui::simple_button<zoom_mode_button<false>>,
+		menu_window_base
+	> {};
 
 	class graphics_panel_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<graphics_menu_close_button>,
@@ -165,5 +190,15 @@ namespace menu {
 			max_ui_scale = i;
 		}
 		ui::set_enabled(*self.associated_object, is_left ? (ws.s.settings.ui_scale != 0) : (ws.s.settings.ui_scale != max_ui_scale));
+	}
+	template<bool is_left>
+	void zoom_mode_button<is_left>::button_function(ui::simple_button<zoom_mode_button<is_left>>&, world_state & ws) {
+		ws.s.settings.zoom_setting = scenario::zoom_type(int32_t(ws.s.settings.zoom_setting) + (is_left ? -1 : 1));
+
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.controls->associated_object));
+	}
+	template<bool is_left>
+	void zoom_mode_button<is_left>::update(ui::simple_button<zoom_mode_button<is_left>>& self, world_state & ws) {
+		ui::set_enabled(*self.associated_object, is_left ? (int32_t(ws.s.settings.zoom_setting) != 0) : (int32_t(ws.s.settings.zoom_setting) != scenario::zoom_type_count - 1));
 	}
 }

@@ -14,24 +14,24 @@
 
 ui::gui_manager::~gui_manager() {};
 
-void ui::gui_manager::destroy(gui_object & g) {
-	if (gui_objects.safe_at(tooltip) == &g) {
+void ui::gui_manager::destroy(tagged_gui_object g) {
+	if (tooltip == g.id) {
 		hide_tooltip();
 		tooltip = gui_object_tag();
 	}
-	if (gui_objects.safe_at(focus) == &g)
+	if (focus == g.id)
 		focus = gui_object_tag();
 
-	if (g.associated_behavior) {
-		if ((g.flags.load(std::memory_order_relaxed) & gui_object::dynamic_behavior) != 0) {
-			g.associated_behavior->~gui_behavior();
-			concurrent_allocator<gui_behavior>().deallocate(g.associated_behavior, 1);
+	if (g.object.associated_behavior) {
+		if ((g.object.flags.load(std::memory_order_relaxed) & gui_object::dynamic_behavior) != 0) {
+			g.object.associated_behavior->~gui_behavior();
+			concurrent_allocator<gui_behavior>().deallocate(g.object.associated_behavior, 1);
 		}
-		g.associated_behavior = nullptr;
+		g.object.associated_behavior = nullptr;
 	}
-	const auto type_handle = g.type_dependant_handle.load(std::memory_order_relaxed);
+	const auto type_handle = g.object.type_dependant_handle.load(std::memory_order_relaxed);
 	if (type_handle != 0) {
-		const auto flags = g.flags.load(std::memory_order_relaxed);
+		const auto flags = g.object.flags.load(std::memory_order_relaxed);
 		if ((flags & gui_object::type_mask) == gui_object::type_text_instance) {
 			text_instances.free(text_instance_tag(type_handle));
 		} else if ((flags & gui_object::type_mask) == gui_object::type_graphics_object) {
@@ -42,20 +42,22 @@ void ui::gui_manager::destroy(gui_object & g) {
 		}
 	}
 
-	gui_object_tag child = g.first_child;
-	g.first_child = gui_object_tag();
+	gui_object_tag child = g.object.first_child;
+	g.object.first_child = gui_object_tag();
 
 	while (child != gui_object_tag()) {
 		gui_object_tag next = gui_objects.at(child).right_sibling;
-		gui_objects.free(child, *this);
+		destroy(tagged_gui_object{ gui_objects.at(child), child });
 		child = next;
 	}
 
-	g.parent = gui_object_tag();
-	g.left_sibling = gui_object_tag();
-	g.right_sibling = gui_object_tag();
-	g.flags.store(0, std::memory_order_release);
-	g.type_dependant_handle.store(0, std::memory_order_release);
+	g.object.parent = gui_object_tag();
+	g.object.left_sibling = gui_object_tag();
+	g.object.right_sibling = gui_object_tag();
+	g.object.flags.store(0, std::memory_order_release);
+	g.object.type_dependant_handle.store(0, std::memory_order_release);
+
+	gui_objects.free(g.id);
 }
 
 namespace ui {
@@ -1072,7 +1074,7 @@ void ui::clear_children(gui_manager& manager, tagged_gui_object g) {
 		auto& child_object = manager.gui_objects.at(current_child);
 		const gui_object_tag next_child = child_object.right_sibling;
 
-		manager.gui_objects.free(current_child, manager);
+		manager.destroy(tagged_gui_object{child_object, current_child});
 		current_child = next_child;
 	}
 }
@@ -1092,7 +1094,7 @@ void ui::remove_object(gui_manager& manager, tagged_gui_object g) {
 	if (is_valid_index(right_sibling))
 		manager.gui_objects.at(right_sibling).left_sibling = left_sibling;
 
-	manager.gui_objects.free(g.id, manager);
+	manager.destroy(g);
 }
 
 ui::tagged_gui_object ui::detail::last_sibling_of(const gui_manager& manager, tagged_gui_object g) {
@@ -1262,7 +1264,7 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 				obj.object.associated_behavior->create_tooltip(obj.id, static_manager, m, temp_holder);
 				
 				ui::replace_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, temp_holder);
-				static_manager.w.gui_m.gui_objects.free(temp_holder.id);
+				static_manager.w.gui_m.destroy(temp_holder);
 				
 				ui::shrink_to_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, 16);
 

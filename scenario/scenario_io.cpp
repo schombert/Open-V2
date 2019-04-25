@@ -763,5 +763,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::window_mode_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WINDOW_MODE_TWO");
 		s.fixed_ui_text[fixed_ui::projection_one] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTION_ONE");
 		s.fixed_ui_text[fixed_ui::projection_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTION_TWO");
+		s.fixed_ui_text[fixed_ui::zoom_one] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ZOOM_ONE");
+		s.fixed_ui_text[fixed_ui::zoom_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ZOOM_TWO");
 	}
 }

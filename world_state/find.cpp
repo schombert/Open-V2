@@ -31,10 +31,11 @@ namespace find_dialog {
 	void find_window::update_find_window(ui::gui_manager & gui_m) {
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
-	void find_window::show_find_window(ui::gui_manager & gui_m) {
-		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+	void find_window::show_find_window(world_state & ws) {
+		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
 		win->get<CT_STRING("find_edit")>().clear();
-		ui::make_visible_and_update(gui_m, *(win->associated_object));
+		ui::set_focus(ws, ui::find_in_parent(ws.w.gui_m, *(win->get<CT_STRING("find_edit")>().associated_object)));
+		ui::make_visible_and_update(ws.w.gui_m, *(win->associated_object));
 	}
 	void find_window::init_find_window(world_state & ws) {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["openv2_find_window"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);

@@ -1110,7 +1110,7 @@ namespace ui {
 		void flag_minimal_update();
 		bool check_and_clear_minimal_update() { bool expected = true; return pending_minimal_update.compare_exchange_strong(expected, false, std::memory_order_release, std::memory_order_acquire); }
 
-		void destroy(gui_object& g);
+		void destroy(tagged_gui_object g);
 		~gui_manager();
 	};
 

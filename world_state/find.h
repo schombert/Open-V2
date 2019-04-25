@@ -20,7 +20,7 @@ namespace find_dialog {
 
 		void hide_find_window(ui::gui_manager& gui_m);
 		void update_find_window(ui::gui_manager& gui_m);
-		void show_find_window(ui::gui_manager& gui_m);
+		void show_find_window(world_state& ws);
 		void init_find_window(world_state& ws);
 	};
 
