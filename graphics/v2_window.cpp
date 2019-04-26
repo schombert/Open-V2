@@ -122,6 +122,8 @@ namespace ui {
 				return int64_t(0);
 			case WM_TIMER:
 				return idle{};
+			case WM_GRAPHNOTIFY:
+				return music_finished{};
 		}
 		return int64_t(DefWindowProc(hwnd, uMsg, wParam, lParam));
 	}

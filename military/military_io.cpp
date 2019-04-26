@@ -960,10 +960,10 @@ namespace military {
 			}
 		}
 		void set_select_sound(const token_and_type& t) {
-			env.unit.select_sound = tag_from_text(env.sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(env.text, t.start, t.end));
+			//env.unit.select_sound = tag_from_text(env.sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(env.text, t.start, t.end));
 		}
 		void set_move_sound(const token_and_type& t) {
-			env.unit.move_sound = tag_from_text(env.sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(env.text, t.start, t.end));
+			//env.unit.move_sound = tag_from_text(env.sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(env.text, t.start, t.end));
 		}
 		void set_icon(uint8_t v) {
 			env.unit.icon = v;

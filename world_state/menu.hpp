@@ -107,7 +107,44 @@ namespace menu {
 		void update(ui::simple_button<zoom_mode_button<is_left>>& self, world_state& ws);
 	};
 
-	class sound_panel_t {};
+	class sound_menu_close_button {
+	public:
+		void button_function(ui::simple_button<sound_menu_close_button>&, world_state& ws);
+	};
+
+	class master_volume_scroll_bar {
+	public:
+		void on_position(world_state& ws, ui::scrollbar<master_volume_scroll_bar>& sb, int32_t pos);
+		void update(ui::scrollbar<master_volume_scroll_bar>& sb, world_state& ws);
+	};
+
+	class music_volume_scroll_bar {
+	public:
+		void on_position(world_state& ws, ui::scrollbar<music_volume_scroll_bar>& sb, int32_t pos);
+		void update(ui::scrollbar<music_volume_scroll_bar>& sb, world_state& ws);
+	};
+
+	class interface_volume_scroll_bar {
+	public:
+		void on_position(world_state& ws, ui::scrollbar<interface_volume_scroll_bar>& sb, int32_t pos);
+		void update(ui::scrollbar<interface_volume_scroll_bar>& sb, world_state& ws);
+	};
+
+	class effect_volume_scroll_bar {
+	public:
+		void on_position(world_state& ws, ui::scrollbar<effect_volume_scroll_bar>& sb, int32_t pos);
+		void update(ui::scrollbar<effect_volume_scroll_bar>& sb, world_state& ws);
+	};
+
+	class sound_panel_t : public ui::gui_window<
+		CT_STRING("close_button"), ui::simple_button<sound_menu_close_button>,
+		CT_STRING("master_volume_scroll_bar"), ui::scrollbar<master_volume_scroll_bar>,
+		CT_STRING("music_volume_scroll_bar"), ui::scrollbar<music_volume_scroll_bar>,
+		CT_STRING("interface_volume_scroll_bar"), ui::scrollbar<interface_volume_scroll_bar>,
+		CT_STRING("effect_volume_scroll_bar"), ui::scrollbar<effect_volume_scroll_bar>,
+		menu_window_base
+	> {};
+
 	class controls_panel_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<controls_menu_close_button>,
 		CT_STRING("zoom_mode_value"), ui::display_text<zoom_mode_text>,

@@ -167,6 +167,7 @@ bool ui::scrollbar_track<BASE>::on_lclick(gui_object_tag track, world_state& ws,
 	const auto[valid_start, valid_end] = parent.track_range();
 	const auto[minimum, maximum] = parent.range();
 	parent.adjust_position(ws, static_cast<int32_t>(static_cast<double>(((parent.vertical ? (ld.y + associated_object->position.y) : (ld.x + associated_object->position.x)) - valid_start) * (maximum - minimum)) / static_cast<double>(valid_end - valid_start)) + minimum);
+	sound::play_interface_sound(ws, ws.s.sound_m.click_sound);
 	return true;
 }
 

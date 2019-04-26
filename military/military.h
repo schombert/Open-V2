@@ -127,19 +127,19 @@ namespace military {
 
 		text_data::text_tag name; // 2 bytes
 		
-		sound::effect_tag select_sound; // 3 bytes
-		sound::effect_tag move_sound; // 4 bytes
+		//sound::effect_tag select_sound; // 3 bytes
+		//sound::effect_tag move_sound; // 4 bytes
 
-		int8_t limit_per_port = -1i8; // 5 bytes
-		uint8_t supply_consumption_score = 0ui8; // 6 bytes
-		uint8_t icon = 0ui8; // 7 bytes
-		uint8_t naval_icon = 0ui8; // 8 bytes
-		uint8_t colonial_points = 0ui8; // 9 bytes
-		uint8_t min_port_level = 0ui8; // 10 bytes
+		int8_t limit_per_port = -1i8; // 3 bytes
+		uint8_t supply_consumption_score = 0ui8; // 4 bytes
+		uint8_t icon = 0ui8; // 5 bytes
+		uint8_t naval_icon = 0ui8; // 6 bytes
+		uint8_t colonial_points = 0ui8; // 7 bytes
+		uint8_t min_port_level = 0ui8; // 8 bytes
 
-		uint8_t flags = 0ui8; // 11 bytes
+		uint8_t flags = 0ui8; // 9 bytes
 
-		unit_type_tag id; // 12 bytes
+		unit_type_tag id; // 10 bytes
 
 		unit_type() {
 			base_attributes[unit_attribute::enabled] = unit_attribute_type(1);

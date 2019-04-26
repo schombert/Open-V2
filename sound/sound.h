@@ -1,44 +1,69 @@
 #pragma once
 #include "common\\common.h"
 #include "common\\shared_tags.h"
+#include "simple_fs\\simple_fs.h"
+
+class world_state;
 
 namespace sound {
-	struct sound_effect {
-		std::u16string filename;
-		float volume;
+	class sound_manager;
 
-		sound_effect() {}
-		sound_effect(const std::u16string& fn, float v) : filename(fn), volume(v) {}
-	};
-	struct music_file {
+	class audio_instance {
+	private:
 		std::u16string filename;
+		void* graph_interface = nullptr;
+		void* control_interface = nullptr;
+		void* audio_interface = nullptr;
+		void* seek_interface = nullptr;
+		void* event_interface = nullptr;
+	public:
+		float volume_multiplier = 1.0f;
 
-		music_file(const std::u16string& fn) : filename(fn) {}
+		audio_instance() {}
+		audio_instance(std::u16string const& file) : filename(file) {}
+		audio_instance(audio_instance const&) = delete;
+		audio_instance(audio_instance&& o) noexcept;
+		~audio_instance();
+
+		void set_file(std::u16string const& file) { filename = file; }
+		void play(float volume, bool as_music, void* window_handle);
+		void stop() const;
+		bool is_playing() const;
+		void change_volume(float new_volume) const;
+
+		friend class sound_manager;
 	};
 
 	class sound_manager {
-	public:
-		tagged_vector<sound_effect, effect_tag> sound_effects;
-		tagged_vector<music_file, music_tag> music;
-		
-		boost::container::flat_map<text_data::text_tag, effect_tag> named_sound_effects;
-
-		effect_tag click;
-	};
-
-	class active_sound_state {
 	private:
-		float _music_volume = 1.0f;
-		float _effect_volume = 1.0f;
+		audio_instance* current_effect = nullptr;
+		audio_instance* current_interface_sound = nullptr;
 	public:
-		float effect_volume() const noexcept { return _effect_volume; }
-		float music_volume() const noexcept { return _music_volume; }
-		void set_effect_volume(float v);
-		void set_music_volume(float v);
+		void* window_handle = nullptr;
+		int32_t last_music = -1;
+		int32_t first_music = -1;
+
+		audio_instance click_sound;
+
+		std::vector<audio_instance> music_list;
+
+		void play_effect(audio_instance& s, float volume);
+		void play_interface_sound(audio_instance& s, float volume);
+		void play_music(int32_t track, float volume);
+
+		void change_effect_volume(float v) const;
+		void change_interface_volume(float v) const;
+		void change_music_volume(float v) const;
+
+		bool music_finished() const;
+
+		sound_manager();
+		~sound_manager();
 	};
 
-	void play_effect(active_sound_state& state, sound_manager& maanger, effect_tag effect);
-	void play_effect_immediate(active_sound_state& state, sound_manager& maanger, effect_tag effect);
-	void start_music(active_sound_state& state, sound_manager& maanger);
-	void stop_music(active_sound_state& state, sound_manager& maanger);
+	void init_sound_manager(sound_manager& s, const directory& root, void* window_handle);
+
+	void play_effect(world_state& ws, audio_instance& s);
+	void play_interface_sound(world_state& ws, audio_instance& s);
+	void play_new_track(world_state& ws);
 }

@@ -49,8 +49,8 @@ namespace scenario {
 		provinces::read_continents(province_state, root);
 		provinces::read_climates(province_state, root);
 
-		sound::populate_music(s.sound_m, root);
-		sound::read_effects(s.sound_m, s.gui_m.text_data_sequences, root);
+		//sound::populate_music(s.sound_m, root);
+		//sound::read_effects(s.sound_m, s.gui_m.text_data_sequences, root);
 
 		technologies::parsing_state tech_state(s.gui_m.text_data_sequences, root, s.technology_m, s.modifiers_m, s.gui_m.textures);
 		technologies::pre_parse_technologies(tech_state, root);

@@ -37,13 +37,13 @@ struct gui_window_handler {
 	world_state& s;
 	std::string shadows_file;
 	std::string map_bg_file;
-
+	const directory root;
 	
 	Eigen::Vector3f interest = Eigen::Vector3f::UnitX();
 	bool map_dragging = false;
 	std::pair<int32_t, int32_t> map_drag_start;
 
-	gui_window_handler(world_state& snm, std::string const& shadows, std::string const& bg) : s(snm), shadows_file(shadows), map_bg_file(bg) {
+	gui_window_handler(world_state& snm, std::string const& shadows, std::string const& bg, directory const& d) : s(snm), shadows_file(shadows), map_bg_file(bg), root(d) {
 		s.w.map.colors.init_color_data(static_cast<uint32_t>(s.s.province_m.province_container.size()));
 	}
 
@@ -52,10 +52,18 @@ struct gui_window_handler {
 		// do nothing;
 	}
 
-	void operator()(const ui::creation&, ui::window_base&) {
+	void operator()(const ui::creation&, ui::window_base& win) {
 		s.w.init_gui_objects(s);
+		sound::init_sound_manager(s.s.sound_m, root, win.get_handle());
+		if(s.s.sound_m.first_music != -1)
+			s.s.sound_m.play_music(s.s.sound_m.first_music, s.s.settings.music_volume * s.s.settings.master_volume);
+		else
+			sound::play_new_track(s);
 	}
-
+	void operator()(const ui::music_finished&, ui::window_base&) {
+		if(s.s.sound_m.music_finished())
+			sound::play_new_track(s);
+	}
 	void operator()(const ui::resize& r, ui::window_base&) {
 		s.w.gui_m.on_resize(r);
 		s.w.map.state.resize(static_cast<int32_t>(r.width), static_cast<int32_t>(r.height));
@@ -85,6 +93,7 @@ struct gui_window_handler {
 				
 				s.w.map_view.selected_province = provinces::province_tag(id);
 				if(is_valid_index(provinces::province_tag(id)) && id != 0 && id < s.s.province_m.first_sea_province) {
+					sound::play_interface_sound(s, s.s.sound_m.click_sound);
 					s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
 
 					if(auto sid = provinces::province_state(s, provinces::province_tag(id)); sid) {
@@ -108,6 +117,7 @@ struct gui_window_handler {
 	void operator()(const ui::key_down& m, ui::window_base&) {
 		if(!s.w.gui_m.on_keydown(s, m)) {
 			if(m.keycode == virtual_key::ESCAPE) {
+				sound::play_interface_sound(s, s.s.sound_m.click_sound);
 				s.w.menu_w.show_menu_window(s);
 			} else if(m.keycode == virtual_key::NUMPAD1 || m.keycode == virtual_key::NUM_1) {
 				s.w.map_view.mode = current_state::map_mode::political;
@@ -511,7 +521,7 @@ int main(int , char **) {
 		auto bg_peek = interface_dir.peek_file(u"background_map.dds");
 		std::string map_bg = bg_peek ? UTF16toUTF8(bg_peek->file_path() + u'\\' + bg_peek->file_name()) : std::string();
 
-		ui::window<gui_window_handler> test_window(850, 650, ws, shadows, map_bg);
+		ui::window<gui_window_handler> test_window(850, 650, ws, shadows, map_bg, fs.get_root());
 
 		std::cout << "test window created" << std::endl;
 		getchar();

@@ -20,7 +20,10 @@ void menu::graphics_button::button_function(ui::simple_button<graphics_button>&,
 	ui::hide(*(ws.w.menu_w.win->associated_object));
 }
 
-void menu::sound_button::button_function(ui::simple_button<sound_button>&, world_state & ws) {}
+void menu::sound_button::button_function(ui::simple_button<sound_button>&, world_state & ws) {
+	ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.sound->associated_object));
+	ui::hide(*(ws.w.menu_w.win->associated_object));
+}
 
 void menu::controls_button::button_function(ui::simple_button<controls_button>&, world_state & ws) {
 	ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.controls->associated_object));
@@ -53,6 +56,7 @@ void menu::menu_window::init_menu_window(world_state & ws) {
 	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_main_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_graphics_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *(this->graphics));
 	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_controls_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *(this->controls));
+	ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_audio_menu"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *(this->sound));
 }
 
 void menu::graphics_menu_close_button::button_function(ui::simple_button<graphics_menu_close_button>&, world_state & ws) {
@@ -108,4 +112,55 @@ void menu::zoom_mode_text::update(ui::tagged_gui_object box, ui::text_box_line_m
 		box,
 		lm);
 	lm.finish_current_line();
+}
+
+void menu::sound_menu_close_button::button_function(ui::simple_button<sound_menu_close_button>&, world_state & ws) {
+	// todo: save settings if changed
+	ui::make_visible_immediate(*(ws.w.menu_w.win->associated_object));
+	ui::hide(*(ws.w.menu_w.sound->associated_object));
+}
+
+void menu::master_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<master_volume_scroll_bar>& sb, int32_t pos) {
+	auto const old_volume = ws.s.settings.master_volume;
+	ws.s.settings.master_volume = float(pos) / 128.0f;
+	if(old_volume == 0.0f && ws.s.settings.master_volume != 0.0f) {
+		sound::play_new_track(ws);
+	} else {
+		ws.s.sound_m.change_music_volume(ws.s.settings.master_volume * ws.s.settings.music_volume);
+	}
+
+}
+
+void menu::master_volume_scroll_bar::update(ui::scrollbar<master_volume_scroll_bar>& sb, world_state & ws) {
+	sb.update_position(int32_t(ws.s.settings.master_volume * 128.0f));
+}
+
+void menu::music_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<music_volume_scroll_bar>& sb, int32_t pos) {
+	auto const old_volume = ws.s.settings.music_volume;
+	ws.s.settings.music_volume = float(pos) / 128.0f;
+	if(old_volume == 0.0f && ws.s.settings.music_volume != 0.0f) {
+		sound::play_new_track(ws);
+	} else {
+		ws.s.sound_m.change_music_volume(ws.s.settings.master_volume * ws.s.settings.music_volume);
+	}
+}
+
+void menu::music_volume_scroll_bar::update(ui::scrollbar<music_volume_scroll_bar>& sb, world_state & ws) {
+	sb.update_position(int32_t(ws.s.settings.music_volume * 128.0f));
+}
+
+void menu::interface_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<interface_volume_scroll_bar>& sb, int32_t pos) {
+	ws.s.settings.interface_volume = float(pos) / 128.0f;
+}
+
+void menu::interface_volume_scroll_bar::update(ui::scrollbar<interface_volume_scroll_bar>& sb, world_state & ws) {
+	sb.update_position(int32_t(ws.s.settings.interface_volume * 128.0f));
+}
+
+void menu::effect_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<effect_volume_scroll_bar>& sb, int32_t pos) {
+	ws.s.settings.effects_volume = float(pos) / 128.0f;
+}
+
+void menu::effect_volume_scroll_bar::update(ui::scrollbar<effect_volume_scroll_bar>& sb, world_state & ws) {
+	sb.update_position(int32_t(ws.s.settings.effects_volume * 128.0f));
 }

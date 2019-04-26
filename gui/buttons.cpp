@@ -5,12 +5,14 @@
 #include "world_state\\world_state.h"
 
 bool ui::button_group_member::on_lclick(gui_object_tag , world_state& m, const lbutton_down&) {
+	sound::play_interface_sound(m, m.s.sound_m.click_sound);
 	group->select(m, _index);
 	return true;
 }
 
 bool ui::button_group_member::on_keydown(gui_object_tag , world_state& m, const key_down& k) {
 	if (k.keycode == shortcut) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		group->select(m, _index);
 		return true;
 	} else {

@@ -4,12 +4,14 @@
 template<typename BASE>
 bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(o, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
@@ -23,18 +25,21 @@ bool ui::simple_button<BASE>::on_lclick(gui_object_tag o, world_state& m, const 
 template<typename BASE>
 bool ui::button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton_down & message) {
 	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, lbutton_down, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, message, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
 			m.w.gui_m.refresh_tooltip(m);
 		return true;
 	} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, message.mod, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
@@ -48,6 +53,7 @@ bool ui::button<BASE>::on_lclick(gui_object_tag o, world_state& m, const lbutton
 template<typename BASE>
 bool ui::button<BASE>::on_rclick(gui_object_tag o, world_state& m, const rbutton_down & message) {
 	if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, rbutton_down, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, message, m);
 
 		if constexpr(ui::detail::has_has_tooltip<BASE, world_state&>)
@@ -61,10 +67,12 @@ bool ui::button<BASE>::on_rclick(gui_object_tag o, world_state& m, const rbutton
 template<typename BASE>
 bool ui::masked_flag<BASE>::on_lclick(gui_object_tag, world_state& m, const lbutton_down &) {
 	if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>) {
+		sound::play_interface_sound(m, m.s.sound_m.click_sound);
 		BASE::button_function(*this, m);
 	} else {
 		if(is_valid_index(displayed_flag)) {
 			if(auto holder = m.w.culture_s.tags_to_holders[displayed_flag]; m.w.nation_s.nations.is_valid_index(holder)) {
+				sound::play_interface_sound(m, m.s.sound_m.click_sound);
 				m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, holder);
 			}
 		}
@@ -85,10 +93,13 @@ bool ui::simple_button<BASE>::mouse_consumer(ui::xy_pair) {
 template<typename BASE>
 bool ui::simple_button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
 	if (k.keycode == shortcut) {
-		if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>)
+		if constexpr(ui::detail::has_button_function<BASE, gui_object_tag, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(o, m);
-		else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>)
+		} else if constexpr(ui::detail::has_button_function<BASE, ui::simple_button<BASE>&, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(*this, m);
+		}
 		return true;
 	} else {
 		return false;
@@ -111,12 +122,15 @@ template<typename BASE>
 bool ui::button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_down & k) {
 	if(k.keycode == shortcut) {
 		if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(*this, m);
 			return true;
 		} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_down, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(*this, k, m);
 			return true;
 		} else if constexpr(ui::detail::has_button_function<BASE, ui::button<BASE>&, key_modifiers, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(*this, k.mod, m);
 			return true;
 		} else {
@@ -130,11 +144,13 @@ bool ui::button<BASE>::on_keydown(gui_object_tag o, world_state & m, const key_d
 template<typename BASE>
 bool ui::masked_flag<BASE>::on_keydown(gui_object_tag, world_state & m, const key_down & k) {
 	if(k.keycode == shortcut) {
-		if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>)
+		if constexpr(ui::detail::has_button_function<BASE, masked_flag<BASE>&, world_state&>) {
+			sound::play_interface_sound(m, m.s.sound_m.click_sound);
 			BASE::button_function(*this, m);
-		else {
+		} else {
 			if(is_valid_index(displayed_flag)) {
 				if(auto holder = m.w.culture_s.tags_to_holders[displayed_flag]; m.w.nation_s.nations.is_valid_index(holder)) {
+					sound::play_interface_sound(m, m.s.sound_m.click_sound);
 					m.w.diplomacy_w.show_diplomacy_window(m.w.gui_m, holder);
 				}
 			}

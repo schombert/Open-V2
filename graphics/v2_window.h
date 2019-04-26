@@ -8,6 +8,8 @@
 #include "common\\common.h"
 #include "open_gl_wrapper.h"
 
+#define WM_GRAPHNOTIFY  (WM_APP + 1)
+
 namespace ui {
 	struct message_with_location {
 		int32_t x;
@@ -64,6 +66,7 @@ namespace ui {
 		char16_t text;
 	};
 
+	struct music_finished {};
 	struct creation {};
 	struct idle {};
 
@@ -99,7 +102,7 @@ namespace ui {
 			return true;
 	}
 
-	using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation, idle>;
+	using message_variant = std::variant<int64_t, rbutton_down, rbutton_up, lbutton_down, lbutton_up, resize, scroll, key_down, key_up, text_event, mouse_move, mouse_drag, creation, idle, music_finished>;
 
 	message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 
@@ -121,6 +124,7 @@ namespace ui {
 
 		void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);
 		void close_window();
+		void* get_handle() const { return handle; }
 
 		friend message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 		template<typename T>
