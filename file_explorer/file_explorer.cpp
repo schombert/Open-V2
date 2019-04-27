@@ -59,6 +59,8 @@ struct gui_window_handler {
 			s.s.sound_m.play_music(s.s.sound_m.first_music, s.s.settings.music_volume * s.s.settings.master_volume);
 		else
 			sound::play_new_track(s);
+
+		win.make_fullscreen();
 	}
 	void operator()(const ui::music_finished&, ui::window_base&) {
 		if(s.s.sound_m.music_finished())
@@ -188,6 +190,10 @@ struct gui_window_handler {
 
 		if(s.w.end_game.load(std::memory_order_acquire))
 			win.close_window();
+		if(s.s.settings.window_mode == 0)
+			win.remove_fullscreen();
+		else
+			win.make_fullscreen();
 	}
 
 	void render(graphics::open_gl_wrapper& ogl) {
@@ -211,91 +217,7 @@ auto fake_gobj_lookup() {
 }
 
 int main(int , char **) {
-	/*
-	const int32_t dimension = 100;
-
-	std::vector<float> production_qnty(dimension);
-	std::vector<float> base_spending(dimension);
-
-	auto aligned_dimension_size = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(dimension) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-	auto padded_aligned_size = aligned_dimension_size + 32ui32 / sizeof(economy::money_qnty_type);
-
-	std::vector<float, concurrent_allocator<float>> values_v(padded_aligned_size);
-	std::vector<float, concurrent_allocator<float>> first_derivatives_v(padded_aligned_size);
-	std::vector<float, concurrent_allocator<float>> second_derivatives_v(padded_aligned_size);
-
-	size_t space = padded_aligned_size * sizeof(economy::money_qnty_type);
-	void* ptr = values_v.data();
-	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> values(
-		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
 	
-	space = padded_aligned_size * sizeof(economy::money_qnty_type);
-	ptr = first_derivatives_v.data();
-	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> first_derivatives(
-		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
-
-	space = padded_aligned_size * sizeof(economy::money_qnty_type);
-	ptr = second_derivatives_v.data();
-	Eigen::Map<Eigen::Matrix<economy::money_qnty_type, 1, -1>, Eigen::Aligned32> second_derivatives(
-		(economy::money_qnty_type*)std::align(32, aligned_dimension_size * sizeof(economy::money_qnty_type), ptr, space), aligned_dimension_size);
-
-	values[0] = 200.0f;
-
-	std::uniform_real_distribution<float> dist(10.0f, 400.0f);
-	std::uniform_real_distribution<float> pdist(0.0f, 50.0f);
-	auto& gen = get_local_generator();
-
-	for(int32_t i = 0; i < dimension; ++i) {
-		base_spending[i] = dist(gen);
-		auto pq = pdist(gen);
-		if(pq >= 25.0f)
-			production_qnty[i] = pq;
-	}
-
-	std::cout << "base value: " << production_qnty[0] * values[0] / (base_spending[0] + values[0]) << std::endl << std::flush;
-
-	for(uint32_t i = 0; i < 400; ++i) {
-
-		first_derivatives[0] = base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0]));
-		second_derivatives[0] = -2.0f * base_spending[0] * production_qnty[0] / ((base_spending[0] + values[0])*(base_spending[0] + values[0])* (base_spending[0] + values[0]));
-
-		for(uint32_t i = 1; i < dimension; ++i) {
-			auto ufactor = i * 0.01f;
-			auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
-			auto cterm = -4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm;
-
-			first_derivatives[i] = 1.0f / (2.0f * ufactor) + (-base_spending[i] - values[i] + production_qnty[i] * ufactor) / (2.0f * ufactor * sqrt(cterm));
-			second_derivatives[i] = -2.0f * base_spending[i] * production_qnty[i] / std::pow(cterm, 1.5f);
-
-			if(values[i] < 0.0001f) {
-				values[i] = 0;
-				if(first_derivatives[i] < 0) {
-					first_derivatives[i] = 0;
-					second_derivatives[i] = 0;
-				}
-			}
-		}
-
-		economy::perform_cg_step(values, first_derivatives, second_derivatives, uint32_t(aligned_dimension_size), 1.0f);
-		auto new_value = std::transform_reduce(integer_iterator(1), integer_iterator(dimension),
-			production_qnty[0] * values[0] / (base_spending[0] + values[0]), std::plus<float>(),
-			[&production_qnty, &base_spending, &values](int32_t i) {
-			auto ufactor = i * 0.01f;
-			auto iterm = base_spending[i] + values[i] + production_qnty[i] * ufactor;
-			return (base_spending[i] + values[i] + production_qnty[i] * ufactor - sqrt(-4.0f * values[i] * production_qnty[i] * ufactor + iterm * iterm)) / (2.0f * ufactor);
-		});
-
-		bool all_valid = std::transform_reduce(integer_iterator(0), integer_iterator(dimension), true,
-			[](bool a, bool b) { return a && b; }, [&values](int32_t i) { return values[i] >= 0; });
-	
-		std::cout << "value: " << new_value << " total: " << values.sum() << " all valid: " << all_valid << std::endl << std::flush;
-		for(int32_t j = 0; j < dimension; ++j) {
-			if(values[j] < 0) {
-				std::cout << "invalid: " << j << " value: " << values[j] << std::endl << std::flush;
-			}
-		}
-	}
-	*/
 
 	file_system fs;
 	fs.set_root(u"D:\\programs\\V2");
@@ -502,7 +424,7 @@ int main(int , char **) {
 	nations::recalculate_state_nation_demographics(ws);
 
 	init_tooltip_window(ws.s.gui_m, ws.w.gui_m);
-	ws.w.gui_m.on_resize(ui::resize{ 850ui32, 650ui32 });
+	ws.w.gui_m.on_resize(ui::resize{ 1024ui32, 800ui32 });
 
 	std::cout << ws.w.nation_s.nations.get<nation::treasury>(ws.w.local_player_nation) << std::endl;
 
@@ -521,7 +443,7 @@ int main(int , char **) {
 		auto bg_peek = interface_dir.peek_file(u"background_map.dds");
 		std::string map_bg = bg_peek ? UTF16toUTF8(bg_peek->file_path() + u'\\' + bg_peek->file_name()) : std::string();
 
-		ui::window<gui_window_handler> test_window(850, 650, ws, shadows, map_bg, fs.get_root());
+		ui::window<gui_window_handler> test_window(1024, 800, ws, shadows, map_bg, fs.get_root());
 
 		std::cout << "test window created" << std::endl;
 		getchar();

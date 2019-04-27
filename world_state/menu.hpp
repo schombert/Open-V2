@@ -143,7 +143,10 @@ namespace menu {
 		CT_STRING("interface_volume_scroll_bar"), ui::scrollbar<interface_volume_scroll_bar>,
 		CT_STRING("effect_volume_scroll_bar"), ui::scrollbar<effect_volume_scroll_bar>,
 		menu_window_base
-	> {};
+	> {
+	public:
+		bool sound_setting_changed = false;
+	};
 
 	class controls_panel_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<controls_menu_close_button>,
@@ -151,7 +154,10 @@ namespace menu {
 		CT_STRING("zoom_mode_left"), ui::simple_button<zoom_mode_button<true>>,
 		CT_STRING("zoom_mode_right"), ui::simple_button<zoom_mode_button<false>>,
 		menu_window_base
-	> {};
+	> {
+	public:
+		bool control_setting_changed = false;
+	};
 
 	class graphics_panel_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<graphics_menu_close_button>,
@@ -165,7 +171,10 @@ namespace menu {
 		CT_STRING("ui_scale_left"), ui::simple_button<ui_scale_button<true>>,
 		CT_STRING("ui_scale_right"), ui::simple_button<ui_scale_button<false>>,
 		menu_window_base
-	> {};
+	> {
+	public:
+		bool graphics_setting_changed = false;
+	};
 
 	class menu_window_t : public ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<menu_close_button>,
@@ -186,6 +195,7 @@ namespace menu {
 	void window_mode_button<is_left>::button_function(ui::simple_button<window_mode_button<is_left>>&, world_state & ws) {
 		ws.s.settings.window_mode = ws.s.settings.window_mode + (is_left ? -1 : 1);
 
+		ws.w.menu_w.graphics->graphics_setting_changed = true;
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.graphics->associated_object));
 	}
 	template<bool is_left>
@@ -200,6 +210,7 @@ namespace menu {
 			ws.w.map.state.set_projection(graphics::projection_type::standard_map);
 		else if(ws.s.settings.projection == 1)
 			ws.w.map.state.set_projection(graphics::projection_type::spherical);
+		ws.w.menu_w.graphics->graphics_setting_changed = true;
 
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.graphics->associated_object));
 	}
@@ -213,6 +224,7 @@ namespace menu {
 
 		ws.w.gui_m.rescale(scenario::ui_scales[ws.s.settings.ui_scale]);
 		ws.w.topbar_w.resize_topbar(ws.w.gui_m);
+		ws.w.menu_w.graphics->graphics_setting_changed = true;
 
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.graphics->associated_object));
 	}
@@ -231,7 +243,7 @@ namespace menu {
 	template<bool is_left>
 	void zoom_mode_button<is_left>::button_function(ui::simple_button<zoom_mode_button<is_left>>&, world_state & ws) {
 		ws.s.settings.zoom_setting = scenario::zoom_type(int32_t(ws.s.settings.zoom_setting) + (is_left ? -1 : 1));
-
+		ws.w.menu_w.controls->control_setting_changed = true;
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.controls->associated_object));
 	}
 	template<bool is_left>

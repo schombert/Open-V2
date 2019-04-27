@@ -5,12 +5,6 @@
 #include "gui\\gui.hpp"
 
 namespace current_state {
-	class topbar_bg {
-	public:
-		void button_function(ui::simple_button<topbar_bg>&, world_state&) {} // just to trap clicks
-		void on_create(ui::simple_button<topbar_bg>&, world_state&);
-	};
-
 	class player_flag {
 	public:
 		void update(ui::masked_flag<player_flag>& self, world_state& ws);
@@ -386,8 +380,8 @@ namespace current_state {
 
 
 	class topbar_t : public ui::gui_window <
-		CT_STRING("topbar_bg"), ui::simple_button<topbar_bg>,
-		CT_STRING("topbar_paper"), ui::simple_button<topbar_bg>,
+		CT_STRING("topbar_bg"), ui::background_icon,
+		CT_STRING("topbar_paper"), ui::background_icon,
 		CT_STRING("player_flag"), ui::masked_flag<player_flag>,
 		CT_STRING("topbar_flag_overlay"), ui::dynamic_transparent_icon<player_flag_frame>,
 		CT_STRING("topbarbutton_production"), ui::simple_button<production_button>,
@@ -464,6 +458,8 @@ namespace current_state {
 	void topbar_base::on_create(W& w, world_state& ws) {
 		w.associated_object->size.y = 160i16;
 		w.associated_object->size.x = int16_t(ws.w.gui_m.width());
+
+		w.get<CT_STRING("topbar_bg")>().associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
 	}
 
 	template<int32_t nth>

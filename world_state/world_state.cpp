@@ -12,6 +12,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "issues\\issues_functions.h"
 #include "events\\event_functions.h"
+#include "scenario\\settings.h"
 #include <chrono>
 
 #include <Windows.h>
@@ -152,6 +153,7 @@ void apply_new_settings(world_state& ws) {
 		ws.w.map.state.set_projection(graphics::projection_type::standard_map);
 	else if(ws.s.settings.projection == 1)
 		ws.w.map.state.set_projection(graphics::projection_type::spherical);
+	ws.s.sound_m.change_music_volume(ws.s.settings.music_volume * ws.s.settings.master_volume);
 }
 
 namespace current_state {
@@ -160,6 +162,7 @@ namespace current_state {
 	state::~state() {}
 
 	void state::init_gui_objects(world_state& ws) {
+		settings::load_settings(ws.s);
 		apply_new_settings(ws);
 
 		topbar_w.init_topbar(ws);

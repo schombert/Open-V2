@@ -71,5 +71,8 @@
     <ClCompile Include="gui_io.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="icons.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

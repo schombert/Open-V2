@@ -157,6 +157,7 @@
     <ClCompile Include="buttons.cpp" />
     <ClCompile Include="gui.cpp" />
     <ClCompile Include="gui_io.cpp" />
+    <ClCompile Include="icons.cpp" />
     <ClCompile Include="listbox.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

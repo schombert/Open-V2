@@ -117,7 +117,7 @@ namespace ui {
 		void* handle = nullptr;
 		graphics::open_gl_wrapper gl_wrapper;
 		std::thread message_thread;
-		const bool topmost;
+		bool topmost;
 	public:
 		window_base(bool t);
 		~window_base();
@@ -125,6 +125,9 @@ namespace ui {
 		void generic_setup(long* (__stdcall *win_proc)(void*, unsigned int, unsigned int*, long*), uint32_t xsize, uint32_t ysize);
 		void close_window();
 		void* get_handle() const { return handle; }
+		void maximize();
+		void make_fullscreen();
+		void remove_fullscreen();
 
 		friend message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam);
 		template<typename T>

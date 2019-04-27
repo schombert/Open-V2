@@ -7,10 +7,6 @@
 #include "governments\\governments_functions.h"
 
 namespace current_state {
-	void topbar_bg::on_create(ui::simple_button<topbar_bg>& bttn, world_state &) {
-		bttn.associated_object->flags.fetch_or(ui::gui_object::force_transparency_check, std::memory_order_acq_rel);
-		bttn.associated_object->flags.fetch_and(uint16_t(~ui::gui_object::interactable), std::memory_order_acq_rel);
-	}
 
 	void player_flag::update(ui::masked_flag<player_flag>& self, world_state& ws) {
 		auto player = ws.w.local_player_nation;

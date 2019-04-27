@@ -142,10 +142,12 @@
   <ItemGroup>
     <ClInclude Include="scenario.h" />
     <ClInclude Include="scenario_io.h" />
+    <ClInclude Include="settings.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="scenario.cpp" />
     <ClCompile Include="scenario_io.cpp" />
+    <ClCompile Include="settings.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

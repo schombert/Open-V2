@@ -1,4 +1,5 @@
 #include "menu.hpp"
+#include "scenario\\settings.h"
 
 void menu::menu_close_button::button_function(ui::simple_button<menu_close_button>&, world_state & ws) {
 	ws.w.menu_w.hide_menu_window(ws);
@@ -60,7 +61,10 @@ void menu::menu_window::init_menu_window(world_state & ws) {
 }
 
 void menu::graphics_menu_close_button::button_function(ui::simple_button<graphics_menu_close_button>&, world_state & ws) {
-	// todo: save settings if changed
+	if(ws.w.menu_w.graphics->graphics_setting_changed) {
+		settings::save_settings(ws.s);
+		ws.w.menu_w.graphics->graphics_setting_changed = false;
+	}
 	ui::make_visible_immediate( *(ws.w.menu_w.win->associated_object));
 	ui::hide(*(ws.w.menu_w.graphics->associated_object));
 }
@@ -97,7 +101,10 @@ void menu::ui_scale_text::update(ui::tagged_gui_object box, ui::text_box_line_ma
 }
 
 void menu::controls_menu_close_button::button_function(ui::simple_button<controls_menu_close_button>&, world_state & ws) {
-	// todo: save settings if changed
+	if(ws.w.menu_w.controls->control_setting_changed) {
+		settings::save_settings(ws.s);
+		ws.w.menu_w.controls->control_setting_changed = false;
+	}
 	ui::make_visible_immediate(*(ws.w.menu_w.win->associated_object));
 	ui::hide(*(ws.w.menu_w.controls->associated_object));
 }
@@ -115,7 +122,10 @@ void menu::zoom_mode_text::update(ui::tagged_gui_object box, ui::text_box_line_m
 }
 
 void menu::sound_menu_close_button::button_function(ui::simple_button<sound_menu_close_button>&, world_state & ws) {
-	// todo: save settings if changed
+	if(ws.w.menu_w.sound->sound_setting_changed) {
+		settings::save_settings(ws.s);
+		ws.w.menu_w.sound->sound_setting_changed = false;
+	}
 	ui::make_visible_immediate(*(ws.w.menu_w.win->associated_object));
 	ui::hide(*(ws.w.menu_w.sound->associated_object));
 }
@@ -128,7 +138,7 @@ void menu::master_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar
 	} else {
 		ws.s.sound_m.change_music_volume(ws.s.settings.master_volume * ws.s.settings.music_volume);
 	}
-
+	ws.w.menu_w.sound->sound_setting_changed = false;
 }
 
 void menu::master_volume_scroll_bar::update(ui::scrollbar<master_volume_scroll_bar>& sb, world_state & ws) {
@@ -143,6 +153,7 @@ void menu::music_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<
 	} else {
 		ws.s.sound_m.change_music_volume(ws.s.settings.master_volume * ws.s.settings.music_volume);
 	}
+	ws.w.menu_w.sound->sound_setting_changed = true;
 }
 
 void menu::music_volume_scroll_bar::update(ui::scrollbar<music_volume_scroll_bar>& sb, world_state & ws) {
@@ -151,6 +162,7 @@ void menu::music_volume_scroll_bar::update(ui::scrollbar<music_volume_scroll_bar
 
 void menu::interface_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<interface_volume_scroll_bar>& sb, int32_t pos) {
 	ws.s.settings.interface_volume = float(pos) / 128.0f;
+	ws.w.menu_w.sound->sound_setting_changed = true;
 }
 
 void menu::interface_volume_scroll_bar::update(ui::scrollbar<interface_volume_scroll_bar>& sb, world_state & ws) {
@@ -159,6 +171,7 @@ void menu::interface_volume_scroll_bar::update(ui::scrollbar<interface_volume_sc
 
 void menu::effect_volume_scroll_bar::on_position(world_state & ws, ui::scrollbar<effect_volume_scroll_bar>& sb, int32_t pos) {
 	ws.s.settings.effects_volume = float(pos) / 128.0f;
+	ws.w.menu_w.sound->sound_setting_changed = true;
 }
 
 void menu::effect_volume_scroll_bar::update(ui::scrollbar<effect_volume_scroll_bar>& sb, world_state & ws) {

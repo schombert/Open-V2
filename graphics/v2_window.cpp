@@ -25,6 +25,66 @@ namespace ui {
 		return (void*)GetWindowLongPtr((HWND)_hwnd, GWLP_USERDATA);
 	}
 
+	void window_base::maximize() {
+		ShowWindow((HWND)handle, SW_MAXIMIZE);
+	}
+	void window_base::make_fullscreen() {
+		if(!topmost) {
+			ShowWindow((HWND)handle, SW_SHOWNORMAL);
+
+			HDC screenDC = GetDC(nullptr);
+			int32_t width = GetDeviceCaps(screenDC, HORZRES);
+			int32_t height = GetDeviceCaps(screenDC, VERTRES);
+			ReleaseDC(nullptr, screenDC);
+
+			DWORD win32Style = WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+
+			
+			RECT rectangle = { 0, 0, width, height };
+			AdjustWindowRectEx(&rectangle, win32Style, false, WS_EX_TOPMOST);
+			int32_t win_width = (rectangle.right - rectangle.left);
+			int32_t win_height = (rectangle.bottom - rectangle.top);
+
+			topmost = true;
+
+			SetWindowLong((HWND)handle, GWL_STYLE, WS_VISIBLE | WS_BORDER | WS_POPUP | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+			SetWindowPos((HWND)handle, HWND_TOPMOST, rectangle.left, rectangle.top , win_width, win_height, SWP_NOREDRAW);
+
+			//const auto rgn = CreateRectRgn(-rectangle.left, -rectangle.top, width, height);
+			//SetWindowRgn((HWND)handle, rgn, TRUE);
+
+			
+		}
+	}
+	void window_base::remove_fullscreen() {
+		if(topmost) {
+			HDC screenDC = GetDC(nullptr);
+
+			int32_t width = 1024;
+			int32_t height = 800;
+			int left =  GetDeviceCaps(screenDC, HORZRES) / 2 - static_cast<int>(width / 2);
+			int top =  GetDeviceCaps(screenDC, VERTRES) / 2 - static_cast<int>(height / 2);
+
+			ReleaseDC(nullptr, screenDC);
+
+			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+
+			
+			RECT rectangle = { 0, 0, (LONG)width, (LONG)height };
+			AdjustWindowRectEx(&rectangle, win32Style, false,  0);
+			int32_t final_width = rectangle.right - rectangle.left;
+			int32_t final_height = rectangle.bottom - rectangle.top;
+			
+			topmost = false;
+
+			SetWindowLong((HWND)handle, GWL_STYLE, WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS);
+			SetWindowPos((HWND)handle, HWND_NOTOPMOST, left, top, final_width, final_height, SWP_NOREDRAW);
+			SetWindowRgn((HWND)handle, NULL, TRUE);
+
+			ShowWindow((HWND)handle, SW_MAXIMIZE);
+		}
+	}
+
 	message_variant yield_message(void* _hwnd, unsigned int uMsg, unsigned int* _wParam, long* _lParam) {
 		const HWND hwnd = (HWND)_hwnd;
 		const WPARAM wParam = (WPARAM)_wParam;
@@ -219,5 +279,6 @@ namespace ui {
 		message_thread = std::thread([win_proc, xsize, ysize, _this = this]() {
 			windowing_thread(win_proc, xsize, ysize, *_this);
 		});
+		SetThreadPriority(message_thread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL);
 	}
 }

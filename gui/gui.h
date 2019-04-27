@@ -359,6 +359,16 @@ namespace ui {
 		virtual void create_tooltip(gui_object_tag, world_state&, const mouse_move&, tagged_gui_object /*tooltip_window*/) final override;
 	};
 
+	class background_icon : public gui_behavior {
+	public:
+		background_icon() = default;
+		background_icon(background_icon&&) = default;
+
+		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
+		virtual bool on_lclick(gui_object_tag o, world_state& m, const lbutton_down&) final override { return true; }
+		virtual bool on_rclick(gui_object_tag o, world_state& m, const rbutton_down&) final override { return true; }
+	};
+
 	template<typename BASE>
 	class tinted_icon : public gui_behavior, public BASE {
 	public:
@@ -921,6 +931,7 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, multiline_text<B, x_size_adjust, y_size_adjust>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b);
+	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, background_icon& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, tinted_icon<B>& b);
 	template<typename ... REST>

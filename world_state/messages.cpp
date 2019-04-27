@@ -3,6 +3,7 @@
 #include "messages.hpp"
 #include "technologies\\technologies_gui.h"
 #include "governments\governments_gui.hpp"
+#include "scenario\\settings.h"
 
 namespace messages {
 	constexpr char const* message_identifiers[] = {
@@ -471,8 +472,10 @@ namespace messages {
 		ws.w.message_settings_w.update_message_settings_window(ws.w.gui_m);
 	}
 	void message_settings_close_button::button_function(ui::simple_button<message_settings_close_button>&, world_state& ws) {
-		// todo: save changed settings
-		ws.w.message_settings_w.setting_changed = false;
+		if(ws.w.message_settings_w.setting_changed) {
+			settings::save_settings(ws.s);
+			ws.w.message_settings_w.setting_changed = false;
+		}
 		ws.w.message_settings_w.hide_message_settings_window(ws.w.gui_m);
 	}
 	void importance_button::button_function(ui::button<importance_button>& self, world_state & ws) {

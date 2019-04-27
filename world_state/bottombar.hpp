@@ -147,6 +147,8 @@ namespace current_state {
 	};
 
 	class bottombar_t : public ui::gui_window <
+		CT_STRING("minimap_bg"), ui::background_icon,
+		CT_STRING("menubar_bg"), ui::background_icon,
 		CT_STRING("messagelog_window"), message_log_window,
 		CT_STRING("OPENbutton"), ui::simple_button<open_log_button>,
 		CT_STRING("chat_window"), chat_window,

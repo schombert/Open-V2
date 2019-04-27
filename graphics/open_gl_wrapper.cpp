@@ -620,6 +620,7 @@ namespace graphics {
 
 	void open_gl_wrapper::set_render_thread(const std::function<void()> &f) {
 		impl->render_thread = std::thread(f);
+		SetThreadPriority(impl->render_thread.native_handle(), THREAD_PRIORITY_ABOVE_NORMAL);
 	}
 
 	bool open_gl_wrapper::is_running() {
