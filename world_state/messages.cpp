@@ -460,6 +460,16 @@ namespace messages {
 				by, ws.s.technology_m.technologies_container[type].name
 				));
 	}
+	void new_invention(world_state& ws, nations::country_tag by, technologies::tech_tag type) {
+		auto display = determine_message_display(ws, message_type::INVENTION, by);
+		handle_generic_message(
+			ws, by,
+			display,
+			message_type::INVENTION,
+			t_replacements<nation_replacement<text_data::value_type::nation>, text_replacement<text_data::value_type::invention>>(
+				by, ws.s.technology_m.technologies_container[type].name
+				));
+	}
 	void message_settings_button_group::on_select(world_state & ws, uint32_t i) {
 		ws.w.message_settings_w.showing_messages = (i == 0);
 

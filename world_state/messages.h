@@ -481,6 +481,7 @@ namespace messages {
 	void acquired_cb(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type);
 	void lost_cb(world_state& ws, nations::country_tag by, nations::country_tag target, military::cb_type_tag type);
 	void new_technology(world_state& ws, nations::country_tag by, technologies::tech_tag type);
+	void new_invention(world_state& ws, nations::country_tag by, technologies::tech_tag type);
 	void increase_opinion(world_state& ws, nations::country_tag by, nations::country_tag target, int32_t new_level);
 	void add_to_sphere(world_state& ws, nations::country_tag sphere_leader, nations::country_tag target);
 	void remove_from_sphere(world_state& ws, nations::country_tag actor, nations::country_tag old_sphere_leader, nations::country_tag target);

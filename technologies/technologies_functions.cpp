@@ -7,6 +7,8 @@
 #include "concurrency_tools\\concurrency_tools.h"
 #include "concurrency_tools\\ve.h"
 #include "world_state\\messages.h"
+#include "nations\\nations_functions.hpp"
+#include <random>
 
 namespace technologies {
 	void init_technology_state(world_state& ws) {
@@ -173,6 +175,9 @@ namespace technologies {
 	float get_invention_chance(tech_tag t, world_state& ws, nations::country_tag this_nation) {
 		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, triggers::const_parameter()) / 100.0f;
 	}
+	ve::fp_vector get_invention_chance(tech_tag t, world_state& ws, ve::contiguous_tags_base<nations::country_tag> this_nation) {
+		return modifiers::test_contiguous_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, ve::contiguous_tags_base<union_tag>());
+	}
 
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation) {
 		auto id = this_nation;
@@ -216,6 +221,39 @@ namespace technologies {
 					messages::new_technology(ws, n, t);
 				}
 			}
+		});
+
+		auto const invention_offset = to_index(ws.w.current_date) & 31;
+		concurrency::parallel_for(uint32_t(invention_offset), uint32_t(ws.s.technology_m.inventions.size()), 32ui32, [&ws, &pending_new_techs](uint32_t index) {
+			auto const this_invention = ws.s.technology_m.inventions[index];
+			auto const vsize = ws.w.nation_s.nations.vector_size();
+			ve::execute_serial_fast<nations::country_tag>(vsize, [&ws, &pending_new_techs, vsize, this_invention](auto tags) {
+				auto const inventions_researched = ve::mask_vector(ve::load(tags, ws.w.nation_s.active_technologies.get_row(this_invention, vsize)))
+					& !(nations::nation_exists(ws, tags)); // if nation does not exist -> mark as invented to ignore
+
+				if(ve::compress_mask(inventions_researched) != ve::full_mask) {
+					auto const invention_allowed = triggers::test_contiguous_trigger(
+						ws.s.trigger_m.trigger_data.data() + to_index(ws.s.technology_m.technologies_container[this_invention].allow),
+						ws,
+						tags, tags, ve::contiguous_tags<union_tag>()) & !inventions_researched;
+					if(ve::compress_mask(invention_allowed) != ve::empty_mask) {
+						auto const invention_chance = ve::select(invention_allowed, get_invention_chance(this_invention, ws, tags), 0.0f);
+						ve::apply(tags, invention_chance, [&pending_new_techs, &ws, this_invention](nations::country_tag n, float chance) {
+							if(chance > 0.0f) {
+								std::uniform_real_distribution<float> dist(0, 1.0f);
+								auto const random_result = dist(get_local_generator());
+								if(random_result <= chance) {
+									pending_new_techs.push(std::pair<nations::country_tag, technologies::tech_tag >(n, this_invention));
+
+									messages::new_invention(ws, n, this_invention);
+								}
+							}
+						});
+					}
+				}
+			});
+			auto const nations = ve::contiguous_tags_base<nations::country_tag>(uint32_t(index));
+			
 		});
 
 		std::pair<nations::country_tag, technologies::tech_tag> p;

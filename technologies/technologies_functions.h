@@ -17,6 +17,7 @@ namespace technologies {
 
 	float effective_tech_cost(tech_tag t, world_state const& ws, nations::country_tag this_nation);
 	float get_invention_chance(tech_tag t, world_state& ws, nations::country_tag this_nation);
+	ve::fp_vector get_invention_chance(tech_tag t, world_state& ws, ve::contiguous_tags_base<nations::country_tag> this_nation);
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation);
 
 	void daily_update(world_state& ws);

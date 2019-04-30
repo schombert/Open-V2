@@ -34,4 +34,5 @@ namespace technologies {
 		auto const rp_modifier_modifier = ve::load(this_nation, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::research_points_modifier>(0));
 		return ve::multiply_and_add(rp_modifier + points_by_type,  rp_modifier_modifier + 1.0f, base);
 	}
+
 }
