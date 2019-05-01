@@ -152,7 +152,8 @@ namespace messages {
 
 	void goto_button::button_function(ui::button<goto_button>&, world_state&) {}
 	void goto_button::update(ui::button<goto_button>& self, world_state& ws) {
-		self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::goto_label]);
+		ui::hide(*self.associated_object);
+		//self.set_text(ws, ws.s.fixed_ui_text[scenario::fixed_ui::goto_label]);
 	}
 
 	void message_window_base::update(world_state& ws) {

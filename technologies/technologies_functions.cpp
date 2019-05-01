@@ -176,7 +176,7 @@ namespace technologies {
 		return modifiers::test_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, triggers::const_parameter()) / 100.0f;
 	}
 	ve::fp_vector get_invention_chance(tech_tag t, world_state& ws, ve::contiguous_tags_base<nations::country_tag> this_nation) {
-		return modifiers::test_contiguous_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, ve::contiguous_tags_base<union_tag>());
+		return modifiers::test_contiguous_additive_factor(ws.s.technology_m.technologies_container[t].ai_chance, ws, this_nation, ve::contiguous_tags_base<union_tag>()) * 0.01f;
 	}
 
 	bool can_research(tech_tag t, world_state const& ws, nations::country_tag this_nation) {

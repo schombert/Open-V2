@@ -98,7 +98,7 @@ namespace messages {
 		CT_STRING("LeftShield"), ui::masked_flag<messaage_flag>,
 		CT_STRING("RightShield"), ui::masked_flag<messaage_flag>,
 		CT_STRING("Title"), ui::display_text<message_header>,
-		CT_STRING("Description"), ui::multiline_text<message_body, 0, -70>,
+		CT_STRING("Description"), ui::multiline_text<message_body, 0, -20>,
 		message_window_base
 	> {};
 
