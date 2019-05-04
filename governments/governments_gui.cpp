@@ -224,7 +224,30 @@ namespace governments {
 			}
 		}
 	}
-	void voters_ideologies_pie_chart::update(ui::piechart<voters_ideologies_pie_chart>& pie, world_state & ws) {}
+	void voters_ideologies_pie_chart::update(ui::piechart<voters_ideologies_pie_chart>& pie, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			auto const national_rules = ws.w.nation_s.nations.get<nation::current_rules>(player);
+			voting_type vtype =
+				(national_rules & issues::rules::voting_system_mask) == issues::rules::largest_share ?
+				voting_type::majority : ((national_rules & issues::rules::voting_system_mask) == issues::rules::dhont ? voting_type::normalized : voting_type::additive);
+
+			auto const ideology_vsize = ve::to_vector_size(ws.s.ideologies_m.ideologies_count);
+			float* const vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+			populate_voting_info(ws, player, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize), vtype);
+
+			auto total_voting = ve::reduce(ws.s.ideologies_m.ideologies_count, tagged_array_view<float, ideologies::ideology_tag>(vote, ws.s.ideologies_m.ideologies_count));
+
+			for(int32_t i = 0; i < int32_t(ws.s.ideologies_m.ideologies_count); ++i) {
+				auto const party = ws.w.nation_s.active_parties.get(player, ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i)));
+
+				pie.add_entry(ws.w.gui_m,
+					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.parties[party].name),
+					vote[i] / total_voting,
+					ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i))].color);
+			}
+		}
+	}
 	void people_ideologies_pie_chart::update(ui::piechart<people_ideologies_pie_chart>& pie, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto id = player; ws.w.nation_s.nations.is_valid_index(id)) {

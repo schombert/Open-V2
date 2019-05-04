@@ -2,6 +2,8 @@
 #include "governments_functions.h"
 #include "world_state\\world_state.h"
 #include "nations\\nations.h"
+#include "nations\nations_functions.hpp"
+#include "provinces\province_functions.hpp"
 
 namespace governments {
 	issues::rules make_party_rules(party& p, scenario::scenario_manager& s) {
@@ -145,5 +147,316 @@ namespace governments {
 			}
 		}
 		return date_tag();
+	}
+
+	void pop_voting_preferences(world_state const& ws, population::pop_tag p,
+		tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
+		tagged_array_view<float, ideologies::ideology_tag> effective_voting, float multiplier) {
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const party_issue_count = ws.s.issues_m.party_issues.size();
+		auto const ideology_vsize = ve::to_vector_size(icount);
+
+		ve::set_zero(ideology_vsize, effective_voting, ve::serial{});
+
+		for(int32_t i = 0; i < int32_t(icount); ++i) {
+			auto const itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+			auto const ptag = active_parties[itag];
+
+			if(ptag) {
+				const auto pcon = ws.w.population_s.pops.get<pop::consciousness>(p);
+				const auto pcon_complement = 1.0f - pcon;
+
+				auto const ideology_support = pcon_complement * ws.w.population_s.pop_demographics.get(p, population::to_demo_tag(ws, itag));
+
+				auto const pissues = ws.s.governments_m.party_issues.get_row(ptag);
+				float issue_support = std::transform_reduce(pissues.begin(), pissues.begin() + party_issue_count, 0.0f, std::plus{}, [pcon, p, &ws](issues::option_tag s) {
+					return pcon * ws.w.population_s.pop_demographics.get(p, population::to_demo_tag(ws, s));
+				});
+
+				effective_voting[itag] = ideology_support + issue_support;
+			}
+		}
+		auto const total_support = ve::reduce(ideology_vsize, effective_voting, ve::serial{});
+		if(total_support != 0.0f)
+			ve::rescale(ideology_vsize, effective_voting, ws.w.population_s.pops.get<pop::size>(p) * multiplier / total_support);
+	}
+
+	void unmodified_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties) {
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+		float* const pop_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting, pop_vote, ideology_vsize, active_parties](population::pop_tag o) {
+			pop_voting_preferences(ws, o, active_parties, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), 1.0f);
+			ve::accumulate(ideology_vsize, province_voting, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), ve::serial{});
+		});
+	}
+
+	void additive_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		cultures::culture_tag prime_culture, tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
+		float national_poor_vote, float national_middle_vote, float national_rich_vote, float accepted_culture_vote, float other_culture_vote) {
+
+		const float province_vote_mod = 1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::number_of_voters>(p);
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+		float* const pop_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting, prime_culture, national_poor_vote, national_middle_vote, national_rich_vote,
+			accepted_culture_vote, other_culture_vote, pop_vote, ideology_vsize, active_parties](population::pop_tag o) {
+
+			auto const type = ws.w.population_s.pops.get<pop::type>(o);
+			if(ws.s.population_m.slave != type) {
+				float type_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::is_poor>(o))
+					type_mod = national_poor_vote;
+				else if(ws.w.population_s.pops.get<pop::is_middle>(o))
+					type_mod = national_middle_vote;
+				else
+					type_mod = national_rich_vote;
+
+				float culture_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::culture>(o) == prime_culture)
+					culture_mod = 1.0f;
+				else if(ws.w.population_s.pops.get<pop::is_accepted>(o))
+					culture_mod = accepted_culture_vote;
+				else
+					culture_mod = other_culture_vote;
+
+				const float vote_mod = type_mod * culture_mod;
+				if(vote_mod > 0.0f) {
+					pop_voting_preferences(ws, o, active_parties, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), vote_mod);
+					ve::accumulate(ideology_vsize, province_voting, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), ve::serial{});
+				}
+			}
+		});
+		
+
+		ve::rescale(ideology_vsize, province_voting, province_vote_mod);
+	}
+
+	void normalized_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		cultures::culture_tag prime_culture, tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
+		float national_poor_vote, float national_middle_vote, float national_rich_vote, float accepted_culture_vote, float other_culture_vote) {
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+		float* const pop_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting, prime_culture, national_poor_vote, national_middle_vote, national_rich_vote,
+			accepted_culture_vote, other_culture_vote, pop_vote, ideology_vsize, active_parties](population::pop_tag o) {
+
+			auto const type = ws.w.population_s.pops.get<pop::type>(o);
+			if(ws.s.population_m.slave != type) {
+				float type_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::is_poor>(o))
+					type_mod = national_poor_vote;
+				else if(ws.w.population_s.pops.get<pop::is_middle>(o))
+					type_mod = national_middle_vote;
+				else
+					type_mod = national_rich_vote;
+
+				float culture_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::culture>(o) == prime_culture)
+					culture_mod = 1.0f;
+				else if(ws.w.population_s.pops.get<pop::is_accepted>(o))
+					culture_mod = accepted_culture_vote;
+				else
+					culture_mod = other_culture_vote;
+
+				const float vote_mod = type_mod * culture_mod;
+				if(vote_mod > 0.0f) {
+					pop_voting_preferences(ws, o, active_parties, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), vote_mod);
+					ve::accumulate(ideology_vsize, province_voting, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), ve::serial{});
+				}
+			}
+		});
+
+		auto const total_support = ve::reduce(ideology_vsize, province_voting, ve::serial{});
+		if(total_support != 0.0f)
+			ve::rescale(ideology_vsize, province_voting, 1.0f / total_support);
+	}
+
+	void majority_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		cultures::culture_tag prime_culture, tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
+		float national_poor_vote, float national_middle_vote, float national_rich_vote, float accepted_culture_vote, float other_culture_vote) {
+
+		const float province_vote_mod = 1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::number_of_voters>(p);
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+
+		float* const pop_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+		float* const province_voting_temp = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		ve::set_zero(ideology_vsize, tagged_array_view<float, ideologies::ideology_tag>(province_voting_temp, ideology_vsize), ve::serial{});
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting_temp, prime_culture, national_poor_vote, national_middle_vote, national_rich_vote,
+			accepted_culture_vote, other_culture_vote, pop_vote, ideology_vsize, active_parties](population::pop_tag o) {
+
+			auto const type = ws.w.population_s.pops.get<pop::type>(o);
+			if(ws.s.population_m.slave != type) {
+				float type_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::is_poor>(o))
+					type_mod = national_poor_vote;
+				else if(ws.w.population_s.pops.get<pop::is_middle>(o))
+					type_mod = national_middle_vote;
+				else
+					type_mod = national_rich_vote;
+
+				float culture_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::culture>(o) == prime_culture)
+					culture_mod = 1.0f;
+				else if(ws.w.population_s.pops.get<pop::is_accepted>(o))
+					culture_mod = accepted_culture_vote;
+				else
+					culture_mod = other_culture_vote;
+
+				const float vote_mod = type_mod * culture_mod;
+				if(vote_mod > 0.0f) {
+					pop_voting_preferences(ws, o, active_parties, tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), vote_mod);
+					ve::accumulate(ideology_vsize, tagged_array_view<float, ideologies::ideology_tag>(province_voting_temp, ideology_vsize), tagged_array_view<float, ideologies::ideology_tag>(pop_vote, ideology_vsize), ve::serial{});
+				}
+			}
+		});
+
+		auto const max_index = maximum_index(province_voting_temp, ideology_vsize);
+		province_voting[ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(max_index))] = province_vote_mod * province_voting_temp[max_index];
+	}
+
+	void populate_voting_info(world_state const& ws, nations::country_tag this_nation,
+		tagged_array_view<float, ideologies::ideology_tag> effective_voting,
+		voting_type vtype) {
+
+		auto const ideology_vsize = ve::to_vector_size(ws.s.ideologies_m.ideologies_count);
+
+		float* const prov_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		ve::set_zero(ideology_vsize, effective_voting, ve::serial{});
+
+		const float national_poor_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_vote>(this_nation);
+		const float national_middle_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_vote>(this_nation);
+		const float national_rich_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_vote>(this_nation);
+
+		auto const national_rules = ws.w.nation_s.nations.get<nation::current_rules>(this_nation);
+
+		const float accepted_culture_vote = 
+			(national_rules & issues::rules::citizens_rights_mask) == issues::rules::primary_culture_voting ? 0.5f : 1.0f;
+		const float other_culture_vote = 
+			(national_rules & issues::rules::citizens_rights_mask) == issues::rules::primary_culture_voting ? 1.0f 
+			: ((national_rules & issues::rules::citizens_rights_mask) == issues::rules::culture_voting ? 0.5f : 0.0f);
+
+		const auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
+		const auto active_parties = ws.w.nation_s.active_parties.get_row(this_nation);
+
+		switch(vtype) {
+			case voting_type::unmodified:
+				nations::for_each_province(ws, this_nation, [effective_voting, accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, prov_vote, ideology_vsize, active_parties,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						unmodified_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize), active_parties);
+						ve::accumulate(ideology_vsize, effective_voting, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize), ve::serial{});
+					}
+				});
+				break;
+			case voting_type::additive:
+				nations::for_each_province(ws, this_nation, [effective_voting, national_rules, accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, prov_vote, ideology_vsize, active_parties,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						additive_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize),
+							pculture, active_parties, national_poor_vote, national_middle_vote, national_rich_vote, accepted_culture_vote, other_culture_vote);
+						ve::accumulate(ideology_vsize, effective_voting, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize), ve::serial{});
+					}
+				});
+				break;
+			case voting_type::normalized:
+				nations::for_each_province(ws, this_nation, [effective_voting, national_rules, accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, prov_vote, ideology_vsize, active_parties,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						normalized_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize),
+							pculture, active_parties, national_poor_vote, national_middle_vote, national_rich_vote, accepted_culture_vote, other_culture_vote);
+						ve::accumulate(ideology_vsize, effective_voting, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize), ve::serial{});
+					}
+				});
+				break;
+			case voting_type::majority:
+				nations::for_each_province(ws, this_nation, [effective_voting, national_rules, accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, prov_vote, ideology_vsize, active_parties,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						majority_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize),
+							pculture, active_parties, national_poor_vote, national_middle_vote, national_rich_vote, accepted_culture_vote, other_culture_vote);
+						ve::accumulate(ideology_vsize, effective_voting, tagged_array_view<float, ideologies::ideology_tag>(prov_vote, ideology_vsize), ve::serial{});
+					}
+				});
+				break;
+		}
+	}
+	ideologies::ideology_tag elect_ideology(world_state const& ws, nations::country_tag this_nation) {
+		auto const national_rules = ws.w.nation_s.nations.get<nation::current_rules>(this_nation);
+		voting_type vtype =
+			(national_rules & issues::rules::voting_system_mask) == issues::rules::largest_share ?
+			voting_type::majority : ((national_rules & issues::rules::voting_system_mask) == issues::rules::dhont ? voting_type::normalized : voting_type::additive);
+
+		auto const ideology_vsize = ve::to_vector_size(ws.s.ideologies_m.ideologies_count);
+		float* const vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		populate_voting_info(ws, this_nation, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize), vtype);
+
+		auto total_pop = ws.w.nation_s.nation_demographics.get(this_nation, population::total_population_tag);
+		auto militancy = ws.w.nation_s.nation_demographics.get(this_nation, population::militancy_demo_tag(ws));
+
+		const float n_militancy = total_pop != 0 ?  float(militancy) / float(total_pop) : 0.0f;
+
+		if(n_militancy < 0.5f) {
+			float* const group_vote = (float*)_alloca(ws.s.ideologies_m.ideology_groups.size() * sizeof(float));
+			std::fill_n(group_vote, ws.s.ideologies_m.ideology_groups.size(), 0.0f);
+			for(int32_t i = 0; i < int32_t(ws.s.ideologies_m.ideologies_count); ++i) {
+				auto const itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+				auto const group_tag = ws.s.ideologies_m.ideology_container[itag].group;
+
+				group_vote[to_index(group_tag)] += vote[i];
+			}
+			ideologies::ideology_group_tag ig(0);
+			for(int32_t i = 1; i < int32_t(ws.s.ideologies_m.ideology_groups.size()); ++i) {
+				if(group_vote[i] > group_vote[to_index(ig)])
+					ig = ideologies::ideology_group_tag(ideologies::ideology_group_tag::value_base_t(i));
+			}
+			
+			float max = 0;
+			ideologies::ideology_tag mi;
+
+			for(int32_t i = 0; i < int32_t(ws.s.ideologies_m.ideologies_count); ++i) {
+				auto const itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+				if(ig == ws.s.ideologies_m.ideology_container[itag].group) {
+					if(vote[i] >= max) {
+						max = vote[i];
+						mi = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+					}
+				}
+			}
+
+			return mi;
+		} else {
+			auto const max_index = maximum_index(vote, ideology_vsize);
+			return ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(max_index));
+		}
 	}
 }

@@ -315,7 +315,7 @@ namespace messages {
 	};
 
 	template<typename G, typename F>
-	void handle_generic_message(world_state& ws, nations::country_tag goto_tag, message_display display, int32_t message_id, G const& replacements_maker, F& popup_text) {
+	void handle_generic_message(world_state& ws, nations::country_tag goto_tag, message_display display, int32_t message_id, G const& replacements_maker, F const& popup_text) {
 		switch(display.max_setting) {
 			case message_setting::popup_and_pause:
 				ws.w.paused.store(true, std::memory_order_release);
@@ -333,6 +333,7 @@ namespace messages {
 						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, repl_count);
 					new_cursor = ui::advance_cursor_to_newline(new_cursor, ws.s.gui_m, fmt);
 					lm.finish_current_line();
+					new_cursor = ui::advance_cursor_to_newline(new_cursor, ws.s.gui_m, fmt);
 					popup_text(ws, new_cursor, fmt, box, lm);
 					lm.finish_current_line();
 				});
@@ -459,7 +460,11 @@ namespace messages {
 			message_type::TECH,
 			t_replacements<nation_replacement<text_data::value_type::nation>, text_replacement<text_data::value_type::type>>(
 				by, ws.s.technology_m.technologies_container[type].name
-				));
+				),
+			[type](world_state& ws, ui::xy_pair cursor, ui::text_format const& fmt, ui::tagged_gui_object box, ui::line_manager& lm) {
+				technologies::explain_technology(type, ws, box, cursor, lm, fmt);
+			}
+		);
 	}
 	void new_invention(world_state& ws, nations::country_tag by, technologies::tech_tag type) {
 		auto display = determine_message_display(ws, message_type::INVENTION, by);
@@ -469,7 +474,11 @@ namespace messages {
 			message_type::INVENTION,
 			t_replacements<nation_replacement<text_data::value_type::nation>, text_replacement<text_data::value_type::invention>>(
 				by, ws.s.technology_m.technologies_container[type].name
-				));
+				),
+			[type](world_state& ws, ui::xy_pair cursor, ui::text_format const& fmt, ui::tagged_gui_object box, ui::line_manager& lm) {
+				technologies::explain_technology(type, ws, box, cursor, lm, fmt);
+			}
+		);
 	}
 	void message_settings_button_group::on_select(world_state & ws, uint32_t i) {
 		ws.w.message_settings_w.showing_messages = (i == 0);

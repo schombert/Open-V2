@@ -29,13 +29,13 @@ namespace modifiers {
 		modifier_display_details{ false, display_type::percent }, // middle_luxury_needs 11
 		modifier_display_details{ false, display_type::percent }, // rich_luxury_needs 12
 		modifier_display_details{ true, display_type::fp_three_places }, // population_growth 13
-		modifier_display_details{ true, display_type::percent }, // local_factory_input 14
+		modifier_display_details{ false, display_type::percent }, // local_factory_input 14
 		modifier_display_details{ true, display_type::percent }, // local_factory_output 15
 		modifier_display_details{ true, display_type::percent }, // local_factory_throughput 16
 		modifier_display_details{ true, display_type::percent }, // local_rgo_input 17
 		modifier_display_details{ true, display_type::percent }, // local_rgo_output 18
 		modifier_display_details{ true, display_type::percent }, // local_rgo_throughput 19
-		modifier_display_details{ true, display_type::percent }, // local_artisan_input 20
+		modifier_display_details{ false, display_type::percent }, // local_artisan_input 20
 		modifier_display_details{ true, display_type::percent }, // local_artisan_output 21
 		modifier_display_details{ true, display_type::percent }, // local_artisan_throughput 22
 		modifier_display_details{ true, display_type::percent }, // number_of_voters 23
@@ -108,13 +108,13 @@ namespace modifiers {
 		modifier_display_details{ true, display_type::percent }, // unemployment_benefit 39
 		modifier_display_details{ true, display_type::percent }, // pension_level 40
 		modifier_display_details{ true, display_type::fp_two_places }, // global_population_growth 41
-		modifier_display_details{ true, display_type::percent }, // factory_input 42
+		modifier_display_details{ false, display_type::percent }, // factory_input 42
 		modifier_display_details{ true, display_type::percent }, // factory_output 43
 		modifier_display_details{ true, display_type::percent }, // factory_throughput 44
 		modifier_display_details{ true, display_type::percent }, // rgo_input 45
 		modifier_display_details{ true, display_type::percent }, // rgo_output 46
 		modifier_display_details{ true, display_type::percent }, // rgo_throughput 47
-		modifier_display_details{ true, display_type::percent }, // artisan_input 48
+		modifier_display_details{ false, display_type::percent }, // artisan_input 48
 		modifier_display_details{ true, display_type::percent }, // artisan_output 49
 		modifier_display_details{ true, display_type::percent }, // artisan_throughput 50
 		modifier_display_details{ true, display_type::percent }, // goods_demand 51

@@ -309,7 +309,7 @@ namespace messages {
 	constexpr auto default_popup_text = [](world_state const&, ui::xy_pair, ui::text_format&, ui::tagged_gui_object, ui::line_manager&) {};
 
 	template<typename G, typename F = decltype(default_popup_text)>
-	void handle_generic_message(world_state& ws, nations::country_tag goto_tag, message_display display, int32_t message_id, G const& replacements_maker, F& popup_text = default_popup_text);
+	void handle_generic_message(world_state& ws, nations::country_tag goto_tag, message_display display, int32_t message_id, G const& replacements_maker, F const& popup_text = default_popup_text);
 
 	using display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::line_manager&, ui::text_format&)>;
 	using log_display_function = std::function<void(world_state&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&)>;

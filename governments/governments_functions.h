@@ -16,4 +16,17 @@ namespace governments {
 	void start_election(world_state& ws, nations::country_tag this_nation);
 	date_tag election_end_date(world_state const& ws, nations::country_tag this_nation);
 	date_tag next_election_start_date(world_state const& ws, nations::country_tag this_nation);
+
+	enum class voting_type {
+		unmodified,
+		additive,
+		normalized,
+		majority
+	};
+
+	void pop_voting_preferences(world_state const& ws, population::pop_tag p,
+		tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
+		tagged_array_view<float, ideologies::ideology_tag> effective_voting, float multiplier);
+	void populate_voting_info(world_state const& ws, nations::country_tag this_nation, tagged_array_view<float, ideologies::ideology_tag> effective_voting, voting_type vtype);
+	ideologies::ideology_tag elect_ideology(world_state const& ws, nations::country_tag this_nation);
 }
