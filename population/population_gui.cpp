@@ -145,9 +145,9 @@ namespace population {
 	}
 
 	void workforce_chart::update(ui::piechart<workforce_chart>& pie, world_state & ws) {
-		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.population_m.count_poptypes);
-		int64_t total_size = 0;
-		std::fill_n(sums_out, ws.s.population_m.count_poptypes, 0);
+		float* sums_out = (float*)_alloca(sizeof(float) * ws.s.population_m.count_poptypes);
+		float total_size = 0;
+		std::fill_n(sums_out, ws.s.population_m.count_poptypes, 0.0f);
 
 		if(ws.w.population_w.display_type == population_display::nation) {
 			total_size = sum_filtered_demo_data<population::pop_type_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
@@ -171,9 +171,9 @@ namespace population {
 	}
 
 	void religion_chart::update(ui::piechart<religion_chart>& pie, world_state & ws) {
-		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.culture_m.count_religions);
-		int64_t total_size = 0;
-		std::fill_n(sums_out, ws.s.culture_m.count_religions, 0);
+		float* sums_out = (float*)_alloca(sizeof(float) * ws.s.culture_m.count_religions);
+		float total_size = 0;
+		std::fill_n(sums_out, ws.s.culture_m.count_religions, 0.0f);
 
 		if(ws.w.population_w.display_type == population_display::nation) {
 			total_size = sum_filtered_demo_data<cultures::religion_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
@@ -197,9 +197,9 @@ namespace population {
 	}
 
 	void ideology_chart::update(ui::piechart<ideology_chart>& pie, world_state & ws) {
-		int64_t* sums_out = (int64_t*)_alloca(sizeof(int64_t) * ws.s.ideologies_m.ideologies_count);
-		int64_t total_size = 0;
-		std::fill_n(sums_out, ws.s.ideologies_m.ideologies_count, 0);
+		float* sums_out = (float*)_alloca(sizeof(float) * ws.s.ideologies_m.ideologies_count);
+		float total_size = 0;
+		std::fill_n(sums_out, ws.s.ideologies_m.ideologies_count, 0.0f);
 
 		if(ws.w.population_w.display_type == population_display::nation) {
 			total_size = sum_filtered_demo_data<ideologies::ideology_tag>(ws, sums_out, ws.w.population_w.population_for_nation);
@@ -222,11 +222,36 @@ namespace population {
 		}
 	}
 
-	void electorate_chart::update(ui::piechart<electorate_chart>&, world_state&) {}
+	void electorate_chart::update(ui::piechart<electorate_chart>& pie, world_state& ws) {
+		auto const ideology_vsize = ve::to_vector_size(ws.s.ideologies_m.ideologies_count);
+		float* const vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+		ve::set_zero(ideology_vsize, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize));
+
+		if(ws.w.population_w.display_type == population_display::nation) {
+			sum_pop_vote(ws, vote, ws.w.population_w.population_for_nation);
+		} else if(ws.w.population_w.display_type == population_display::state) {
+			sum_pop_vote(ws, vote, ws.w.population_w.population_for_state);
+		} else if(ws.w.population_w.display_type == population_display::province) {
+			sum_pop_vote(ws, vote, ws.w.population_w.population_for_province);
+		}
+
+		auto const total = ve::reduce(ws.s.ideologies_m.ideologies_count, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize));
+		if(auto const player = ws.w.local_player_nation; total > 0.0f && player) {
+			for(uint32_t i = 0; i < int32_t(ws.s.ideologies_m.ideologies_count); ++i) {
+				const auto party_id = ws.w.nation_s.active_parties.get(player, ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i)));
+				if(vote[i] > 0.0f && party_id)
+					pie.add_entry(
+						ws.w.gui_m,
+						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.parties[party_id].name),
+						vote[i] / total,
+						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
+			}
+		}
+	}
 
 	void culture_chart::update(ui::piechart<culture_chart>& pie, world_state & ws) {
-		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.culture_m.count_cultures);
-		int64_t total_size = 0;
+		std::vector<float, concurrent_allocator<float>> sums_out(ws.s.culture_m.count_cultures);
+		float total_size = 0;
 
 		if(ws.w.population_w.display_type == population_display::nation) {
 			total_size = sum_filtered_demo_data<cultures::culture_tag>(ws, sums_out.data(), ws.w.population_w.population_for_nation);
@@ -250,8 +275,8 @@ namespace population {
 	}
 
 	void issues_chart::update(ui::piechart<issues_chart>& pie, world_state & ws) {
-		std::vector<int64_t, concurrent_allocator<int64_t>> sums_out(ws.s.issues_m.tracked_options_count);
-		int64_t total_size = 0;
+		std::vector<float, concurrent_allocator<float>> sums_out(ws.s.issues_m.tracked_options_count);
+		float total_size = 0;
 
 		if(ws.w.population_w.display_type == population_display::nation) {
 			total_size = sum_filtered_demo_data<issues::option_tag>(ws, sums_out.data(), ws.w.population_w.population_for_nation);

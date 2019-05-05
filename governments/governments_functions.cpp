@@ -459,4 +459,194 @@ namespace governments {
 			return ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(max_index));
 		}
 	}
+
+
+	void unmodified_upper_house_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		cultures::culture_tag prime_culture, float national_poor_vote, float national_middle_vote, float national_rich_vote, float accepted_culture_vote, float other_culture_vote) {
+
+		const float province_vote_mod = 1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::number_of_voters>(p);
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting, prime_culture, national_poor_vote, national_middle_vote, national_rich_vote,
+			accepted_culture_vote, other_culture_vote, icount](population::pop_tag o) {
+
+			auto const type = ws.w.population_s.pops.get<pop::type>(o);
+			if(ws.s.population_m.slave != type) {
+				float type_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::is_poor>(o))
+					type_mod = national_poor_vote;
+				else if(ws.w.population_s.pops.get<pop::is_middle>(o))
+					type_mod = national_middle_vote;
+				else
+					type_mod = national_rich_vote;
+
+				float culture_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::culture>(o) == prime_culture)
+					culture_mod = 1.0f;
+				else if(ws.w.population_s.pops.get<pop::is_accepted>(o))
+					culture_mod = accepted_culture_vote;
+				else
+					culture_mod = other_culture_vote;
+
+				const float vote_mod = type_mod * culture_mod;
+				if(vote_mod > 0.0f) {
+					float const* ideology_vals = (ws.w.population_s.pop_demographics.get_row(o) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)))).data();
+
+					ve::accumulate_scaled(icount, province_voting,
+						tagged_array_view<float const, ideologies::ideology_tag>(ideology_vals, uint32_t(icount)), vote_mod, ve::serial_unaligned{});
+				}
+			}
+		});
+
+		ve::rescale(ideology_vsize, province_voting, province_vote_mod);
+	}
+
+	void rich_only_upper_house_province_vote(world_state const& ws, provinces::province_tag p, tagged_array_view<float, ideologies::ideology_tag> province_voting,
+		cultures::culture_tag prime_culture, float accepted_culture_vote, float other_culture_vote) {
+
+		const float province_vote_mod = 1.0f + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::number_of_voters>(p);
+
+		auto const icount = ws.s.ideologies_m.ideologies_count;
+		auto const ideology_vsize = ve::to_vector_size(icount);
+		ve::set_zero(ideology_vsize, province_voting, ve::serial{});
+
+		provinces::for_each_pop(ws, p, [&ws, province_voting, prime_culture,
+			accepted_culture_vote, other_culture_vote, icount](population::pop_tag o) {
+
+			if(!ws.w.population_s.pops.get<pop::is_poor>(o) && !ws.w.population_s.pops.get<pop::is_middle>(o)) {
+				float culture_mod = 0.0f;
+				if(ws.w.population_s.pops.get<pop::culture>(o) == prime_culture)
+					culture_mod = 1.0f;
+				else if(ws.w.population_s.pops.get<pop::is_accepted>(o))
+					culture_mod = accepted_culture_vote;
+				else
+					culture_mod = other_culture_vote;
+
+				if(culture_mod > 0.0f) {
+					auto const ideology_vals = ws.w.population_s.pop_demographics.get_row(o) + to_index(population::to_demo_tag(ws, ideologies::ideology_tag(0)));
+
+					ve::accumulate_scaled(icount, province_voting,
+						tagged_array_view<float const, ideologies::ideology_tag>(ideology_vals.begin(), uint32_t(icount)), culture_mod, ve::serial_unaligned{});
+				}
+			}
+		});
+
+		ve::rescale(ideology_vsize, province_voting, province_vote_mod);
+	}
+
+	enum class uh_type {
+		normal,
+		by_state,
+		rich_only,
+		fixed
+	};
+
+	void update_upper_house(world_state const& ws, nations::country_tag this_nation) {
+		int32_t const icount = int32_t(ws.s.ideologies_m.ideologies_count);
+		auto const ideology_vsize = ve::to_vector_size(icount);
+
+		float* const vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+		float* const intermediate_vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
+
+		std::fill_n(vote, ideology_vsize, 0.0f);
+
+
+		const float national_poor_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_vote>(this_nation);
+		const float national_middle_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_vote>(this_nation);
+		const float national_rich_vote = ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_vote>(this_nation);
+
+		auto const national_rules = ws.w.nation_s.nations.get<nation::current_rules>(this_nation);
+
+		const float accepted_culture_vote =
+			(national_rules & issues::rules::citizens_rights_mask) == issues::rules::primary_culture_voting ? 0.5f : 1.0f;
+		const float other_culture_vote =
+			(national_rules & issues::rules::citizens_rights_mask) == issues::rules::primary_culture_voting ? 1.0f
+			: ((national_rules & issues::rules::citizens_rights_mask) == issues::rules::culture_voting ? 0.5f : 0.0f);
+
+		uh_type vtype = uh_type::normal;
+		if((national_rules & issues::rules::upper_house_composition_mask) == issues::rules::same_as_ruling_party)
+			vtype = uh_type::fixed;
+		else if((national_rules & issues::rules::upper_house_composition_mask) == issues::rules::rich_only)
+			vtype = uh_type::rich_only;
+		else if((national_rules & issues::rules::upper_house_composition_mask) == issues::rules::state_vote)
+			vtype = uh_type::by_state;
+
+		const auto pculture = ws.w.nation_s.nations.get<nation::primary_culture>(this_nation);
+
+		for(int32_t i = 0; i < icount; ++i)
+			ws.w.nation_s.upper_house.get(this_nation, ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i))) = 0ui8;
+
+		switch(vtype) {
+			case uh_type::fixed:
+				// do nothing
+				break;
+			case uh_type::normal:
+				nations::for_each_province(ws, this_nation, [accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, vote, ideology_vsize,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						unmodified_upper_house_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize),
+							pculture, national_poor_vote, national_middle_vote, national_rich_vote, accepted_culture_vote, other_culture_vote);
+					}
+				});
+				break;
+			case uh_type::rich_only:
+				nations::for_each_province(ws, this_nation, [national_rules, accepted_culture_vote, other_culture_vote,
+					pculture, vote, ideology_vsize,
+					&ws](provinces::province_tag p) {
+
+					if(ws.w.province_s.province_state_container.get<province_state::is_non_state>(p) == false) {
+						rich_only_upper_house_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize),
+							pculture, accepted_culture_vote, other_culture_vote);
+					}
+				});
+				break;
+			case uh_type::by_state:
+				nations::for_each_state(ws, this_nation, [national_rules, accepted_culture_vote, other_culture_vote,
+					national_poor_vote, national_middle_vote, national_rich_vote, pculture, vote, intermediate_vote, ideology_vsize,
+					&ws](nations::state_tag s) {
+
+					if(ws.w.nation_s.states.get<state::is_colonial>(s) == false && ws.w.nation_s.states.get<state::is_protectorate>(s) == false) {
+						std::fill_n(intermediate_vote, ideology_vsize, 0.0f);
+
+						nations::for_each_province(ws, s, [intermediate_vote, ideology_vsize, national_poor_vote, national_middle_vote,
+							national_rich_vote, accepted_culture_vote, other_culture_vote, &ws, pculture](provinces::province_tag p) {
+
+							unmodified_upper_house_province_vote(ws, p, tagged_array_view<float, ideologies::ideology_tag>(intermediate_vote, ideology_vsize),
+								pculture, national_poor_vote, national_middle_vote, national_rich_vote, accepted_culture_vote, other_culture_vote);
+						});
+
+						auto const total = ve::reduce(ws.s.ideologies_m.ideologies_count, tagged_array_view<float, ideologies::ideology_tag>(intermediate_vote, ideology_vsize), ve::serial_exact{});
+						auto const inv_total = total > 0.0f ? 1.0f / total : 1.0f;
+						ve::accumulate_scaled(ideology_vsize,
+							tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize),
+							tagged_array_view<float, ideologies::ideology_tag>(intermediate_vote, ideology_vsize),
+							inv_total, ve::serial{});
+					}
+				});
+				break;
+		}
+
+		if(vtype != uh_type::fixed) {
+			auto const total = ve::reduce(icount, tagged_array_view<float, ideologies::ideology_tag>(vote, icount), ve::serial_exact{});
+			auto const inv_total = total > 0.0f ? 1.0f / total : 1.0f;
+			int32_t uh_added = 0;
+			for(int32_t i = 0; i < icount; ++i) {
+				int32_t const v = int32_t(vote[i] * inv_total);
+				uh_added += v;
+				ws.w.nation_s.upper_house.get(this_nation, ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i))) = uint8_t(v);
+			}
+			if(uh_added < 100) {
+				ws.w.nation_s.upper_house.get(this_nation, ws.s.ideologies_m.conservative_ideology) += uint8_t(100 - uh_added);
+			}
+		} else {
+			ws.w.nation_s.upper_house.get(this_nation, ws.w.nation_s.nations.get<nation::ruling_ideology>(this_nation)) = 100ui8;
+		}
+	}
+	
 }

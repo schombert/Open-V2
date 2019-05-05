@@ -29,4 +29,5 @@ namespace governments {
 		tagged_array_view<float, ideologies::ideology_tag> effective_voting, float multiplier);
 	void populate_voting_info(world_state const& ws, nations::country_tag this_nation, tagged_array_view<float, ideologies::ideology_tag> effective_voting, voting_type vtype);
 	ideologies::ideology_tag elect_ideology(world_state const& ws, nations::country_tag this_nation);
+	void update_upper_house(world_state const& ws, nations::country_tag this_nation);
 }
