@@ -111,6 +111,28 @@ namespace cultures {
 
 		graphics::texture_tag no_leader;
 		constexpr static culture_tag immigrant_culture = culture_tag(0);
+
+		template<typename F>
+		void for_each_culture(F const& f) const {
+			int32_t const cmax = int32_t(count_cultures);
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(cultures::culture_tag(cultures::culture_tag::value_base_t(i)));
+			}
+		}
+		template<typename F>
+		void for_each_religion(F const& f) const {
+			int32_t const cmax = int32_t(count_religions);
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(cultures::religion_tag(cultures::religion_tag::value_base_t(i)));
+			}
+		}
+		template<typename F>
+		void for_each_culture_group(F const& f) const {
+			int32_t const cmax = int32_t(culture_groups.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(cultures::culture_group_tag(cultures::culture_group_tag::value_base_t(i)));
+			}
+		}
 	};
 
 	struct tag_as_text {

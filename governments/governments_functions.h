@@ -24,10 +24,16 @@ namespace governments {
 		majority
 	};
 
+	struct election_result {
+		party_tag p;
+		float vote;
+	};
+
 	void pop_voting_preferences(world_state const& ws, population::pop_tag p,
 		tagged_array_view<const party_tag, ideologies::ideology_tag> active_parties,
 		tagged_array_view<float, ideologies::ideology_tag> effective_voting, float multiplier);
 	void populate_voting_info(world_state const& ws, nations::country_tag this_nation, tagged_array_view<float, ideologies::ideology_tag> effective_voting, voting_type vtype);
-	ideologies::ideology_tag elect_ideology(world_state const& ws, nations::country_tag this_nation);
+	election_result perform_election(world_state const& ws, nations::country_tag this_nation);
 	void update_upper_house(world_state const& ws, nations::country_tag this_nation);
+	void government_composition_update(world_state& ws);
 }

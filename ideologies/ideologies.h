@@ -44,5 +44,13 @@ namespace ideologies {
 		uint32_t ideologies_count = 0ui32;
 
 		ideology_tag conservative_ideology;
+
+		template<typename F>
+		void for_each_ideology(F const& f) const {
+			int32_t const cmax = int32_t(ideologies_count);
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(ideology_tag(ideology_tag::value_base_t(i)));
+			}
+		}
 	};
 }

@@ -230,12 +230,13 @@ namespace messages {
 	};
 
 	template<typename ... types>
-	struct t_replacements : public types ... {
+	struct t_replacements {
 		static_assert(sizeof...(types) != 0);
 
 		std::tuple<types ...> members;
 
 		t_replacements(t_replacements const& o) noexcept : members(o.members) {}
+		t_replacements(t_replacements const&& o) noexcept : members(o.members) {}
 		t_replacements(t_replacements&& o) noexcept : members(std::move(o.members)) {}
 
 		template<typename ... params, typename = std::enable_if_t<sizeof...(params) == sizeof...(types)> >
@@ -267,7 +268,6 @@ namespace messages {
 	template<text_data::value_type param>
 	struct nation_replacement {
 		nations::country_tag n;
-		nation_replacement() {  }
 		nation_replacement(nations::country_tag t) : n(t) {}
 
 		void fill(world_state& ws, text_data::replacement& r) const {
@@ -284,7 +284,6 @@ namespace messages {
 	template<text_data::value_type param>
 	struct text_replacement {
 		text_data::text_tag tag;
-		text_replacement() {  }
 		text_replacement(text_data::text_tag t) : tag(t) {}
 
 		void fill(world_state const& ws, text_data::replacement& r) const {
@@ -300,7 +299,6 @@ namespace messages {
 	template<text_data::value_type param>
 	struct fp_replacement {
 		char16_t local_buffer[16] = {};
-		fp_replacement() {  }
 		fp_replacement(float v) {
 			put_value_in_buffer(local_buffer, display_type::fp_one_place, v);
 		}
@@ -310,6 +308,22 @@ namespace messages {
 				param,
 				vector_backed_string<char16_t>(local_buffer),
 				[](ui::tagged_gui_object) { }
+			};
+		}
+	};
+
+	template<text_data::value_type param>
+	struct integer_replacement {
+		char16_t local_buffer[8] = {};
+		integer_replacement(int32_t v) {
+			put_value_in_buffer(local_buffer, display_type::integer, v);
+		}
+		
+		void fill(world_state const& ws, text_data::replacement& r) const {
+			r = text_data::replacement{
+				param,
+				vector_backed_string<char16_t>(local_buffer),
+				[](ui::tagged_gui_object) {}
 			};
 		}
 	};
@@ -479,6 +493,43 @@ namespace messages {
 				technologies::explain_technology(type, ws, box, cursor, lm, fmt);
 			}
 		);
+	}
+	void new_upper_house(world_state& ws, nations::country_tag n) {
+		auto display = determine_message_display(ws, message_type::UPPERHOUSE, n);
+		handle_generic_message(
+			ws, n,
+			display,
+			message_type::UPPERHOUSE,
+			t_replacements<nation_replacement<text_data::value_type::nation>>(n),
+			[n](world_state& ws, ui::xy_pair cursor, ui::text_format const& fmt, ui::tagged_gui_object box, ui::line_manager& lm) {
+				for(int32_t i = 0; i < int32_t(ws.s.ideologies_m.ideologies_count); ++i) {
+					auto const itag = ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(i));
+
+					char16_t local_buffer[16];
+					auto end = put_value_in_buffer(local_buffer, display_type::exact_integer, int32_t(ws.w.nation_s.upper_house.get(n, itag)));
+					*end = u'%';
+					*(end + 1) = 0;
+					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, cursor, fmt, lm);
+
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+					cursor = ui::add_linear_text(cursor, ws.s.ideologies_m.ideology_container[itag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
+					lm.finish_current_line();
+				}
+			}
+		);
+	}
+
+	void election_result(world_state& ws, nations::country_tag n, governments::party_tag winner, float vote) {
+		auto display = determine_message_display(ws, message_type::ELECTIONDONE, n);
+
+		handle_generic_message(
+			ws, n,
+			display,
+			message_type::ELECTIONDONE,
+			t_replacements<nation_replacement<text_data::value_type::nation>, text_replacement<text_data::value_type::party>, integer_replacement<text_data::value_type::value>>(
+				n, ws.s.governments_m.parties[winner].name, int32_t(vote * 100.0f)
+				));
 	}
 	void message_settings_button_group::on_select(world_state & ws, uint32_t i) {
 		ws.w.message_settings_w.showing_messages = (i == 0);

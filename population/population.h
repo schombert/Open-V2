@@ -330,6 +330,14 @@ namespace population {
 		rebel_type_tag nationalist_rebels;
 
 		uint32_t count_poptypes = 0;
+
+		template<typename F>
+		void for_each_pop_type(F const& f) const {
+			int32_t const cmax = int32_t(count_poptypes);
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(pop_type_tag(pop_type_tag::value_base_t(i)));
+			}
+		}
 	};
 
 	demo_tag to_demo_tag(world_state const& ws, ideologies::ideology_tag t);

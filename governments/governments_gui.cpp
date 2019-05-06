@@ -46,10 +46,11 @@ namespace governments {
 
 					auto ymd = tag_to_date(next_election).year_month_day();
 
-					cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
-
 					char16_t local_buf[16];
+
+					/*cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+					
 					put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.day));
 					cursor = ui::text_chunk_to_instances(
 						ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
@@ -59,7 +60,7 @@ namespace governments {
 					cursor = ui::text_chunk_to_instances(
 						ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u", "),
 						box, cursor, fmt, lm
-					);
+					);*/
 
 					put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.year));
 					cursor = ui::text_chunk_to_instances(

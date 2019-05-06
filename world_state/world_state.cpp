@@ -13,6 +13,7 @@
 #include "issues\\issues_functions.h"
 #include "events\\event_functions.h"
 #include "scenario\\settings.h"
+#include "governments\governments_functions.h"
 #include <chrono>
 
 #include <Windows.h>
@@ -33,6 +34,8 @@ void world_state_non_ai_update(world_state & ws) {
 
 	provinces::update_province_demographics(ws);
 	nations::update_state_nation_demographics(ws);
+
+	governments::government_composition_update(ws);
 
 	population::update_independence_movements(ws);
 	population::update_local_rebels_and_movements(ws);

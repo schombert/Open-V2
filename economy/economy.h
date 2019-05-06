@@ -176,5 +176,13 @@ namespace economy {
 
 		uint32_t goods_count = 0;
 		uint32_t aligned_32_goods_count = 0;
+
+		template<typename F>
+		void for_each_good(F const& f) const {
+			int32_t const cmax = int32_t(goods_count);
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(goods_tag(goods_tag::value_base_t(i)));
+			}
+		}
 	};
 }

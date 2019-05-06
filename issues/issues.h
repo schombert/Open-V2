@@ -124,5 +124,13 @@ namespace issues {
 		uint32_t tracked_options_count = 0ui32; // how many options are tracked in demographics arrays
 
 		option_tag jingoism;
+
+		template<typename F>
+		void for_each_issue(F const& f) const {
+			int32_t const cmax = int32_t(issues_container.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(issue_tag(issue_tag::value_base_t(i)));
+			}
+		}
 	};
 }

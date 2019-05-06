@@ -4,6 +4,7 @@
 #include "nations\\nations.h"
 #include "nations\nations_functions.hpp"
 #include "provinces\province_functions.hpp"
+#include "world_state\messages.h"
 
 namespace governments {
 	issues::rules make_party_rules(party& p, scenario::scenario_manager& s) {
@@ -409,7 +410,10 @@ namespace governments {
 				break;
 		}
 	}
-	ideologies::ideology_tag elect_ideology(world_state const& ws, nations::country_tag this_nation) {
+
+	
+
+	election_result perform_election(world_state const& ws, nations::country_tag this_nation) {
 		auto const national_rules = ws.w.nation_s.nations.get<nation::current_rules>(this_nation);
 		voting_type vtype =
 			(national_rules & issues::rules::voting_system_mask) == issues::rules::largest_share ?
@@ -419,6 +423,13 @@ namespace governments {
 		float* const vote = (float*)ve_aligned_alloca(ideology_vsize * sizeof(float));
 
 		populate_voting_info(ws, this_nation, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize), vtype);
+		
+		const auto gov_type = ws.w.nation_s.nations.get<nation::current_government>(this_nation);
+		ws.s.ideologies_m.for_each_ideology([&ws, this_nation, vote, gov_type](ideologies::ideology_tag t) {
+			if(ws.s.governments_m.permitted_ideologies.get(gov_type, t) == 0)
+				vote[to_index(t)] = 0.0f;
+		});
+		auto const total_vote = ve::reduce(ws.s.ideologies_m.ideologies_count, tagged_array_view<float, ideologies::ideology_tag>(vote, ideology_vsize), ve::serial_exact{});
 
 		auto total_pop = ws.w.nation_s.nation_demographics.get(this_nation, population::total_population_tag);
 		auto militancy = ws.w.nation_s.nation_demographics.get(this_nation, population::militancy_demo_tag(ws));
@@ -453,10 +464,16 @@ namespace governments {
 				}
 			}
 
-			return mi;
+			return election_result{
+				ws.w.nation_s.active_parties.get(this_nation, mi),
+				vote[to_index(mi)] / (total_vote > 0.0f ? total_vote : 1.0f)
+			};
 		} else {
 			auto const max_index = maximum_index(vote, ideology_vsize);
-			return ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(max_index));
+			return election_result{
+				ws.w.nation_s.active_parties.get(this_nation,ideologies::ideology_tag(ideologies::ideology_tag::value_base_t(max_index))),
+				vote[max_index] / (total_vote > 0.0f ? total_vote : 1.0f)
+			};
 		}
 	}
 
@@ -633,8 +650,14 @@ namespace governments {
 		}
 
 		if(vtype != uh_type::fixed) {
+			const auto gov_type = ws.w.nation_s.nations.get<nation::current_government>(this_nation);
+			ws.s.ideologies_m.for_each_ideology([&ws, this_nation, vote, gov_type](ideologies::ideology_tag t) {
+				if(ws.s.governments_m.permitted_ideologies.get(gov_type, t) == 0)
+					vote[to_index(t)] = 0.0f;
+			});
+
 			auto const total = ve::reduce(icount, tagged_array_view<float, ideologies::ideology_tag>(vote, icount), ve::serial_exact{});
-			auto const inv_total = total > 0.0f ? 1.0f / total : 1.0f;
+			auto const inv_total = total > 0.0f ? 100.0f / total : 100.0f;
 			int32_t uh_added = 0;
 			for(int32_t i = 0; i < icount; ++i) {
 				int32_t const v = int32_t(vote[i] * inv_total);
@@ -649,4 +672,33 @@ namespace governments {
 		}
 	}
 	
+
+	void government_composition_update(world_state& ws) {
+		auto ymd = tag_to_date(ws.w.current_date).year_month_day();
+		if(int32_t(ymd.month) == 1 && int32_t(ymd.day) <= 16) {
+			concurrency::parallel_for(to_index(ws.w.current_date) & 15, ws.w.nation_s.nations.size(), 16, [&ws](int32_t nth){
+				auto n = nations::country_tag(nations::country_tag::value_base_t(nth));
+				if(nations::nation_exists(ws, n)) {
+					update_upper_house(ws, n);
+					messages::new_upper_house(ws, n);
+
+					auto gov = ws.w.nation_s.nations.get<nation::current_government>(n);
+					if(ws.s.governments_m.governments_container[gov].election) {
+
+						auto const next_election = next_election_start_date(ws, n);
+						if(tag_to_date(next_election).year() >= tag_to_date(ws.w.current_date).year()) {
+							ws.w.nation_s.nations.set<nation::last_election>(n, ws.w.current_date);
+
+							if((n != ws.w.local_player_nation || ws.s.governments_m.governments_container[gov].appoint_ruling_party == false)) {
+								if(auto election_res = perform_election(ws, n); election_res.p) {
+									silent_set_ruling_party(ws, n, election_res.p);
+									messages::election_result(ws, n, election_res.p, election_res.vote);
+								}
+							}
+						}
+					}
+				}
+			});
+		}
+	}
 }
