@@ -56,6 +56,17 @@ namespace issues {
 		static constexpr uint32_t rich_only = 0x01000000; //upper house composition
 		static constexpr uint32_t state_vote = 0x02000000; //upper house composition
 		static constexpr uint32_t population_vote = 0x03000000; //upper house composition
+
+		
+		static constexpr uint32_t mask_array[] = { build_factory, expand_factory, open_factory, destroy_factory,
+				factory_priority, can_subsidise, pop_build_factory, pop_expand_factory, pop_open_factory, delete_factory_if_no_input,
+				build_factory_invest, expand_factory_invest, open_factory_invest, build_railway_invest, can_invest_in_pop_projects,
+				pop_build_factory_invest, pop_expand_factory_invest, pop_open_factory_invest, allow_foreign_investment, slavery_allowed, build_railway };
+		static constexpr int32_t boolean_rule_count = int32_t(std::extent_v<decltype(mask_array)>);
+
+		static constexpr uint32_t boolean_rule_index_to_mask(int32_t v) {
+			return mask_array[v];
+		}
 	};
 	struct rules_set {
 		rules rules_settings;

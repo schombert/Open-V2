@@ -7,8 +7,123 @@
 #include "nations\\nations_functions.h"
 
 namespace governments {
+	class close_choose_party_window {
+	public:
+		void button_function(ui::simple_button<close_choose_party_window>&, world_state&);
+	};
+
+	class choose_party_window_base : public ui::visible_region {
+	public:
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class party_item_base : public ui::visible_region {
+	public:
+		party_tag value;
+
+		void set_value(party_tag t) {
+			value = t;
+		}
+	};
+
+	using party_issue_pair = std::pair<party_tag, uint32_t>;
+
+	class party_issue_item_base : public ui::visible_region {
+	public:
+		party_issue_pair value;
+
+		void set_value(party_issue_pair t) {
+			value = t;
+		}
+	};
+
+	class isssue_group_text {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class issue_name_text {
+	public:
+		party_issue_pair value;
+
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using party_issue_item = ui::gui_window<
+		CT_STRING("issue_group"), ui::display_text<isssue_group_text>,
+		CT_STRING("issue_name"), ui::display_text<issue_name_text>,
+		party_issue_item_base
+	>;
+
+	class party_issues_listbox {
+	public:
+		template<typename lb_type, typename window_type>
+		void populate_list(lb_type& lb, window_type&, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class party_choice_ideology_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::tinted_icon<party_choice_ideology_icon>& self, W& w, world_state& ws);
+	};
+
+	class party_choice_button {
+	public:
+		party_tag value;
+
+		void button_function(ui::button<party_choice_button>&, world_state&);
+		template<typename window_type>
+		void windowed_update(ui::button<party_choice_button>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	using party_item = ui::gui_window<
+		CT_STRING("party_icon"), ui::tinted_icon<party_choice_ideology_icon>,
+		CT_STRING("party_name"), ui::button<party_choice_button>,
+		CT_STRING("issue_listbox"), ui::discrete_listbox<party_issues_listbox, party_issue_item, party_issue_pair>,
+		party_item_base
+	>;
+
+	class party_choice_listbox {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using choose_party_window = ui::gui_window<
+		CT_STRING("all_party_window_close"), ui::simple_button<close_choose_party_window>,
+		CT_STRING("party_listbox"), ui::discrete_listbox<party_choice_listbox, party_item, party_tag>,
+		choose_party_window_base
+	>;
+
+
+	class main_party_choice_ideology_icon {
+	public:
+		void update(ui::tinted_icon<main_party_choice_ideology_icon>&, world_state& ws);
+	};
+
+	class main_party_choice_button {
+	public:
+		void button_function(ui::button<main_party_choice_button>&, world_state&);
+		void update(ui::button<main_party_choice_button>& self, world_state& ws);
+		bool has_tooltip(world_state&);
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	class government_window_base : public ui::draggable_region {
 	public:
+		choose_party_window choose_window;
+		ui::tinted_icon<main_party_choice_ideology_icon> choice_icon;
+		ui::button<main_party_choice_button> choice_button;
+
 		template<typename W>
 		void on_create(W& w, world_state&);
 	};
@@ -768,6 +883,36 @@ namespace governments {
 			obj.object.position += ui::xy_pair{ -3i16, 38i16 };
 		});
 
+		{
+			auto tag = std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["party_name"]);
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				choice_button));
+			choice_button.associated_object->position.x = w.get<CT_STRING("hold_election")>().associated_object->position.x;
+			choice_button.associated_object->position.y =
+				int16_t(w.get<CT_STRING("hold_election")>().associated_object->position.y - (choice_button.associated_object->size.y + 4));
+		}
+
+		{
+			auto tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["party_icon"]);
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				choice_icon));
+			choice_icon.associated_object->position = choice_button.associated_object->position + ui::xy_pair{ 5i16, 3i16};
+		}
+
+		{
+			auto w_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["all_party_window"]);
+			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ws, w_tag,
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				choose_window));
+			choose_window.associated_object->position.x = w.get<CT_STRING("hold_election")>().associated_object->position.x;
+			ui::hide(*choose_window.associated_object);
+
+		}
 		ui::hide(*associated_object);
 	}
 
@@ -1422,5 +1567,57 @@ namespace governments {
 
 			lb.update_list(data.begin().get_ptr(), data.end().get_ptr());
 		}
+	}
+
+	template<typename W>
+	void choose_party_window_base::on_create(W & w, world_state &) {}
+
+	template<typename window_type>
+	void isssue_group_text::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto party_option = ws.s.governments_m.party_issues.get(win.value.first, win.value.second);
+		auto parent_issue = ws.s.issues_m.options[party_option].parent_issue;
+
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.issues_container[parent_issue].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+	template<typename window_type>
+	void issue_name_text::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		value = win.value;
+		auto party_option = ws.s.governments_m.party_issues.get(value.first, value.second);
+
+		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[party_option].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		lm.finish_current_line();
+	}
+
+	template<typename lb_type, typename window_type>
+	void party_issues_listbox::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<party_issue_pair, 32> data;
+		for(uint32_t i = 0; i < ws.s.issues_m.party_issues.size(); ++i) {
+			data.emplace_back(win.value, i);
+		}
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+	template<typename W>
+	void party_choice_ideology_icon::windowed_update(ui::tinted_icon<party_choice_ideology_icon>& self, W & w, world_state & ws) {
+		auto const ideology = ws.s.governments_m.parties[w.value].ideology;
+		auto const party_color = ws.s.ideologies_m.ideology_container[ideology].color;
+		self.set_color(ws.w.gui_m, float(party_color.r) / 255.0f, float(party_color.g) / 255.0f, float(party_color.b) / 255.0f);
+	}
+	template<typename lb_type>
+	void party_choice_listbox::populate_list(lb_type & lb, world_state & ws) {
+		if(auto player = ws.w.local_player_nation; player) {
+			boost::container::small_vector<party_tag, 16> data;
+			ws.s.ideologies_m.for_each_ideology([&ws, &data, player](ideologies::ideology_tag i) {
+				if(auto const p = ws.w.nation_s.active_parties.get(player, i); p)
+					data.push_back(p);
+			});
+			lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+		} else {
+			lb.new_list(nullptr, nullptr);
+		}
+	}
+	template<typename window_type>
+	void party_choice_button::windowed_update(ui::button<party_choice_button>& self, window_type & win, world_state & ws) {
+		
 	}
 }

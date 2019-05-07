@@ -122,6 +122,13 @@ namespace commands {
 		change_sphere_leader(nations::country_tag f, nations::country_tag l) : nation_for(f), new_leader(l) {}
 	};
 
+	struct change_ruling_party {
+		nations::country_tag nation_for;
+		governments::party_tag new_party;
+
+		change_ruling_party(nations::country_tag f, governments::party_tag a) : nation_for(f), new_party(a) {}
+	};
+
 	void execute_command(set_budget const& c, world_state& ws);
 	void execute_command(province_building const& c, world_state& ws);
 	void execute_command(fabricate_cb const& c, world_state& ws);
@@ -129,14 +136,16 @@ namespace commands {
 	void execute_command(execute_event const& c, world_state& ws);
 	void execute_command(change_influence_priority_level const& c, world_state& ws);
 	void execute_command(change_sphere_leader const& c, world_state& ws);
+	void execute_command(change_ruling_party const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
 	bool is_command_valid(change_research const& c, world_state const& ws);
+	bool is_command_valid(change_ruling_party const& c, world_state const& ws);
 
 	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 
-	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event, change_influence_priority_level, change_sphere_leader>;
+	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event, change_influence_priority_level, change_sphere_leader, change_ruling_party>;
 }

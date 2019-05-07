@@ -174,6 +174,7 @@ namespace modifiers {
 	
 	ui::xy_pair make_province_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifier_definition const& def) {
 		char16_t local_buf[64];
+		bool has_effect = false;
 		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 			if(def.values[i] != value_type(0)) {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.province_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -204,13 +205,20 @@ namespace modifiers {
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
+				has_effect = true;
 			}
+		}
+		if(has_effect == false) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		return cursor_in;
 	}
 
 	ui::xy_pair make_national_modifier_text_body(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, modifier_definition const& def) {
 		char16_t local_buf[64];
+		bool has_effect = false;
 		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 			if(def.values[i] != value_type(0)) {
 				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
@@ -241,7 +249,13 @@ namespace modifiers {
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
+				has_effect = true;
 			}
+		}
+		if(has_effect == false) {
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+			lm.finish_current_line();
 		}
 		return cursor_in;
 	}

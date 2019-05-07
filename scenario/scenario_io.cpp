@@ -765,5 +765,29 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::projection_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTION_TWO");
 		s.fixed_ui_text[fixed_ui::zoom_one] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ZOOM_ONE");
 		s.fixed_ui_text[fixed_ui::zoom_two] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ZOOM_TWO");
+		s.fixed_ui_text[fixed_ui::cannot_appoint_ruling_party] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POLITICS_CANNOT_SET_RULING_PARTY_RULE");
+		s.fixed_ui_text[fixed_ui::party_not_permitted] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PARTY_NOT_PERMITTED");
+		s.fixed_ui_text[fixed_ui::party_already_ruling] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PARTY_ALREADY_RULING");
+		s.fixed_ui_text[fixed_ui::build_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_build_factory");
+		s.fixed_ui_text[fixed_ui::expand_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_expand_factory");
+		s.fixed_ui_text[fixed_ui::open_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_open_factory");
+		s.fixed_ui_text[fixed_ui::destroy_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_destroy_factory");
+		s.fixed_ui_text[fixed_ui::factory_priority] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_factory_priority");
+		s.fixed_ui_text[fixed_ui::can_subsidise] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_can_subsidise");
+		s.fixed_ui_text[fixed_ui::pop_build_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_build_factory");
+		s.fixed_ui_text[fixed_ui::pop_expand_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_expand_factory");
+		s.fixed_ui_text[fixed_ui::pop_open_factory] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_open_factory");
+		s.fixed_ui_text[fixed_ui::delete_factory_if_no_input] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_delete_factory_if_no_input");
+		s.fixed_ui_text[fixed_ui::build_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_build_factory_invest");
+		s.fixed_ui_text[fixed_ui::expand_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_expand_factory_invest");
+		s.fixed_ui_text[fixed_ui::open_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_open_factory_invest");
+		s.fixed_ui_text[fixed_ui::build_railway_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_build_railway_invest");
+		s.fixed_ui_text[fixed_ui::can_invest_in_pop_projects] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_can_invest_in_pop_projects");
+		s.fixed_ui_text[fixed_ui::pop_build_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_build_factory_invest");
+		s.fixed_ui_text[fixed_ui::pop_expand_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_expand_factory_invest");
+		s.fixed_ui_text[fixed_ui::pop_open_factory_invest] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_pop_open_factory_invest");
+		s.fixed_ui_text[fixed_ui::allow_foreign_investment] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_allow_foreign_investment");
+		s.fixed_ui_text[fixed_ui::slavery_allowed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_slavery_allowed");
+		s.fixed_ui_text[fixed_ui::build_railway] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_build_railway");
 	}
 }

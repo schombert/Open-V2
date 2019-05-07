@@ -683,8 +683,32 @@ namespace scenario {
 		constexpr uint32_t projection_two = 660ui32;
 		constexpr uint32_t zoom_one = 661ui32;
 		constexpr uint32_t zoom_two = 662ui32;
+		constexpr uint32_t cannot_appoint_ruling_party = 663ui32;
+		constexpr uint32_t party_not_permitted = 664ui32;
+		constexpr uint32_t party_already_ruling = 665ui32;
+		constexpr uint32_t build_factory = 666ui32;
+		constexpr uint32_t expand_factory = 667ui32;
+		constexpr uint32_t open_factory = 668ui32;
+		constexpr uint32_t destroy_factory = 669ui32;
+		constexpr uint32_t factory_priority = 670ui32;
+		constexpr uint32_t can_subsidise = 671ui32;
+		constexpr uint32_t pop_build_factory = 672ui32;
+		constexpr uint32_t pop_expand_factory = 673ui32;
+		constexpr uint32_t pop_open_factory = 674ui32;
+		constexpr uint32_t delete_factory_if_no_input = 675ui32;
+		constexpr uint32_t build_factory_invest = 676ui32;
+		constexpr uint32_t expand_factory_invest = 677ui32;
+		constexpr uint32_t open_factory_invest = 678ui32;
+		constexpr uint32_t build_railway_invest = 679ui32;
+		constexpr uint32_t can_invest_in_pop_projects = 680ui32;
+		constexpr uint32_t pop_build_factory_invest = 681ui32;
+		constexpr uint32_t pop_expand_factory_invest = 682ui32;
+		constexpr uint32_t pop_open_factory_invest = 683ui32;
+		constexpr uint32_t allow_foreign_investment = 684ui32;
+		constexpr uint32_t slavery_allowed = 685ui32;
+		constexpr uint32_t build_railway = 686ui32;
 
-		constexpr uint32_t count = 663ui32;
+		constexpr uint32_t count = 687ui32;
 	}
 
 

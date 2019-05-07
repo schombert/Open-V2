@@ -4,9 +4,11 @@
 #include "modifiers\\modifiers_gui.h"
 #include "governments_functions.h"
 #include "triggers\\trigger_gui.h"
+#include "commands\commands.h"
 
 namespace governments {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
+		ui::hide(*(ws.w.government_w.win->choose_window.associated_object));
 		ws.w.government_w.hide_government_window(ws.w.gui_m);
 	}
 	void government_type_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -484,5 +486,94 @@ namespace governments {
 		auto mod = ws.s.issues_m.options[tag].modifier;
 		if(is_valid_index(mod))
 			modifiers::make_national_modifier_text(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, mod);
+	}
+	void close_choose_party_window::button_function(ui::simple_button<close_choose_party_window>&, world_state & ws) {
+		ui::hide(*(ws.w.government_w.win->choose_window.associated_object));
+	}
+	void issue_name_text::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto party_option = ws.s.governments_m.party_issues.get(value.first, value.second);
+
+		ui::unlimited_line_manager lm;
+		modifiers::make_national_modifier_text(ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format, ws.s.issues_m.options[party_option].modifier);
+	}
+	ui::window_tag party_issues_listbox::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["party_issue_option_window"]);
+	}
+	ui::window_tag party_choice_listbox::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["party_window"]);
+	}
+	void main_party_choice_ideology_icon::update(ui::tinted_icon<main_party_choice_ideology_icon>& self, world_state & ws) {
+		auto const ideology = ws.w.nation_s.nations.get<nation::ruling_ideology>(ws.w.local_player_nation);
+		if(ideology) {
+			auto const party_color = ws.s.ideologies_m.ideology_container[ideology].color;
+			self.set_color(ws.w.gui_m, float(party_color.r) / 255.0f, float(party_color.g) / 255.0f, float(party_color.b) / 255.0f);
+		} else {
+			self.set_color(ws.w.gui_m, 255.0f, 255.0f, 255.0f);
+		}
+	}
+	void main_party_choice_button::button_function(ui::button<main_party_choice_button>&, world_state& ws) {
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.government_w.win->choose_window.associated_object));
+	}
+	void main_party_choice_button::update(ui::button<main_party_choice_button>& self, world_state & ws) {
+		if(auto player_gov = ws.w.nation_s.nations.get<nation::current_government>(ws.w.local_player_nation); player_gov) {
+			self.set_enabled(ws.s.governments_m.governments_container[player_gov].appoint_ruling_party);
+		}
+		self.set_text(ws, ws.s.governments_m.parties[ws.w.nation_s.nations.get<nation::ruling_party>(ws.w.local_player_nation)].name);
+	}
+	bool main_party_choice_button::has_tooltip(world_state &ws) {
+		if(auto const gov = ws.w.nation_s.nations.get<nation::current_government>(ws.w.local_player_nation); gov) {
+			return ws.s.governments_m.governments_container[gov].appoint_ruling_party == false;
+		} else {
+			return false;
+		}
+	}
+	void main_party_choice_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto player_gov = ws.w.nation_s.nations.get<nation::current_government>(ws.w.local_player_nation); player_gov) {
+			if(ws.s.governments_m.governments_container[player_gov].appoint_ruling_party == false) {
+				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::cannot_appoint_ruling_party], ui::tooltip_text_format,
+					ws.s.gui_m, ws.w.gui_m, tw);
+			}
+		}
+	}
+	void party_choice_button::button_function(ui::button<party_choice_button>& self, world_state & ws) {
+		ws.w.pending_commands.add<commands::change_ruling_party>(ws.w.local_player_nation, value);
+		ui::hide(*(ws.w.government_w.win->choose_window.associated_object));
+	}
+	void party_choice_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const player = ws.w.local_player_nation; player) {
+			auto const gov = ws.w.nation_s.nations.get<nation::current_government>(player);
+			auto const party_ideology = ws.s.governments_m.parties[value].ideology;
+
+			ui::xy_pair cursor{ 0,0 };
+			if(value == ws.w.nation_s.nations.get<nation::ruling_party>(player)) {
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::party_already_ruling], ui::tooltip_text_format,
+					ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			} else if(gov && party_ideology && ws.s.governments_m.permitted_ideologies.get(gov, party_ideology) == 0) {
+				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::party_not_permitted], ui::tooltip_text_format,
+					ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			}
+
+			for(uint32_t i = 0; i < ws.s.issues_m.party_issues.size(); ++i) {
+				auto const opt = ws.s.governments_m.party_issues.get(value, i);
+				for(int32_t j = 0; j < issues::rules::boolean_rule_count; ++i) {
+					if((ws.s.issues_m.options[opt].issue_rules.rules_mask.rules_value & issues::rules::boolean_rule_index_to_mask(j)) != 0) {
+						if((ws.s.issues_m.options[opt].issue_rules.rules_settings.rules_value & issues::rules::boolean_rule_index_to_mask(j)) != 0) {
+							ui::text_format local_fmt{ ui::text_color::green, ui::tooltip_text_format.font_handle, ui::tooltip_text_format.font_size };
+							cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), tw, cursor, local_fmt);
+						} else {
+							ui::text_format local_fmt{ ui::text_color::red, ui::tooltip_text_format.font_handle, ui::tooltip_text_format.font_size };
+							cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), tw, cursor, local_fmt);
+						}
+						cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::build_factory + j], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+						cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
+					}
+				}
+				
+			}
+		}
 	}
 }

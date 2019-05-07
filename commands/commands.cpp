@@ -454,6 +454,18 @@ namespace commands {
 			nations::set_priority_level(ws, c.nation_for, c.nation_target, c.level);
 	}
 
+	bool is_command_valid(change_ruling_party const& c, world_state const& ws) {
+		if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(c.nation_for); gov)
+			return ws.s.governments_m.governments_container[gov].appoint_ruling_party;
+		else
+			return false;
+	}
+
+	void execute_command(change_ruling_party const& c, world_state& ws) {
+		if(is_command_valid(c, ws))
+			governments::silent_set_ruling_party(ws, c.nation_for, c.new_party);
+	}
+
 	void execute_command(change_sphere_leader const& c, world_state& ws) {
 		nations::set_sphere_leader(ws, c.nation_for, c.new_leader);
 	}

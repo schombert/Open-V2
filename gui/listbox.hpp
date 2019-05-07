@@ -7,6 +7,14 @@
 #undef min
 #endif
 
+
+template<typename OBJ, typename RET, typename ... PARAMS>
+struct has_populate_list_s : public std::false_type {};
+template<typename OBJ, typename ... PARAMS>
+struct has_populate_list_s<OBJ, decltype(void(std::declval<OBJ>().populate_list(std::declval<PARAMS>() ...))), PARAMS ...> : public std::true_type {};
+template<typename OBJ, typename ... PARAMS>
+constexpr bool has_populate_list = has_populate_list_s<OBJ, void, PARAMS ...>::value;
+
 template<typename BASE, typename ELEMENT, int32_t left_expand>
 bool ui::display_listbox<BASE, ELEMENT, left_expand>::on_scroll(gui_object_tag o, world_state& m, const scroll& s) {
 	return sb.on_scroll(o, m, s);
@@ -31,6 +39,7 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::update_data(gui_object_tag
 
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
+	if constexpr(ui::detail::has_populate_list<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, world_state&>) {
 		BASE::populate_list(*this, ws);
 
 		update_scroll_position(ws.w.gui_m);
@@ -46,6 +55,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(g
 
 		ws.w.gui_m.tooltip = gui_object_tag();
 		ws.w.gui_m.on_mouse_move(ws, ui::mouse_move{ ws.w.gui_m.last_mouse_move.x, ws.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
+	}
 }
 
 namespace ui {
@@ -165,8 +175,7 @@ void ui::display_listbox<BASE, ELEMENT, left_expand>::windowed_update(window_typ
 template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expand>
 template<typename window_type>
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, display_listbox<BASE, ELEMENT, left_expand>&, window_type&, world_state&>) {
-		BASE::windowed_update(*this, w, s);
+	if constexpr(ui::detail::has_populate_list<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, window_type&, world_state&>) {
 		BASE::populate_list(*this, w, s);
 
 		update_scroll_position(s.w.gui_m);
