@@ -228,7 +228,7 @@ namespace technologies {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
 				},
-				1.0f, 0.0f, s, e);
+				1.0f, s, e);
 	}
 
 	inline modifiers::factor_tag read_invention_chance(const token_group* s, const token_group* e, tech_reading_env& env) {
@@ -238,8 +238,7 @@ namespace technologies {
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::empty,
 				},
-				1.0f, 0.0f, s, e);
-		env.s.modifiers_m.factor_modifiers[new_mod].factor = env.s.modifiers_m.factor_modifiers[new_mod].base;
+				1.0f, s, e);
 		return new_mod;
 	}
 

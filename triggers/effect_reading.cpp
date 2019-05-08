@@ -3432,7 +3432,6 @@ namespace triggers {
 			env.s,
 			env.current_scope,
 			1.0f,
-			0.0f,
 			s,
 			e);
 	}

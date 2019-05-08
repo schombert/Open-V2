@@ -707,8 +707,12 @@ namespace scenario {
 		constexpr uint32_t allow_foreign_investment = 684ui32;
 		constexpr uint32_t slavery_allowed = 685ui32;
 		constexpr uint32_t build_railway = 686ui32;
+		constexpr uint32_t no_change_party = 687ui32;
+		constexpr uint32_t upper_house_support = 688ui32;
+		constexpr uint32_t no_more_reform = 689ui32;
+		constexpr uint32_t reform_next_step = 690ui32;
 
-		constexpr uint32_t count = 687ui32;
+		constexpr uint32_t count = 691ui32;
 	}
 
 

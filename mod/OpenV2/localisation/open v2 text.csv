@@ -476,7 +476,7 @@ fabrication_condition;Is not currently fabricating a casus belli
 tech_condition_previous;The preceding technology has been researched
 tech_condition_year;It is not prior to the activation year
 tech_condition_not_done;The technology has not been researched
-WELOSECB_SETUP;When we lose a Casus Belli
+WELOSECB_DESCRIPTION;When we lose a Casus Belli
 WELOSECB_1;Casus Belli
 WELOSECB_2;We have lost the
 WELOSECB_3;$CASUS$ Casus Belli
@@ -488,3 +488,209 @@ automate_option;Automatically choose this option
 monthly_chance;Chance per month:
 openv2_messagecat_text;Messages
 openv2_sourcescat_text;Sources
+GAINCB_DESCRIPTION;When the nation gains a casus belli
+GAINCB_TARGET_DESCRIPTION;When another nation gains a casus belli against this nation
+LOSECB_DESCRIPTION;When the nation loses a casus belli
+LOSECB_TARGET_DESCRIPTION;When another nation nation loses a casus belli against this nation
+REVOLTALLIANCE_CAUSE_DESCRIPTION;When the nation breaks their alliances due to revolution
+REVOLTALLIANCE_TARGET_DESCRIPTION;When a nation breaks their alliances with the nation due to revolution
+WAR_CAUSE_DESCRIPTION;When the nation declares a war
+WAR_TARGET_DESCRIPTION;When war is declared against the nation
+WARGOAL_CAUSE_DESCRIPTION;When the nation adds a war goal
+WARGOAL_TARGET_DESCRIPTION;When the nation is the target of a new a war goal
+SOCREFORM_DESCRIPTION;When the nation enacts a social reform
+SOCREFORM_BAD_DESCRIPTION;When the nation removes a social reform
+POLREFORM_DESCRIPTION;When the nation enacts a political reform
+POLREFORM_BAD_DESCRIPTION;When the nation removes a political reform
+ECONOMICREFORM_DESCRIPTION;When the nation enacts an economic reform
+ECONOMICREFORM_BAD_DESCRIPTION;When the nation removes an economic reform
+MILITARYREFORM_DESCRIPTION;When the nation enacts a military reform
+MILITARYREFORM_BAD_DESCRIPTION;When the nation removes a military reform
+SETPARTY_DESCRIPTION;When the nation changes its ruling party
+UPPERHOUSE_DESCRIPTION;When the nation's upper house has been rearranged
+ELECTIONSTART_DESCRIPTION;When an election begins in the nation
+ELECTIONDONE_DESCRIPTION;When an election finishes in the nation
+BREAKCOUNTRY_DESCRIPTION;When a rebel faction enforces its demands in the nation
+REBELS_DESCRIPTION;When a rebellion occurs in the nation
+ANNEX_CAUSE_DESCRIPTION;When the nation annexes another nation
+ANNEX_TARGET_DESCRIPTION;When the nation is annexed by another nation
+PEACE_ACCEPT_CAUSE_DESCRIPTION;When a peace offer made by the nation is accepted
+PEACE_ACCEPT_TARGET_DESCRIPTION;When the nation accepts a peace offer
+PEACE_DECLINE_CAUSE_DESCRIPTION;When a peace offer made by the nation is declined
+PEACE_DECLINE_TARGET_DESCRIPTION;When the nation declines a peace offer
+MOBILIZE_DESCRIPTION;When the nation mobilizes in preparation for war
+DEMOBILIZE_DESCRIPTION;When the nation demobilizes
+BUILDING_DONE_DESCRIPTION;When a building is finished
+EVENTHAPPENOTHER_DESCRIPTION;When a historical event with a single choice happens to the nation
+EVENTHAPPENOTHEROPTION_DESCRIPTION;When a historical event with multiple choice happens to the nation
+MAJOREVENTHAPPENOTHER_DESCRIPTION;When a major event with a single choice happens to the nation
+MAJOREVENTHAPPENOTHEROPTION_DESCRIPTION;When a major event with multiple choice happens to the nation
+INVENTION_DESCRIPTION;When an invention is discovered in the nation
+TECH_DESCRIPTION;When a technology is researched by the nation
+LEADERDIED_DESCRIPTION;When one of the nation's military leaders dies
+LANDBATTLEOVER_DESCRIPTION;When a land battle the nation is involved in finishes
+NAVALBATTLEOVER_DESCRIPTION;When a naval battle the nation is involved in finishes
+DECISIONOTHER_DESCRIPTION;When the nation executes a decision
+NO_LONGER_GREAT_POWER_DESCRIPTION;When the nation loses great power status
+BECAME_GREAT_POWER_DESCRIPTION;When the nation gains great power status
+ALLIANCE_ACCEPT_CAUSE_DESCRIPTION;When an alliance offer made by the nation is accepted
+ALLIANCE_ACCEPT_TARGET_DESCRIPTION;When the nation accepts an alliance offer
+ALLIANCE_DECLINE_CAUSE_DESCRIPTION;When an alliance offer made by the nation is declined
+ALLIANCE_DECLINE_TARGET_DESCRIPTION;When the nation declines an alliance offer
+CANCELALLIANCE_CAUSE_DESCRIPTION;When the nation cancels its alliance with another nation
+CANCELALLIANCE_TARGET_DESCRIPTION;When another nation cancels its alliance with the nation
+INCREASEOPINION_CAUSE_DESCRIPTION;When the opinion of the nation is increased in another nation
+INCREASEOPINION_TARGET_DESCRIPTION;When the nation's opinion of another nation is increased
+ADDTOSPHERE_CAUSE_DESCRIPTION;When the nation adds another nation to its sphere of influence
+ADDTOSPHERE_TARGET_DESCRIPTION;When the nation is added to the sphere of influence of another nation
+REMOVEFROMSPHERE_CAUSE_DESCRIPTION;When the nation removes another nation from a sphere of influence
+REMOVEFROMSPHERE_TARGET_DESCRIPTION;When the nation is removed from a sphere of influence
+REMOVEFROMSPHERE_OTHER_TARGET_DESCRIPTION;When another nation is removed from the nation's sphere of influence
+INCREASERELATION_CAUSE_DESCRIPTION;When the nation increases its relations with another nation
+INCREASERELATION_TARGET_DESCRIPTION;When the nation's relations with another nation are increased by that nation
+DECREASERELATION_CAUSE_DESCRIPTION;When the nation decreases its relations with another nation
+DECREASERELATION_TARGET_DESCRIPTION;When the nation's relations with another nation are decreased by that nation
+INTERVENTION_SAME_SIDE_DESCRIPTION;When a nation joins a war on the same side as the nation
+INTERVENTION_OTHER_SIDE_DESCRIPTION;When a nation joins a war on the side opposing the nation
+INTERVENTION_DESCRIPTION;When the nation joins a war
+BANKRUPTCY_DESCRIPTION;When the nation becomes bankrupt
+NEW_PARTY_AVAIL_DESCRIPTION;When a new political party appears
+PARTY_UNAVAIL_DESCRIPTION;When a political party is no longer present
+CB_DETECTED_CAUSE_DESCRIPTION;When the nation's war justification process is detected
+CB_DETECTED_TARGET_DESCRIPTION;When a war justification against the nation is detected
+JOIN_CRISIS_OFFER_CAUSE_DESCRIPTION;When the nation makes an offer to another nation to join a crisis
+JOIN_CRISIS_OFFER_TARGET_DESCRIPTION;When the nation receives an offer from another nation to join a crisis
+JOIN_CRISIS_OFFER_REJECT_CAUSE_DESCRIPTION;When the nation's offer to another nation to join a crisis is rejected
+JOIN_CRISIS_OFFER_REJECT_TARGET_DESCRIPTION;When the nation rejects an offer from another nation to join a crisis
+JOIN_CRISIS_CAUSE_DESCRIPTION;When the nation becomes involved in a crisis
+JOIN_CRISIS_TARGET_DESCRIPTION;When another nation becomes involved in a crisis that the nation is involved in
+CRISIS_OFFER_CAUSE_DESCRIPTION;When the nation makes an offer to resolve a crisis without war
+CRISIS_OFFER_TARGET_DESCRIPTION;When the nation is offered a resolution to a crisis
+CRISIS_OFFER_DECLINED_CAUSE_DESCRIPTION;When the nation declines an offer to resolve a crisis without war
+CRISIS_OFFER_DECLINED_TARGET_DESCRIPTION;When the nation's offering to resolve a crisis is declined
+CRISIS_RESOLVED_CAUSE_DESCRIPTION;When the nation negotiates a resolution to a crisis
+CRISIS_RESOLVED_TARGET_DESCRIPTION;When a crisis the nation is involved in is resolved without war (by another nation)
+CRISIS_STARTED_DESCRIPTION;When an international crisis has started
+CRISIS_BECAME_WAR_TARGET_DESCRIPTION;When a crisis the nation is involved in escalates into war
+CB_JUSTIFY_NO_LONGER_VALID_DESCRIPTION;When the nation's war justification process is no longer valid
+GAINCB_MESSAGE;$NATION$ has gained the $CASUS$ casus belli against $TARGET$
+GAINCB_TARGET_MESSAGE;$NATION$ has gained the $CASUS$ casus belli against $TARGET$
+LOSECB_MESSAGE;$NATION$ has lost the $CASUS$ casus belli against $TARGET$
+LOSECB_TARGET_MESSAGE;$NATION$ has lost the $CASUS$ casus belli against $TARGET$
+REVOLTALLIANCE_CAUSE_MESSAGE;$NATION$ has broken its alliances because of a revolution
+REVOLTALLIANCE_TARGET_MESSAGE;$NATION$ has broken its alliances because of a revolution
+WAR_CAUSE_MESSAGE;$NATION$ has declared war on $TARGET$
+WAR_TARGET_MESSAGE;$NATION$ has declared war on $TARGET$
+WARGOAL_CAUSE_MESSAGE;$NATION$ has added $WARGOAL$ against $TARGET$
+WARGOAL_TARGET_MESSAGE;$NATION$ has added $WARGOAL$ against $TARGET$
+SOCREFORM_MESSAGE;$NATION$ has enacted $ISSUE$ in $CATEGORY$
+SOCREFORM_BAD_MESSAGE;$NATION$ has reverted to $ISSUE$ in $CATEGORY$
+POLREFORM_MESSAGE;$NATION$ has enacted $ISSUE$ in $CATEGORY$
+POLREFORM_BAD_MESSAGE;$NATION$ has reverted to $ISSUE$ in $CATEGORY$
+ECONOMICREFORM_MESSAGE;$NATION$ has enacted $ISSUE$ in $CATEGORY$
+ECONOMICREFORM_BAD_MESSAGE;$NATION$ has reverted to $ISSUE$ in $CATEGORY$
+MILITARYREFORM_MESSAGE;$NATION$ has enacted $ISSUE$ in $CATEGORY$
+MILITARYREFORM_BAD_MESSAGE;$NATION$ has reverted to $ISSUE$ in $CATEGORY$
+SETPARTY_MESSAGE;The $PARTY$ now rule in $NATION$
+UPPERHOUSE_MESSAGE;The upper house in $NATION$ has been rearranged
+ELECTIONSTART_MESSAGE;The elections in $NATION$ are starting
+ELECTIONDONE_MESSAGE;The elections in $NATION$ have finished. $PARTY$ has won with $VALUE$% of the vote.
+BREAKCOUNTRY_MESSAGE;$FACTION$ have enforced their demands in $NATION$
+REBELS_MESSAGE;$FACTION$ have risen up in $NATION$
+ANNEX_CAUSE_MESSAGE;$NATION$ has annexed $TARGET$
+ANNEX_TARGET_MESSAGE;$NATION$ has annexed $TARGET$
+PEACE_ACCEPT_CAUSE_MESSAGE;The peace offer from $NATION$ to $TARGET$ was accepted
+PEACE_ACCEPT_TARGET_MESSAGE;The peace offer from $NATION$ to $TARGET$ was accepted
+PEACE_DECLINE_CAUSE_MESSAGE;The peace offer from $NATION$ to $TARGET$ was declined
+PEACE_DECLINE_TARGET_MESSAGE;The peace offer from $NATION$ to $TARGET$ was declined
+MOBILIZE_MESSAGE;$NATION$ has started to mobilize their reserves
+DEMOBILIZE_MESSAGE;$NATION$ has demobilized their reserves
+BUILDING_DONE_MESSAGE;$NATION$ has finished building $NAME$ in $PROV$
+EVENTHAPPENOTHER_MESSAGE;$EVENT$ happened in $NATION$
+EVENTHAPPENOTHEROPTION_MESSAGE;$NATION$ chose $OPTION$ in response to $EVENT$
+MAJOREVENTHAPPENOTHER_MESSAGE;$EVENT$ happened in $NATION$
+MAJOREVENTHAPPENOTHEROPTION_MESSAGE;$NATION$ chose $OPTION$ in response to $EVENT$
+INVENTION_MESSAGE;$NATION$ has discovered $INVENTION$
+TECH_MESSAGE;$NATION$ has finished researching $TYPE$
+LEADERDIED_MESSAGE;$NAME$, a $TYPE$ in $NATION$, has died
+LANDBATTLEOVER_MESSAGE;$NATION$ has $RESULT$ a battle in $PROV$
+NAVALBATTLEOVER_MESSAGE;$NATION$ has $RESULT$ a naval engagement in $PROV$
+DECISIONOTHER_MESSAGE;$EVENT$ has been chosen in $NATION$
+NO_LONGER_GREAT_POWER_MESSAGE;$NATION$ is no longer considered a great power
+BECAME_GREAT_POWER_MESSAGE;$NATION$ is now considered a great power
+ALLIANCE_ACCEPT_CAUSE_MESSAGE;$TARGET$ has accepted an alliance offer from $NATION$
+ALLIANCE_ACCEPT_TARGET_MESSAGE;$TARGET$ has accepted an alliance offer from $NATION$
+ALLIANCE_DECLINE_CAUSE_MESSAGE;$TARGET$ has declined an alliance offer from $NATION$
+ALLIANCE_DECLINE_TARGET_MESSAGE;$TARGET$ has declined an alliance offer from $NATION$
+CANCELALLIANCE_CAUSE_MESSAGE;$NATION$ has dissolved their alliance with $TARGET$
+CANCELALLIANCE_TARGET_MESSAGE;$NATION$ has dissolved their alliance with $TARGET$
+INCREASEOPINION_CAUSE_MESSAGE;$NATION$ has increased $TARGET$'s opinion of them to $OPINION$
+INCREASEOPINION_TARGET_MESSAGE;$NATION$ has increased $TARGET$'s opinion of them to $OPINION$
+ADDTOSPHERE_CAUSE_MESSAGE;$NATION$ has added $TARGET$ to their sphere of influence
+ADDTOSPHERE_TARGET_MESSAGE;$NATION$ has added $TARGET$ to their sphere of influence
+REMOVEFROMSPHERE_CAUSE_MESSAGE;$NATION$ has removed $RECIPIENT$ from $TARGET$'s sphere of influence
+REMOVEFROMSPHERE_TARGET_MESSAGE;$NATION$ has removed $RECIPIENT$ from $TARGET$'s sphere of influence
+REMOVEFROMSPHERE_OTHER_TARGET_MESSAGE;$NATION$ has removed $RECIPIENT$ from $TARGET$'s sphere of influence
+INCREASERELATION_CAUSE_MESSAGE;$NATION$ has improved their relations with $TARGET$
+INCREASERELATION_TARGET_MESSAGE;$NATION$ has improved their relations with $TARGET$
+DECREASERELATION_CAUSE_MESSAGE;$NATION$ has decreased their relations with $TARGET$
+DECREASERELATION_TARGET_MESSAGE;$NATION$ has decreased their relations with $TARGET$
+INTERVENTION_SAME_SIDE_MESSAGE;$NATION$ has joined the war against $TARGET$
+INTERVENTION_OTHER_SIDE_MESSAGE;$NATION$ has joined the war against $TARGET$
+INTERVENTION_MESSAGE;$NATION$ has joined the war against $TARGET$
+BANKRUPTCY_MESSAGE;$NATION$ has gone bankrupt
+NEW_PARTY_AVAIL_MESSAGE;$PARTY$ is now active in $NATION$
+PARTY_UNAVAIL_MESSAGE;$PARTY$ is no longer active in $NATION$
+CB_DETECTED_CAUSE_MESSAGE;$NATION$ has been detected fabricating against $TARGET$, costing §R$BADBOY$§! infamy
+CB_DETECTED_TARGET_MESSAGE;$NATION$ has been detected fabricating against $TARGET$, costing §R$BADBOY$§! infamy
+JOIN_CRISIS_OFFER_CAUSE_MESSAGE;$NATION$ has made an offer to $TARGET$ to join the crisis
+JOIN_CRISIS_OFFER_TARGET_MESSAGE;$NATION$ has made an offer to $TARGET$ to join the crisis
+JOIN_CRISIS_OFFER_REJECT_CAUSE_MESSAGE;$NATION$ has declined the offer from $TARGET$ to join the crisis
+JOIN_CRISIS_OFFER_REJECT_TARGET_MESSAGE;$NATION$ has declined the offer from $TARGET$ to join the crisis
+JOIN_CRISIS_CAUSE_MESSAGE;$NATION$ has become involved in the current crisis
+JOIN_CRISIS_TARGET_MESSAGE;$NATION$ has become involved in the current crisis
+CRISIS_OFFER_CAUSE_MESSAGE;$NATION$ has made an offer to $TARGET$ to resolve the crisis
+CRISIS_OFFER_TARGET_MESSAGE;$NATION$ has made an offer to $TARGET$ to resolve the crisis
+CRISIS_OFFER_DECLINED_CAUSE_MESSAGE;$NATION$ has declined the offer from $TARGET$ to resolve the crisis
+CRISIS_OFFER_DECLINED_TARGET_MESSAGE;$NATION$ has declined the offer from $TARGET$ to resolve the crisis
+CRISIS_RESOLVED_CAUSE_MESSAGE;$NATION$ has resolved the current crisis diplomatically
+CRISIS_RESOLVED_TARGET_MESSAGE;$NATION$ has resolved the current crisis diplomatically
+CRISIS_STARTED_MESSAGE;An international crisis has started in $TARGET$
+CRISIS_BECAME_WAR_TARGET_MESSAGE;The current crisis has escalated into war
+CB_JUSTIFY_NO_LONGER_VALID_MESSAGE;$NATION$'s $CASUS$ war justification against $TARGET$ is no longer valid
+importance_label;Importance
+message_type_discard;Discard
+message_type_log;Log
+message_type_popup;Popup
+message_type_pause;Popup and pause
+message_group_self;Self
+message_group_neighbors;Neighbors
+message_group_sphere_members;Sphere members
+message_group_vassals;Vassals
+message_group_allies;Allies
+message_group_great_powers;Great powers
+message_group_sphere_leader;Sphere leader
+message_group_overlord;Overlord
+OPENV2_SAVE_AND_EXIT;Save & Exit
+OPENV2_SAVE;Save
+OPENV2_EXIT;Exit
+OPENV2_GRAPHICS_OPT;Graphics
+OPENV2_SOUND_OPT;Sound
+OPENV2_CONTROLS_OPT;Controls
+WINDOW_MODE_LABEL;Display mode
+PROJECTION_LABEL;Map projection
+UI_SCALE_LABEL;UI scale
+WINDOW_MODE_ONE;Windowed
+WINDOW_MODE_TWO;Full screen
+PROJECTION_ONE;Wagner VI
+PROJECTION_TWO;Orthographic
+ZOOM_LABEL;Zoom to
+ZOOM_ONE;Center
+ZOOM_TWO;Cursor
+SM_INTERFACE_VOLUME;Interface Volume
+PARTY_NOT_PERMITTED;Our government type does not permit this party
+PARTY_ALREADY_RULING;This is the current ruling party
+NO_CHANGE_PARTY_TOOLTIP;The ruling party cannot be changed again until
+UPPER_HOUSE_SUPPORT;upper house support
+NO_MORE_REFORM;Another reform is not possible until
+REFORM_NEXT_STEP;This reform is the next step

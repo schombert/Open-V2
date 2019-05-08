@@ -159,7 +159,7 @@ namespace events {
 		return triggers::parse_option_effect(env.s, env.ecm, env.scope, s, e);
 	}
 	inline modifiers::factor_tag read_mtth(const token_group* s, const token_group* e, event_parse_env& env) {
-		return modifiers::parse_modifier_factors(env.s, env.scope, 1.0f, 0.0f, s, e);
+		return modifiers::parse_modifier_factors(env.s, env.scope, 1.0f, s, e);
 	}
 	inline event_tag read_province_event(const token_group* s, const token_group* e, event_file_parse_env& env) {
 		return read_or_defer_event(
@@ -522,7 +522,7 @@ namespace events {
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::empty
-			 }, 1.0f, 0.0f, s, e);
+			 }, 1.0f, s, e);
 	}
 	inline int inner_read_decision(const token_group* s, const token_group* e, const token_and_type& t, event_file_parse_env& env) {
 		const auto tag = read_decision(env.s, env.ecm, env.pictures_root, s, e);

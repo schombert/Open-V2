@@ -415,7 +415,7 @@ namespace modifiers {
 		outer_factor_modifier(factor_modifiers_parsing_state& e) : env(e) {}
 
 		void set_factor(float f) { env.under_construction.factor = f; }
-		void set_base(float f) { env.under_construction.base = f; }
+		void set_base(float f) { env.under_construction.factor = f; }
 		void set_days(int32_t d) { env.under_construction.factor = static_cast<float>(d); }
 		void set_months(int32_t m) { env.under_construction.factor = static_cast<float>(m * 30); }
 		void set_years(int32_t y) { env.under_construction.factor = static_cast<float>(y * 365); }
@@ -1685,13 +1685,11 @@ namespace modifiers {
 		scenario::scenario_manager& s,
 		triggers::trigger_scope_state modifier_scope,
 		float default_factor,
-		float default_base,
 		const token_group* start,
 		const token_group* end) {
 
 		factor_modifiers_parsing_state parse_state(s, modifier_scope);
 		parse_state.under_construction.factor = default_factor;
-		parse_state.under_construction.base = default_base;
 
 		parse_object<outer_factor_modifier, modifier_factors_parsing_domain>(
 			start,

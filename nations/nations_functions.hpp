@@ -215,4 +215,21 @@ namespace nations {
 	auto nation_exists(world_state const& ws, T n) -> decltype(ve::widen_to<T>(true)) {
 		return is_valid_index(ve::load(n, ws.w.nation_s.nations.get_row<nation::current_capital>()));
 	}
+
+	template<typename F>
+	void parallel_for_each_province(world_state const& ws, nations::country_tag n, F&& f) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+		concurrency::parallel_for_each(owned_range.first, owned_range.second, [&f](provinces::province_tag p) {
+			if(is_valid_index(p))
+				f(p);
+		});
+	}
+	template<typename F>
+	void parallel_for_each_province(world_state& ws, nations::country_tag n, F&& f) {
+		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+		concurrency::parallel_for_each(owned_range.first, owned_range.second, [&f](provinces::province_tag p) {
+			if(is_valid_index(p))
+				f(p);
+		});
+	}
 }

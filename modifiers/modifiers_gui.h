@@ -24,5 +24,5 @@ namespace modifiers {
 	ui::xy_pair make_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	ui::xy_pair make_multiplicative_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, bool invert_colors);
 }

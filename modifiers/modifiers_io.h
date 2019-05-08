@@ -195,7 +195,6 @@ namespace modifiers {
 		scenario::scenario_manager& s,
 		triggers::trigger_scope_state modifier_scope,
 		float default_factor,
-		float default_base,
 		const token_group* start,
 		const token_group* end);
 

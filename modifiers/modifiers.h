@@ -27,12 +27,11 @@ namespace modifiers {
 	
 	struct factor_modifier {
 		float factor = 0.0f;
-		float base = 0.0f;
 		uint16_t data_offset = 0ui16;
 		uint16_t data_length = 0ui16;
 
 		bool operator==(const factor_modifier& other) const noexcept {
-			return (factor == other.factor) & (base == other.base) & (data_offset == other.data_offset) & (data_length == other.data_length);
+			return (factor == other.factor) & (data_offset == other.data_offset) & (data_length == other.data_length);
 		}
 	};
 

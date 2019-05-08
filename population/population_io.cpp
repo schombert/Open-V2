@@ -267,7 +267,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::pop,
 				},
-				1.0f, 0.0f, s, e);
+				1.0f, s, e);
 	}
 	inline modifiers::factor_tag read_rebel_movement_evaluation_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
 		return modifiers::parse_modifier_factors(
@@ -277,7 +277,7 @@ namespace population {
 				triggers::trigger_slot_contents::province,
 				triggers::trigger_slot_contents::rebel,
 				},
-				1.0f, 0.0f, s, e);
+				1.0f, s, e);
 	}
 	inline modifiers::factor_tag read_rebel_will_rise_factor(const token_group* s, const token_group* e, rebel_reading_env& env) {
 		return modifiers::parse_modifier_factors(
@@ -287,7 +287,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::rebel,
 				},
-				1.0f, 0.0f, s, e);
+				1.0f, s, e);
 	}
 	inline int discard_rebel_section(const token_group*, const token_group*, rebel_reading_env&) { return 0; }
 	inline triggers::trigger_tag read_rebel_siege_won_trigger(const token_group* s, const token_group* e, rebel_reading_env& env) {
@@ -516,7 +516,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
 				},
-				1.0f, 0.0f, s, e);
+				1.0f, s, e);
 	}
 
 	struct income {
@@ -590,7 +590,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
 					},
-					1.0f, 0.0f, start, end);
+					1.0f, start, end);
 			env.s.population_m.issue_inclination.get(env.pt.id, issue_tag) = ftag;
 		}
 		return 0;
@@ -611,7 +611,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
 					},
-					1.0f, 0.0f, start, end);
+					1.0f, start, end);
 			env.s.population_m.ideological_inclination.get(env.pt.id, ideology_tag) = ftag;
 		}
 		return 0;
@@ -632,7 +632,7 @@ namespace population {
 					triggers::trigger_slot_contents::pop,
 					triggers::trigger_slot_contents::empty,
 					},
-					1.0f, 0.0f, start, end);
+					1.0f, start, end);
 			env.s.population_m.promote_to.get(env.pt.id, ptype_tag) = ftag;
 		}
 		return 0;
@@ -645,7 +645,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
 				},
-				1.0f, 0.0f, start, end);
+				1.0f, start, end);
 	}
 
 	inline modifiers::factor_tag read_migration_target(const token_group* start, const token_group* end, single_poptype_environment& env) {
@@ -655,7 +655,7 @@ namespace population {
 				triggers::trigger_slot_contents::pop,
 				triggers::trigger_slot_contents::empty,
 				},
-				1.0f, 0.0f, start, end);
+				1.0f, start, end);
 	}
 
 	struct poptype_rebels {

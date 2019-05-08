@@ -789,5 +789,9 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::allow_foreign_investment] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_allow_foreign_investment");
 		s.fixed_ui_text[fixed_ui::slavery_allowed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_slavery_allowed");
 		s.fixed_ui_text[fixed_ui::build_railway] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "rule_build_railway");
+		s.fixed_ui_text[fixed_ui::no_change_party] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_CHANGE_PARTY_TOOLTIP");
+		s.fixed_ui_text[fixed_ui::upper_house_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "UPPER_HOUSE_SUPPORT");
+		s.fixed_ui_text[fixed_ui::no_more_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_MORE_REFORM");
+		s.fixed_ui_text[fixed_ui::reform_next_step] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REFORM_NEXT_STEP");
 	}
 }

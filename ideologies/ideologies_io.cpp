@@ -132,7 +132,7 @@ namespace ideologies {
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::nation,
 			triggers::trigger_slot_contents::empty,
-			}, 0.0f, 1.0f, s, e);
+			}, 1.0f, s, e);
 	}
 
 	inline ideology_tag internal_reserve_ideology(const token_group* s, const token_group* e, const token_and_type& t, parsing_environment& env) {

@@ -2,7 +2,7 @@
 #include "world_state.h"
 #include "messages.hpp"
 #include "technologies\\technologies_gui.h"
-#include "governments\governments_gui.hpp"
+#include "governments\governments_gui.h"
 #include "scenario\\settings.h"
 
 namespace messages {

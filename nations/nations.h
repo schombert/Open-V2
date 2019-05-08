@@ -151,6 +151,8 @@ namespace nation {
 	// mobilization_impact // == 1.0 - std::max(0.0f, this_nation.modifier_values[national_offsets::mobilisation_size]) * this_nation.modifier_values[national_offsets::mobilisation_economy_impact];
 
 	struct last_election;
+	struct last_manual_ruling_party_change;
+	struct last_reform_date;
 	struct last_lost_war;
 	struct disarmed_until;
 
@@ -210,6 +212,8 @@ namespace nation {
 		current_rules, int32_t,
 		total_core_population, float,
 		last_election, date_tag,
+		last_reform_date, date_tag,
+		last_manual_ruling_party_change, date_tag,
 		last_lost_war, date_tag,
 		disarmed_until, date_tag,
 

@@ -44,4 +44,10 @@ spriteTypes = {
 		texturefile = "gfx\\interface\\openv2_message_options.tga"
 		noOfFrames = 4
 	}
+	
+	spriteType = {
+		name = "GFX_openv2_message_settings_button"
+		texturefile = "gfx\\interface\\openv2_msg_button.tga"
+		noOfFrames = 1
+	}
 }

@@ -7,6 +7,8 @@
 #include "technologies\\technologies_functions.h"
 #include "triggers\\trigger_gui.h"
 #include "triggers\effects.h"
+#include "governments\governments_functions.h"
+#include "issues\issues_functions.h"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -455,24 +457,116 @@ namespace commands {
 	}
 
 	bool is_command_valid(change_ruling_party const& c, world_state const& ws) {
-		if(auto gov = ws.w.nation_s.nations.get<nation::current_government>(c.nation_for); gov)
-			return ws.s.governments_m.governments_container[gov].appoint_ruling_party;
-		else
+		auto const last_change = ws.w.nation_s.nations.get<nation::last_manual_ruling_party_change>(c.nation_for);
+		auto const gov = ws.w.nation_s.nations.get<nation::current_government>(c.nation_for);
+		auto const party_ideology = ws.s.governments_m.parties[c.new_party].ideology;
+
+		if(is_valid_index(last_change) && to_index(last_change) + 365 < to_index(ws.w.current_date))
 			return false;
+		else if(gov && ws.s.governments_m.governments_container[gov].appoint_ruling_party == false)
+			return false;
+		else if(c.new_party == ws.w.nation_s.nations.get<nation::ruling_party>(c.nation_for))
+			return false;
+		else if(gov && party_ideology && ws.s.governments_m.permitted_ideologies.get(gov, party_ideology) == 0)
+			return false;
+		else
+			return true;
 	}
 
 	void execute_command(change_ruling_party const& c, world_state& ws) {
-		if(is_command_valid(c, ws))
+		if(is_command_valid(c, ws)) {
 			governments::silent_set_ruling_party(ws, c.nation_for, c.new_party);
+			ws.w.nation_s.nations.set<nation::last_manual_ruling_party_change>(c.nation_for, ws.w.current_date);
+		}
 	}
 
 	void execute_command(change_sphere_leader const& c, world_state& ws) {
 		nations::set_sphere_leader(ws, c.nation_for, c.new_leader);
 	}
 
+	void execute_command(set_reform const& c, world_state& ws) {
+		if(is_command_valid(c, ws)) {
+			issues::change_issue_option(ws, c.reform, c.nation_for, true);
+		}
+	}
+
 	bool is_command_valid(change_research const& c, world_state const& ws) {
 		return !is_valid_index(c.tech) || (ws.w.nation_s.active_technologies.get(c.nation_for, c.tech) == false &&
 		                                   technologies::can_research(c.tech, ws, c.nation_for));
+	}
+
+	bool is_command_valid(set_reform const& c, world_state const& ws) {
+		return issues::is_reform_possible(ws, c.nation_for, c.reform);
+	}
+
+	ui::xy_pair explain_command_conditions(set_reform const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		if(!issues::is_reform_timer_ready(ws, c.nation_for)) {
+			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_more_reform], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+
+			auto const last_date = ws.w.nation_s.nations.get<nation::last_reform_date>(c.nation_for);
+			auto const next_date = date_tag(to_index(last_date) + int32_t(ws.s.modifiers_m.global_defines.min_delay_between_reforms) * 32);
+			auto ymd = tag_to_date(next_date).year_month_day();
+
+			char16_t local_buf[16];
+
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, container);
+			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+
+			put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.day));
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				container, cursor_in, fmt
+			);
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u", "),
+				container, cursor_in, fmt
+			);
+			put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.year));
+			cursor_in = ui::text_chunk_to_instances(
+				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
+				container, cursor_in, fmt
+			);
+			lm.finish_current_line();
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		}
+		auto const p_issue = ws.s.issues_m.options[c.reform].parent_issue;
+		if(ws.s.issues_m.issues_container[p_issue].next_step_only) {
+			if(is_reform_next_step(ws, c.nation_for, c.reform)) {
+				ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+			} else {
+				ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			}
+			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reform_next_step], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			lm.finish_current_line();
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		}
+		auto const opt_trigger = ws.s.issues_m.options[c.reform].allow;
+		if(opt_trigger) {
+			cursor_in = triggers::make_trigger_description(
+				ws, container, cursor_in, lm, fmt,
+				ws.s.trigger_m.trigger_data.data() + to_index(opt_trigger),
+				c.nation_for, c.nation_for, c.nation_for, true
+			);
+		}
+
+		char16_t local_buf_b[16];
+		put_value_in_buffer(local_buf_b, display_type::percent, std::clamp(issues::get_uh_reform_support(ws, c.nation_for, c.reform), 0.0f, 100.0f) * 0.01f);
+
+		cursor_in = ui::text_chunk_to_instances(
+			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf_b),
+			container, cursor_in, fmt
+		);
+		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::upper_house_support], fmt,
+			ws.s.gui_m, ws.w.gui_m, container);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+
+		return cursor_in;
 	}
 
 	ui::xy_pair explain_command_conditions(change_research const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {

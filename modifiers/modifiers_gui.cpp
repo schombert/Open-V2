@@ -532,11 +532,11 @@ namespace modifiers {
 			return cursor_in;
 		}
 		ui::xy_pair display_multiplicative_value(float value, world_state& ws,
-			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, bool invert_color) {
 
 			char16_t local_buffer[32];
 
-			ui::text_format local_fmt{ (value < 1.0f) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+			ui::text_format local_fmt{ ((value < 1.0f) != invert_color) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
 
 			put_value_in_buffer(local_buffer, display_type::fp_two_places, value);
 			
@@ -618,7 +618,7 @@ namespace modifiers {
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
-		cursor_in = make_multiplicative_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot);
+		cursor_in = make_multiplicative_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot, true);
 
 		lm.decrease_indent(1);
 		return cursor_in;
@@ -637,12 +637,12 @@ namespace modifiers {
 		return cursor_in;
 	}
 	ui::xy_pair make_multiplicative_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, bool invert_colors) {
 
 		for(uint32_t i = 0; i < f.data_length; ++i) {
 			auto segment = ws.s.modifiers_m.factor_data[f.data_offset + i];
 
-			cursor_in = display_multiplicative_value(segment.factor, ws, container, cursor_in, lm, fmt);
+			cursor_in = display_multiplicative_value(segment.factor, ws, container, cursor_in, lm, fmt, invert_colors);
 			cursor_in = triggers::make_trigger_description(ws, container, cursor_in, lm, fmt, ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), primary_slot, primary_slot, from_slot);
 		}
 

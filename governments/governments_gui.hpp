@@ -5,6 +5,7 @@
 #include "triggers\\effects.h"
 #include "gui\\gui.hpp"
 #include "nations\\nations_functions.h"
+#include "issues\issues_functions.h"
 
 namespace governments {
 	class close_choose_party_window {
@@ -25,6 +26,9 @@ namespace governments {
 		void set_value(party_tag t) {
 			value = t;
 		}
+
+		template<typename W>
+		void on_create(W& w, world_state&);
 	};
 
 	using party_issue_pair = std::pair<party_tag, uint32_t>;
@@ -891,7 +895,7 @@ namespace governments {
 				choice_button));
 			choice_button.associated_object->position.x = w.get<CT_STRING("hold_election")>().associated_object->position.x;
 			choice_button.associated_object->position.y =
-				int16_t(w.get<CT_STRING("hold_election")>().associated_object->position.y - (choice_button.associated_object->size.y + 4));
+				int16_t(w.get<CT_STRING("hold_election")>().associated_object->position.y - (choice_button.associated_object->size.y));
 		}
 
 		{
@@ -900,7 +904,7 @@ namespace governments {
 				ws, tag,
 				ui::tagged_gui_object{ *associated_object, w.window_object },
 				choice_icon));
-			choice_icon.associated_object->position = choice_button.associated_object->position + ui::xy_pair{ 5i16, 3i16};
+			choice_icon.associated_object->position = choice_button.associated_object->position + ui::xy_pair{ 5i16, 2i16};
 		}
 
 		{
@@ -909,7 +913,10 @@ namespace governments {
 				ws, w_tag,
 				ui::tagged_gui_object{ *associated_object, w.window_object },
 				choose_window));
-			choose_window.associated_object->position.x = w.get<CT_STRING("hold_election")>().associated_object->position.x;
+			choose_window.associated_object->size = ui::xy_pair{344i16,592i16};
+			choose_window.associated_object->position.x = int16_t(w.get<CT_STRING("hold_election")>().associated_object->position.x - 10);
+			choose_window.associated_object->position.y = int16_t(associated_object->size.y - choose_window.associated_object->size.y - 20);
+			choose_window.associated_object->align = ui::alignment::top_left;
 			ui::hide(*choose_window.associated_object);
 
 		}
@@ -1434,13 +1441,7 @@ namespace governments {
 				else
 					ui::make_visible_immediate(*self.associated_object);
 
-				self.set_enabled(true);
-				if(iss_def.next_step_only) {
-
-					if(to_index(tag) + 1 != to_index(current_option) && to_index(current_option) + 1 != to_index(tag))
-						self.set_enabled(false);
-				}
-				// todo: disable if lacking support
+				self.set_enabled(issues::is_reform_possible(ws, player, tag));
 			}
 		}
 	}
@@ -1618,6 +1619,28 @@ namespace governments {
 	}
 	template<typename window_type>
 	void party_choice_button::windowed_update(ui::button<party_choice_button>& self, window_type & win, world_state & ws) {
-		
+		value = win.value;
+		self.set_text(ws, ws.s.governments_m.parties[value].name);
+
+		if(auto const player = ws.w.local_player_nation; player) {
+			auto const gov = ws.w.nation_s.nations.get<nation::current_government>(player);
+			auto const party_ideology = ws.s.governments_m.parties[value].ideology;
+
+			if(value == ws.w.nation_s.nations.get<nation::ruling_party>(player)) {
+				self.set_enabled(false);
+			} else if(gov && ws.s.governments_m.governments_container[gov].appoint_ruling_party == false) {
+				self.set_enabled(false);
+			} else if(gov && party_ideology && ws.s.governments_m.permitted_ideologies.get(gov, party_ideology) == 0) {
+				self.set_enabled(false);
+			} else {
+				self.set_enabled(true);
+			}
+		} else {
+			self.set_enabled(false);
+		}
+	}
+	template<typename W>
+	void party_item_base::on_create(W & w, world_state &) {
+		w.get<CT_STRING("party_icon")>().associated_object->position.y -= 1i16;
 	}
 }
