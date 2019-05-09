@@ -93,7 +93,7 @@ void ui::tinted_icon<BASE>::set_visibility(gui_manager& m, bool visible) {
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_icon<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
@@ -172,7 +172,7 @@ void ui::dynamic_transparent_icon<BASE>::set_visibility(gui_manager& m, bool vis
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_transparent_icon<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;

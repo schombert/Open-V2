@@ -234,7 +234,7 @@ namespace messages {
 	template<typename window_type>
 	void importance_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(!ws.w.message_settings_w.showing_messages) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::importance_label], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::importance_label], fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -284,7 +284,7 @@ namespace messages {
 	template<int32_t i>
 	void message_type_button<i>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(std::holds_alternative<message_id>(value)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_type_discard + uint32_t(ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i])], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_type_discard + uint32_t(ws.s.message_m.settings[std::get<message_id>(value).value * 4 + i])], ui::tooltip_text_format, ws, tw);
 		}
 	}
 	template<typename window_type>
@@ -304,11 +304,11 @@ namespace messages {
 	void message_setting_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		auto const value = win.value;
 		if(std::holds_alternative<group_setting>(value)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_group_self + uint32_t(std::get<group_setting>(value))], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_group_self + uint32_t(std::get<group_setting>(value))], fmt, ws, box, lm);
 		} else if(std::holds_alternative<nations::country_tag>(value)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(value)), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(std::get<nations::country_tag>(value)), fmt, ws, box, lm);
 		} else if(std::holds_alternative<message_id>(value)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.message_m.description_text[std::get<message_id>(value).value], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.message_m.description_text[std::get<message_id>(value).value], fmt, ws, box, lm);
 		}
 	}
 

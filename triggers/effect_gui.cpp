@@ -85,8 +85,7 @@ namespace triggers {
 				local_buffer[0] = u'+';
 
 			put_pos_value_in_buffer(local_buffer + 1, d_type, std::abs(value));
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, local_buffer, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}
@@ -97,7 +96,7 @@ namespace triggers {
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
 			cursor_in = display_value(value, d_type, positive_is_green, ws, container, cursor_in, lm, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[label_index], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[label_index], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}
@@ -115,14 +114,13 @@ namespace triggers {
 		ui::xy_pair fill_text_effect(uint32_t ui_id, text_data::text_tag tex, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, tex),
-					[](ui::tagged_gui_object) {} }
+					tex }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -130,13 +128,12 @@ namespace triggers {
 
 		ui::xy_pair fill_text_effect_wo_newline(uint32_t ui_id, text_data::text_tag tex, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, tex),
-					[](ui::tagged_gui_object) {} }
+					tex }
 			};
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 1);
 			return cursor_in;
 		}
 
@@ -150,17 +147,15 @@ namespace triggers {
 			auto hadj = ws.w.culture_s.tags_to_holders[tag] ?
 				ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.adjective;
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname },
+				text_data::text_replacement{
 					text_data::value_type::adj,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hadj),
-					[](ui::tagged_gui_object) {} } };
+					hadj } };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -177,17 +172,17 @@ namespace triggers {
 				(bool(ws.w.culture_s.tags_to_holders[rtag]) ? ws.w.nation_s.nations.get<nation::adjective>(ws.w.culture_s.tags_to_holders[rtag]) : ws.s.culture_m.national_tags[rtag].default_name.adjective)
 				: ws.s.fixed_ui_text[scenario::fixed_ui::rebel];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, rtag_name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					rtag_name,
+					},
+				text_data::text_replacement{
 					text_data::value_type::adj,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, rtag_adj),
-					[](ui::tagged_gui_object) {} } };
+					rtag_adj,
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -195,19 +190,19 @@ namespace triggers {
 		ui::xy_pair tag_type_this_nation_effect(uint32_t ui_id, const_parameter this_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					
+						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation],
+					 },
+				text_data::text_replacement{
 					text_data::value_type::adj,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation]),
-					[](ui::tagged_gui_object) {} } };
+					
+						bool(to_nation(this_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(this_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::this_nation],
+					 } };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -227,19 +222,19 @@ namespace triggers {
 		ui::xy_pair tag_type_from_nation_effect(uint32_t ui_id, const_parameter from_slot, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					
+						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation],
+					 },
+				text_data::text_replacement{
 					text_data::value_type::adj,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences,
-						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-					[](ui::tagged_gui_object) {} } };
+					
+						bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::adjective>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation],
+					 } };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[ui_id], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -283,16 +278,16 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_province], fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_province], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -300,7 +295,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -330,16 +325,16 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_nation], fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::neighboring_nation], fmt, ws, container, lm);
 			}
 
 
@@ -349,7 +344,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -379,16 +374,16 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation], fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -397,7 +392,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -433,16 +428,16 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::empty_neighboring_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::empty_neighboring_province], fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::empty_neighboring_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::empty_neighboring_province], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -451,7 +446,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -493,16 +488,16 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws, container, lm);
 			}
 
 
@@ -512,7 +507,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -525,19 +520,19 @@ namespace triggers {
 		}
 		ui::xy_pair es_poor_strata_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws, container, lm);
 				gen.advance_n<1>();
 			} else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::poor_strata_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::poor_strata_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -556,19 +551,19 @@ namespace triggers {
 		}
 		ui::xy_pair es_middle_strata_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws, container, lm);
 				gen.advance_n<1>();
 			} else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::middle_strata_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::middle_strata_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -587,19 +582,19 @@ namespace triggers {
 		}
 		ui::xy_pair es_rich_strata_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws, container, lm);
 				gen.advance_n<1>();
 			} else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rich_strata_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rich_strata_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -618,19 +613,19 @@ namespace triggers {
 		}
 		ui::xy_pair es_x_pop_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws, container, lm);
 				gen.advance_n<1>();
 			} else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -665,23 +660,23 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				if(to_nation(primary_slot))
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				else
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -690,7 +685,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -719,23 +714,23 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::great_power], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owned_province], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				if(to_state(primary_slot))
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws, container, lm);
 				else
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -744,7 +739,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -778,24 +773,24 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				}
 
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::core_of], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				if(to_nation(primary_slot))
-					cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				else
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 			}
 
 
@@ -805,7 +800,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -834,23 +829,23 @@ namespace triggers {
 
 				if(rlist.size() != 0) {
 					std::uniform_int_distribution<int32_t> dist(0, int32_t(rlist.size()) - 1);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(rlist[uint32_t(dist(gen))]), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(rlist[uint32_t(dist(gen))]), fmt, ws, container, lm);
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[random_or_every(tval[0])], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::state_of], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				if(bool(to_nation(primary_slot)))
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				else
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 			}
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -859,7 +854,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -871,7 +866,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_random_list_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::one_of_the_following], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::one_of_the_following], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -891,7 +886,8 @@ namespace triggers {
 				*bend = u':';
 				*(bend + 1) = u' ';
 				*(bend + 2) = char16_t(0);
-				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
+
+				cursor_in = ui::add_text(cursor_in, local_buffer, fmt, ws, container, lm);
 
 				cursor_in = _make_effect_description(ws, container, cursor_in, lm, fmt,
 					sub_units_start + 1, primary_slot, this_slot, from_slot, gen, show_condition);
@@ -912,8 +908,9 @@ namespace triggers {
 			*bend = u':';
 			*(bend + 1) = u' ';
 			*(bend + 2) = char16_t(0);
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+
+			cursor_in = ui::add_text(cursor_in, local_buffer, fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -924,10 +921,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_owner_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && bool(to_state(primary_slot))) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -939,7 +936,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -951,10 +948,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_owner_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && bool(to_prov(primary_slot))) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -966,7 +963,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -978,10 +975,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_controller_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::controller_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::controller_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && bool(to_prov(primary_slot))) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -993,7 +990,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1005,7 +1002,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_location_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::location_of_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::location_of_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -1026,7 +1023,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_country_scope_pop(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation_of_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::nation_of_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -1047,10 +1044,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_country_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && to_state(primary_slot)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1062,7 +1059,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_state], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1074,10 +1071,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_capital_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::capital_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::capital_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && to_nation(primary_slot)) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1089,7 +1086,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1102,9 +1099,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_this_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(to_nation(this_slot))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_nation], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1116,9 +1113,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_this_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(to_state(this_slot))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(this_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1130,9 +1127,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_this_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(bool(to_prov(this_slot)))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(this_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(this_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_province], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1143,7 +1140,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_this_scope_pop(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::this_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1155,9 +1152,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_from_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(to_nation(from_slot))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_nation], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1169,9 +1166,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_from_scope_state(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(to_nation(from_slot))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.nation_s.states.get<state::name>(to_state(from_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1183,9 +1180,9 @@ namespace triggers {
 		}
 		ui::xy_pair es_from_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(bool(to_prov(from_slot)))
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(from_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(from_slot)), fmt, ws, container, lm);
 			else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_province], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1196,7 +1193,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_from_scope_pop(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::from_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1210,7 +1207,7 @@ namespace triggers {
 			if(show_condition && bool(to_prov(primary_slot))) {
 				auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_prov(primary_slot));
 				if(sea_zones.first != sea_zones.second) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(*sea_zones.first), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(*sea_zones.first), fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 
@@ -1219,7 +1216,7 @@ namespace triggers {
 					lm.decrease_indent(1);
 				}
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::adjacent_sea], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::adjacent_sea], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1231,10 +1228,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_cultural_union_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && to_nation(primary_slot)) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1242,7 +1239,7 @@ namespace triggers {
 				cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1254,10 +1251,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_overlord_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::overlord_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::overlord_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && to_nation(primary_slot)) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1269,7 +1266,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1281,10 +1278,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_sphere_owner_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::sphere_leader_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::sphere_leader_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && to_nation(primary_slot)) {
-				cursor_in = ui::add_linear_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in,ws.w.nation_s.nations.get<nation::name>(to_nation(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1296,7 +1293,7 @@ namespace triggers {
 					cursor_in = display_subeffects(tval, ws, container, cursor_in, lm, fmt, const_parameter(), this_slot, from_slot, gen, false);
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_nation], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1308,7 +1305,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_independence_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reb_independence_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reb_independence_nation], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1319,7 +1316,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_flashpoint_tag_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_nation], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::flashpoint_nation], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1330,7 +1327,7 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_crisis_state_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::crisis_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::crisis_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1341,10 +1338,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_state_scope_province(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::containing_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::containing_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			if(show_condition && bool(to_prov(primary_slot))) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1355,7 +1352,7 @@ namespace triggers {
 
 				lm.decrease_indent(1);
 			} else {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_province], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1367,10 +1364,10 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair es_state_scope_pop(EFFECT_DISPLAY_PARAMS, bool show_condition) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::containing_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::containing_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::singular_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1385,17 +1382,17 @@ namespace triggers {
 				auto tag = trigger_payload(tval[3]).tag;
 
 				if(auto tag_holder = ws.w.culture_s.tags_to_holders[tag]; tag_holder) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.culture_m.national_tags[tag].default_name.name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.culture_m.national_tags[tag].default_name.name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}
 
 				lm.increase_indent(1);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -1406,11 +1403,11 @@ namespace triggers {
 			} else {
 				auto tag = trigger_payload(tval[2]).tag;
 				if(auto tag_holder = ws.w.culture_s.tags_to_holders[tag]; tag_holder) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.w.nation_s.nations.get<nation::name>(tag_holder), fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				} else {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.culture_m.national_tags[tag].default_name.name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.culture_m.national_tags[tag].default_name.name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}
@@ -1425,12 +1422,12 @@ namespace triggers {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				provinces::province_tag ptag(tval[3]);
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(ptag), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(ptag), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -1439,7 +1436,7 @@ namespace triggers {
 			} else {
 				provinces::province_tag ptag(tval[2]);
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(ptag), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(ptag), fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 
@@ -1451,24 +1448,24 @@ namespace triggers {
 		}
 		ui::xy_pair es_pop_type_scope_nation(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::random], fmt, ws, container, lm);
 				gen.advance_n<1>();
 			} else
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 
 			auto type = ((tval[0] & effect_codes::scope_has_limit) != 0) ? trigger_payload(tval[3]).small.values.pop_type : trigger_payload(tval[2]).small.values.pop_type;
 
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -1488,11 +1485,11 @@ namespace triggers {
 		ui::xy_pair es_region_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			auto region = ((tval[0] & effect_codes::scope_has_limit) != 0) ? trigger_payload(tval[3]).state : trigger_payload(tval[2]).state;
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::every], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::province_in], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::province_in], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.province_m.state_names[region], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.province_m.state_names[region], fmt, ws, container, lm);
 
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
@@ -1500,7 +1497,7 @@ namespace triggers {
 			lm.increase_indent(1);
 
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::where], fmt, ws, container, lm);
 				cursor_in = make_trigger_description(ws, container, cursor_in, lm, fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger),
 					const_parameter(), this_slot, from_slot, false);
@@ -1578,16 +1575,16 @@ namespace triggers {
 		*/
 
 		ui::xy_pair ef_none(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_capital(EFFECT_DISPLAY_PARAMS) {
 			provinces::province_tag new_capital(tval[2]);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::move_capital_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::move_capital_to], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(new_capital), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(new_capital), fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1598,9 +1595,9 @@ namespace triggers {
 		ui::xy_pair ef_add_core_int(EFFECT_DISPLAY_PARAMS) {
 			provinces::province_tag prov(tval[2]);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_core_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_core_to], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(prov), fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1632,9 +1629,9 @@ namespace triggers {
 		ui::xy_pair ef_remove_core_int(EFFECT_DISPLAY_PARAMS) {
 			provinces::province_tag prov(tval[2]);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_core_from], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_core_from], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(prov), fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(prov), fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1661,62 +1658,62 @@ namespace triggers {
 			return tag_type_rebel_slot_effect(scenario::fixed_ui::remove_x_core, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_change_region_name_state(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, trigger_payload(tval[2]).text),
-				[](ui::tagged_gui_object) {} };
+				trigger_payload(tval[2]).text,
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_name_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_name_to], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_change_region_name_province(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, trigger_payload(tval[2]).text),
-				[](ui::tagged_gui_object) {} };
+				trigger_payload(tval[2]).text,
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_name_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_name_to], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_trade_goods(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name),
-				[](ui::tagged_gui_object) {} };
+				ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name,
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_rgo_production_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_rgo_production_to], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_accepted_culture(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name,
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_accepted_culture], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_accepted_culture], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_accepted_culture_union(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::union_culture_accepted], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::union_culture_accepted], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_primary_culture(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name),
-				[](ui::tagged_gui_object) {} };
+				ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1724,22 +1721,22 @@ namespace triggers {
 		ui::xy_pair ef_primary_culture_this_nation(EFFECT_DISPLAY_PARAMS) {
 			if(to_nation(this_slot)) {
 				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(this_slot));
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[c].name),
-					[](ui::tagged_gui_object) {} };
+					ws.s.culture_m.culture_container[c].name,
+					 };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
 			} else {
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_culture]),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.fixed_ui_text[scenario::fixed_ui::this_nation_culture],
+					 };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
@@ -1760,34 +1757,34 @@ namespace triggers {
 		ui::xy_pair ef_primary_culture_from_nation(EFFECT_DISPLAY_PARAMS) {
 			if(to_nation(from_slot)) {
 				auto c = ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(from_slot));
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[c].name),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.culture_m.culture_container[c].name,
+					 };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
 			} else {
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::from_nation_culture]),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.fixed_ui_text[scenario::fixed_ui::from_nation_culture],
+					};
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::primary_culture_changes_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
 			}
 		}
 		ui::xy_pair ef_remove_accepted_culture(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name),
-				[](ui::tagged_gui_object) {} };
+				ws.s.culture_m.culture_container[trigger_payload(tval[2]).culture].name,
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_accepted_culture], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_accepted_culture], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1797,24 +1794,24 @@ namespace triggers {
 				display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_religion(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.religions[trigger_payload(tval[2]).small.values.religion].name),
-				[](ui::tagged_gui_object) {} };
+				ws.s.culture_m.religions[trigger_payload(tval[2]).small.values.religion].name
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_national_religion], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_state_yes(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_slave_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_slave_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_pop_yes(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_slave_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_slave_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1826,12 +1823,12 @@ namespace triggers {
 		ui::xy_pair ef_tech_school(EFFECT_DISPLAY_PARAMS) {
 			auto school = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[school].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.modifiers_m.national_modifiers[school].name,
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_tech_school], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_tech_school], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -1841,12 +1838,12 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_government(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.governments_container[trigger_payload(tval[2]).small.values.government].name),
-				[](ui::tagged_gui_object) {} };
+				ws.s.governments_m.governments_container[trigger_payload(tval[2]).small.values.government].name,
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1858,22 +1855,22 @@ namespace triggers {
 				auto gov = 
 					ws.s.population_m.rebel_change_government_to.get(std::get<population::rebel_type_tag>(rvar), ws.w.nation_s.nations.get<nation::current_government>(to_nation(primary_slot)));
 
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.governments_container[gov].name),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.governments_m.governments_container[gov].name,
+					};
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
 			} else {
-				text_data::replacement repl{
+				text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::rebel]),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.fixed_ui_text[scenario::fixed_ui::rebel],
+					 };
 
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_government_to], fmt, ws, container, lm, &repl, 1);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
 				return cursor_in;
@@ -1904,12 +1901,12 @@ namespace triggers {
 			}
 		}
 		ui::xy_pair ef_change_tag(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name),
-					[](ui::tagged_gui_object) {} };
+					 ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name,
+					 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1921,35 +1918,35 @@ namespace triggers {
 					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
 					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
 					if(is_valid_index(u)) {
-						text_data::replacement repl{
+						text_data::text_replacement repl{
 							text_data::value_type::text,
-							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.national_tags[u].default_name.name),
-							[](ui::tagged_gui_object) {} };
+							ws.s.culture_m.national_tags[u].default_name.name,
+							 };
 
-						cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+						cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws, container, lm, &repl, 1);
 						cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 						lm.finish_current_line();
 						return cursor_in;
 					}
 				}
 			}
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_nation]),
-				[](ui::tagged_gui_object) {} };
+				ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_nation]
+			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_blank], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_change_tag_no_core_switch(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name),
-					[](ui::tagged_gui_object) {} };
+					ws.s.culture_m.national_tags[trigger_payload(tval[2]).tag].default_name.name
+					 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -1961,76 +1958,76 @@ namespace triggers {
 					auto cg_t = ws.s.culture_m.culture_container[prim_culture].group;
 					auto u = ws.s.culture_m.culture_groups[cg_t].union_tag;
 					if(is_valid_index(u)) {
-						text_data::replacement repl{
+						text_data::text_replacement repl{
 							text_data::value_type::text,
-							text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.national_tags[u].default_name.name),
-							[](ui::tagged_gui_object) {} };
+							 ws.s.culture_m.national_tags[u].default_name.name
+							};
 
-						cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+						cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws, container, lm, &repl, 1);
 						cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 						lm.finish_current_line();
 						return cursor_in;
 					}
 				}
 			}
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_nation]),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.fixed_ui_text[scenario::fixed_ui::cultural_union_nation]
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::player_control_change], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_set_country_flag(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.variables_m.national_flag_to_name[trigger_payload(tval[2]).nat_flag]),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.variables_m.national_flag_to_name[trigger_payload(tval[2]).nat_flag]
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::set_national_flag], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::set_national_flag], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_clr_country_flag(EFFECT_DISPLAY_PARAMS) {
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.variables_m.national_flag_to_name[trigger_payload(tval[2]).nat_flag]),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.variables_m.national_flag_to_name[trigger_payload(tval[2]).nat_flag]
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_national_flag], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_national_flag], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_military_access(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_military_access_this_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_military_access_this_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_military_access_from_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_military_access_from_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2169,31 +2166,31 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::release_as_vassal, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_end_military_access(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_end_military_access_this_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_end_military_access_this_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_end_military_access_from_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_end_military_access_from_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2247,12 +2244,12 @@ namespace triggers {
 		ui::xy_pair ef_remove_province_modifier(EFFECT_DISPLAY_PARAMS) {
 			auto pmod = trigger_payload(tval[2]).prov_mod;
 
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.modifiers_m.provincial_modifiers[pmod].name
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_prov_mod], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_prov_mod], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2264,12 +2261,12 @@ namespace triggers {
 		ui::xy_pair ef_remove_country_modifier(EFFECT_DISPLAY_PARAMS) {
 			auto nmod = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.modifiers_m.national_modifiers[nmod].name
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_nat_mod], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_nat_mod], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2324,7 +2321,7 @@ namespace triggers {
 			return tag_type_rebel_slot_effect(scenario::fixed_ui::release_as_independent, to_rebel(from_slot), ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_release_vassal_random(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2346,12 +2343,12 @@ namespace triggers {
 		ui::xy_pair ef_nationalvalue_province(EFFECT_DISPLAY_PARAMS) {
 			auto nmod = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.modifiers_m.national_modifiers[nmod].name
+				};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2363,12 +2360,12 @@ namespace triggers {
 		ui::xy_pair ef_nationalvalue_nation(EFFECT_DISPLAY_PARAMS) {
 			auto nmod = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl{
+			text_data::text_replacement repl{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
-				[](ui::tagged_gui_object) {} };
+				 ws.s.modifiers_m.national_modifiers[nmod].name
+				 };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, &repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::change_national_value], fmt, ws, container, lm, &repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2378,31 +2375,31 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_civilized_yes(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_civ], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_civ], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_civilized_no(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_unciv], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::become_unciv], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_state_no(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_is_slave_pop_no(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_pop], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::free_slave_pop], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_election(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::hold_election], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::hold_election], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2411,18 +2408,18 @@ namespace triggers {
 			auto opt = trigger_payload(tval[2]).small.values.option;
 			auto iss = ws.s.issues_m.options[opt].parent_issue;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 				text_data::value_type::issue,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
-				[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+				ws.s.issues_m.issues_container[iss].name
+				},
+				text_data::text_replacement{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
-				[](ui::tagged_gui_object) {} },
+				 ws.s.issues_m.options[opt].name
+				 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2431,18 +2428,18 @@ namespace triggers {
 			auto opt = trigger_payload(tval[2]).small.values.option;
 			auto iss = ws.s.issues_m.options[opt].parent_issue;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 				text_data::value_type::issue,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
-				[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+				 ws.s.issues_m.issues_container[iss].name
+				},
+				text_data::text_replacement{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
-				[](ui::tagged_gui_object) {} },
+				 ws.s.issues_m.options[opt].name
+				 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2457,7 +2454,7 @@ namespace triggers {
 			}
 		}
 		ui::xy_pair ef_neutrality(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_neutral], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::make_neutral], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2494,18 +2491,18 @@ namespace triggers {
 			auto opt = trigger_payload(tval[2]).small.values.option;
 			auto iss = ws.s.issues_m.options[opt].parent_issue;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 				text_data::value_type::issue,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
-				[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+				 ws.s.issues_m.issues_container[iss].name
+				 },
+				text_data::text_replacement{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
-				[](ui::tagged_gui_object) {} },
+				 ws.s.issues_m.options[opt].name
+				},
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2514,50 +2511,48 @@ namespace triggers {
 			auto opt = trigger_payload(tval[2]).small.values.option;
 			auto iss = ws.s.issues_m.options[opt].parent_issue;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 				text_data::value_type::issue,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.issues_container[iss].name),
-				[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+				 ws.s.issues_m.issues_container[iss].name
+				 },
+				text_data::text_replacement{
 				text_data::value_type::text,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[opt].name),
-				[](ui::tagged_gui_object) {} },
+				 ws.s.issues_m.options[opt].name
+				 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::issue_change], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_remove_random_military_reforms(EFFECT_DISPLAY_PARAMS) {
-			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, tval[2]);
+			
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buf),
-					[](ui::tagged_gui_object) {} }
+					text_data::integer{tval[2]}
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_mil_reforms], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_mil_reforms], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_remove_random_economic_reforms(EFFECT_DISPLAY_PARAMS) {
-			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::integer, tval[2]);
+			
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buf),
-					[](ui::tagged_gui_object) {} }
+					text_data::integer{tval[2]}
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_econ_reforms], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_econ_reforms], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2568,13 +2563,13 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_crime_none(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_crime], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_crime], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_nationalize(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::perform_nationalization], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::perform_nationalization], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2590,25 +2585,25 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_great_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_great_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_great_wars], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_great_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_great_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_great_wars], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_world_wars_enabled_yes(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_world_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_world_wars], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_world_wars_enabled_no(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_world_wars], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disable_world_wars], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2642,7 +2637,7 @@ namespace triggers {
 				scenario::fixed_ui::literacy, true, display_type::percent, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_crisis_interest(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_crisis_interest], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_crisis_interest], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2676,7 +2671,7 @@ namespace triggers {
 				scenario::fixed_ui::naval_base_level, true, display_type::integer, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_trigger_revolt_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::trigger_every_revolt], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::trigger_every_revolt], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2750,23 +2745,21 @@ namespace triggers {
 			return tag_type_from_province_effect(scenario::fixed_ui::relations_with, from_slot, ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_add_province_modifier(EFFECT_DISPLAY_PARAMS) {
-			char16_t formatted_date[64];
-			u16_format_date(formatted_date, date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
 
 			auto pmod = trigger_payload(tval[2]).prov_mod;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.modifiers_m.provincial_modifiers[pmod].name,
+					 },
+				text_data::text_replacement{
 					text_data::value_type::date,
-					vector_backed_string<char16_t>(formatted_date),
-					[](ui::tagged_gui_object) {} }
+					date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value),
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2778,14 +2771,14 @@ namespace triggers {
 		ui::xy_pair ef_add_province_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
 			auto pmod = trigger_payload(tval[2]).prov_mod;
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.provincial_modifiers[pmod].name),
-					[](ui::tagged_gui_object) {} }
+					 ws.s.modifiers_m.provincial_modifiers[pmod].name
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2795,23 +2788,20 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_country_modifier(EFFECT_DISPLAY_PARAMS) {
-			char16_t formatted_date[64];
-			u16_format_date(formatted_date, date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value));
-
 			auto nmod = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.modifiers_m.national_modifiers[nmod].name
+					 },
+				text_data::text_replacement{
 					text_data::value_type::date,
-					vector_backed_string<char16_t>(formatted_date),
-					[](ui::tagged_gui_object) {} }
+					date_tag(to_index(ws.w.current_date) + trigger_payload(tval[3]).signed_value)
+				}
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier_until], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2823,14 +2813,14 @@ namespace triggers {
 		ui::xy_pair ef_add_country_modifier_no_duration(EFFECT_DISPLAY_PARAMS) {
 			auto nmod = trigger_payload(tval[2]).nat_mod;
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.modifiers_m.national_modifiers[nmod].name),
-					[](ui::tagged_gui_object) {} }
+					 ws.s.modifiers_m.national_modifiers[nmod].name
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_modifier], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -2847,25 +2837,24 @@ namespace triggers {
 			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
 				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
+			
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					ws.s.military_m.cb_types[type].name
+					 },
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+				} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2878,25 +2867,23 @@ namespace triggers {
 			auto hname = bool(owner) ?
 				ws.w.nation_s.nations.get<nation::name>(owner) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2908,25 +2895,23 @@ namespace triggers {
 			auto hname = bool(to_nation(this_slot)) ?
 				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2950,25 +2935,23 @@ namespace triggers {
 			auto hname = bool(to_nation(from_slot)) ?
 				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+					 } };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_months : scenario::fixed_ui::add_cb_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -2985,25 +2968,23 @@ namespace triggers {
 			auto hname = ws.w.culture_s.tags_to_holders[tag] ?
 				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					 },
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months} 
+			} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3019,22 +3000,22 @@ namespace triggers {
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					 },
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3046,25 +3027,23 @@ namespace triggers {
 			auto hname = bool(to_nation(this_slot)) ?
 				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{ months }
+			} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3091,22 +3070,22 @@ namespace triggers {
 			char16_t local_buffer[16];
 			put_value_in_buffer(local_buffer, display_type::integer, months);
 
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} } };
+					text_data::integer{months}
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 3);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[months != 0 ? scenario::fixed_ui::add_cb_reversed_months : scenario::fixed_ui::add_cb_reversed_no_months],
+				fmt, ws, container, lm, repl, 3);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3123,19 +3102,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3148,19 +3127,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(owner) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3172,19 +3151,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					 ws.s.military_m.cb_types[type].name
+					},
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3208,19 +3187,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					 ws.s.military_m.cb_types[type].name
+					},
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3237,19 +3216,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(ws.w.culture_s.tags_to_holders[tag]) :
 				ws.s.culture_m.national_tags[tag].default_name.name;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					 ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3262,19 +3241,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(owner) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::no_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					 ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3286,19 +3265,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(to_nation(this_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::this_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					},
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3322,19 +3301,19 @@ namespace triggers {
 				ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) :
 				ws.s.fixed_ui_text[scenario::fixed_ui::from_nation];
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, hname),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 hname
+					 },
+				text_data::text_replacement{
 					text_data::value_type::name,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
+					 ws.s.military_m.cb_types[type].name
+					 },
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::remove_cb_reversed],
+				fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3399,7 +3378,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 3, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3412,7 +3391,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3425,7 +3404,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3438,7 +3417,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3451,7 +3430,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3464,7 +3443,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3477,7 +3456,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_yes_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3490,7 +3469,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 3, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3503,7 +3482,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3516,7 +3495,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3529,7 +3508,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3542,7 +3521,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3555,7 +3534,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3568,7 +3547,7 @@ namespace triggers {
 
 			cursor_in = make_wg_body(tval + 2, ws, container, cursor_in, lm, fmt);
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::attacker_no_allies], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -3578,21 +3557,19 @@ namespace triggers {
 		inline ui::xy_pair delayed_event_display(uint16_t const* tval, ui::xy_pair cursor_in, world_state& ws, ui::tagged_gui_object container,
 			ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::integer, tval[3]);
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.event_m.event_container[trigger_payload(tval[2]).event].title),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.event_m.event_container[trigger_payload(tval[2]).event].title
+					 },
+				text_data::text_replacement{
 					text_data::value_type::value,
-					vector_backed_string<char16_t>(local_buffer),
-					[](ui::tagged_gui_object) {} }
+					text_data::integer{tval[3]}
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires_in_days], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires_in_days], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3600,14 +3577,14 @@ namespace triggers {
 		inline ui::xy_pair immediate_event_display(uint16_t const* tval, ui::xy_pair cursor_in, world_state& ws, ui::tagged_gui_object container,
 			ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.event_m.event_container[trigger_payload(tval[2]).event].title),
-					[](ui::tagged_gui_object) {} }
+					ws.s.event_m.event_container[trigger_payload(tval[2]).event].title
+					}
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::event_fires], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3686,25 +3663,25 @@ namespace triggers {
 		}
 
 		ui::xy_pair ef_sub_unit_int(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_sub_unit_this(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_sub_unit_from(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_sub_unit_current(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3746,17 +3723,17 @@ namespace triggers {
 		inline ui::xy_pair display_scaled_issue(float value, uint32_t type, issues::option_tag tag, ui::xy_pair cursor_in, world_state& ws,
 			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws, container, lm);
 			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[tag].name),
-					[](ui::tagged_gui_object) {} }
+					 ws.s.issues_m.options[tag].name
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3765,17 +3742,17 @@ namespace triggers {
 		inline ui::xy_pair display_scaled_ideology(float value, uint32_t type, ideologies::ideology_tag tag, ui::xy_pair cursor_in, world_state& ws,
 			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws, container, lm);
 			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[tag].name),
-					[](ui::tagged_gui_object) {} }
+					ws.s.ideologies_m.ideology_container[tag].name
+					 }
 			};
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 1);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_support], fmt, ws, container, lm, repl, 1);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3784,9 +3761,9 @@ namespace triggers {
 		inline ui::xy_pair display_scaled_unemployment(float value, uint32_t type, ui::xy_pair cursor_in, world_state& ws,
 			ui::tagged_gui_object container, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::up_to], fmt, ws, container, lm);
 			cursor_in = display_value_wo_newline(value, type, false, display_type::percent, ws, container, cursor_in, lm, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_unemployment], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::scaled_unemployment], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3890,26 +3867,26 @@ namespace triggers {
 		}
 		ui::xy_pair ef_variable_good_name(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = display_value_wo_newline(read_float_from_payload(tval + 3), scenario::fixed_ui::stockpile_of, true, display_type::integer, ws, container, cursor_in, lm, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_variable_good_name_province(EFFECT_DISPLAY_PARAMS) {
 			cursor_in = display_value_wo_newline(read_float_from_payload(tval + 3), scenario::fixed_ui::stockpile_of, true, display_type::integer, ws, container, cursor_in, lm, fmt);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[trigger_payload(tval[2]).small.values.good].name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_define_general(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_general], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_general], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_define_admiral(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_admiral], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::create_admiral], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -3931,17 +3908,17 @@ namespace triggers {
 		ui::xy_pair ef_add_war_goal(EFFECT_DISPLAY_PARAMS) {
 			auto type = trigger_payload(tval[2]).small.values.cb_type;
 
-			text_data::replacement repl[2] = {
-				text_data::replacement{
+			text_data::text_replacement repl[2] = {
+				text_data::text_replacement{
 					text_data::value_type::text,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {} },
-				text_data::replacement{
+					 ws.s.military_m.cb_types[type].name
+					 },
+				text_data::text_replacement{
 					text_data::value_type::nation,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]),
-					[](ui::tagged_gui_object) {} } };
+					 bool(to_nation(from_slot)) ? ws.w.nation_s.nations.get<nation::name>(to_nation(from_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::from_nation]
+					} };
 
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_war_goal], fmt, ws.s.gui_m, ws.w.gui_m, container, lm, repl, 2);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::add_war_goal], fmt, ws, container, lm, repl, 2);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -4040,49 +4017,49 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_build_railway_in_capital_yes_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_railway_in_capital_yes_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_railway_in_capital_no_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_railway_in_capital_no_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad_in_capital], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_fort_in_capital_yes_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_fort_in_capital_yes_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital_state], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital_state], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_fort_in_capital_no_whole_state_yes_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
 		}
 		ui::xy_pair ef_build_fort_in_capital_no_whole_state_no_limit(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort_in_capital], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			return cursor_in;
@@ -4097,11 +4074,11 @@ namespace triggers {
 				ws, container, cursor_in, lm, fmt);
 		}
 		ui::xy_pair ef_set_country_flag_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4112,11 +4089,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_country_modifier_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4127,11 +4104,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_add_country_modifier_province_no_duration(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4142,11 +4119,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4157,11 +4134,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province_this_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4172,11 +4149,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province_this_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4187,11 +4164,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province_from_nation(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4202,11 +4179,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province_from_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4217,11 +4194,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_relation_province_reb(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 
@@ -4232,11 +4209,11 @@ namespace triggers {
 			return cursor_in;
 		}
 		ui::xy_pair ef_treasury_province(EFFECT_DISPLAY_PARAMS) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::owner_of], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-			cursor_in = ui::add_linear_text(cursor_in,
+			cursor_in = ui::add_text(cursor_in,
 				bool(to_prov(primary_slot)) ? ws.w.province_s.province_state_container.get<province_state::name>(to_prov(primary_slot)) : ws.s.fixed_ui_text[scenario::fixed_ui::singular_province],
-				fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 

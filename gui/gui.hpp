@@ -14,125 +14,6 @@ namespace ui {
 		unmanaged_scrollable_region(gui_object& g);
 		virtual bool on_scroll(gui_object_tag o, world_state& m, const scroll& s) override;
 	};
-
-	namespace detail {
-		template<typename LM, typename BH = null_behavior_creation>
-		std::pair<ui::xy_pair, uint32_t> text_chunk_to_single_instance(gui_static& static_manager, ui::gui_manager& container, vector_backed_string<char16_t> text_source, uint32_t offset_in_chunk, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator = null_behavior_creation()) {
-			graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
-
-			const auto new_gobj = container.gui_objects.emplace();
-			const auto new_text_instance = ui::create_text_instance(container, new_gobj, fmt);
-
-			new_text_instance.object.length = (uint8_t)std::min(ui::text_instance::max_instance_length, (uint32_t)(text_source.length()) - offset_in_chunk);
-			memcpy(new_text_instance.object.text, text_source.get_str(static_manager.text_data_sequences.text_data) + offset_in_chunk, (new_text_instance.object.length) * sizeof(char16_t));
-
-			if (new_text_instance.object.length == ui::text_instance::max_instance_length
-				&& new_text_instance.object.text[ui::text_instance::max_instance_length - 1] != u' ')
-				shorten_text_instance_to_space(new_text_instance.object);
-
-
-			const auto original_length = new_text_instance.object.length;
-			auto previous_length = new_text_instance.object.length;
-			float new_size = this_font.metrics_text_extent(
-				new_text_instance.object.text,
-				new_text_instance.object.length,
-				ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)),
-				is_outlined_color(fmt.color));
-
-			while (lm.exceeds_extent(position.x + int32_t(new_size + 0.5f))) {
-				shorten_text_instance_to_space(new_text_instance.object);
-
-				if (new_text_instance.object.length == previous_length) {
-					if (position.x != 0) {
-						lm.finish_current_line();
-						position.x = 0;
-						position.y = int16_t(float(position.y) + this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
-						new_text_instance.object.length = original_length;
-					} else {
-						break;
-					}
-				}
-
-				new_size = this_font.metrics_text_extent(
-					new_text_instance.object.text,
-					new_text_instance.object.length,
-					ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)),
-					is_outlined_color(fmt.color));
-				previous_length = new_text_instance.object.length;
-			}
-
-			new_gobj.object.size = ui::xy_pair{
-				int16_t(new_size + 0.5f),
-				int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f) };
-			new_gobj.object.position = position;
-
-			behavior_creator(new_gobj);
-			if(new_gobj.object.associated_behavior)
-				new_text_instance.object.color = ui::text_color::blue;
-
-			add_to_back(container, parent_object, new_gobj);
-			lm.add_object(&(new_gobj.object));
-
-			return std::make_pair(ui::xy_pair{ static_cast<int16_t>(position.x + new_gobj.object.size.x), position.y }, offset_in_chunk + new_text_instance.object.length);
-		}
-	}
-}
-
-template<typename LM, typename BH>
-ui::xy_pair ui::text_chunk_to_instances(gui_static& static_manager, ui::gui_manager& manager, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm, const BH& behavior_creator) {
-	int32_t position_in_chunk = 0;
-
-	const auto chunk_size = text_source.length();
-	while (position_in_chunk < chunk_size) {
-		std::tie(position, position_in_chunk) = detail::text_chunk_to_single_instance(static_manager, manager, text_source, static_cast<uint32_t>(position_in_chunk), parent_object, position, fmt, lm, behavior_creator);
-	}
-	return position;
-}
-
-template<typename LM>
-ui::xy_pair ui::add_linear_text(ui::xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm, const text_data::replacement* candidates, uint32_t count) {
-	if(!is_valid_index(text_handle))
-		return position;
-
-	auto& components = static_manager.text_data_sequences.all_sequences[text_handle];
-	graphics::font& this_font = static_manager.fonts.at(fmt.font_handle);
-
-	const auto components_start = static_manager.text_data_sequences.all_components.data() + components.starting_component;
-	const auto components_end = components_start + components.component_count;
-
-	ui::text_color current_color = fmt.color;
-
-	for(auto component_i = components_start; component_i != components_end; ++component_i) {
-		if(std::holds_alternative<text_data::color_change>(*component_i)) {
-			if(std::get<text_data::color_change>(*component_i).color == text_data::text_color::unspecified)
-				current_color = fmt.color;
-			else
-				current_color = text_color_to_ui_text_color(std::get<text_data::color_change>(*component_i).color);
-		} else if(std::holds_alternative<text_data::value_placeholder>(*component_i)) {
-			const auto rep = text_data::find_replacement(std::get<text_data::value_placeholder>(*component_i), candidates, count);
-
-			const auto replacement_text = rep ? std::get<1>(*rep) : vector_backed_string<char16_t>(text_data::name_from_value_type(std::get<text_data::value_placeholder>(*component_i).value));
-
-			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
-
-			if(rep)
-				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm, std::get<2>(*rep));
-			else
-				position = text_chunk_to_instances(static_manager, manager, replacement_text, container, position, format, lm);
-
-		} else if(std::holds_alternative<text_data::text_chunk>(*component_i)) {
-			const auto chunk = std::get<text_data::text_chunk>(*component_i);
-			const text_format format{ current_color, fmt.font_handle, fmt.font_size };
-
-			position = text_chunk_to_instances(static_manager, manager, chunk, container, position, format, lm);
-		} else if(std::holds_alternative<text_data::line_break>(*component_i)) {
-			lm.finish_current_line();
-			position.x = 0;
-			position.y += int16_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f);
-		}
-	}
-
-	return position;
 }
 
 template<typename MESSAGE_FUNCTION, typename MESSAGE_TYPE>
@@ -258,11 +139,11 @@ ui::tagged_gui_object ui::create_dynamic_element(world_state& ws, T handle, tagg
 }
 
 template<typename BEHAVIOR, typename ... PARAMS>
-void ui::attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_object, PARAMS&& ... params) {
+void ui::attach_dynamic_behavior(gui_manager& m, ui::tagged_gui_object target_object, PARAMS&& ... params) {
 	BEHAVIOR* b = concurrent_allocator<BEHAVIOR>().allocate(1);
 	new (b)BEHAVIOR(std::forward<PARAMS>(params) ...);
 
-	auto& obj = ws.w.gui_m.gui_objects.at(target_object);
+	auto& obj = m.gui_objects.at(target_object);
 	obj.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 
 	assert(obj.associated_behavior == nullptr);
@@ -275,7 +156,7 @@ ui::tagged_gui_object ui::create_scrollable_region(world_state& ws, tagged_gui_o
 	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 	new_gobj.object.position = position;
 
-	const auto inner_area = f(ws.s.gui_m, ws.w.gui_m);
+	const auto inner_area = f(ws);
 	inner_area.object.position = ui::xy_pair{ 0,0 };
 	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(inner_area.object.size.x + 16), static_cast<int16_t>(height) };
 

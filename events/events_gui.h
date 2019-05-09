@@ -59,5 +59,5 @@ namespace events {
 	};
 
 	constexpr int32_t replacement_size = 21;
-	void populate_replacements(world_state& ws, text_data::replacement* replacement_array, target_variant event_target, target_variant event_from);
+	void populate_replacements(world_state& ws, text_data::text_replacement* replacement_array, target_variant event_target, target_variant event_from);
 }

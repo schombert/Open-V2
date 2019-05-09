@@ -473,7 +473,7 @@ namespace current_state {
 	template<int32_t nth>
 	inline void top_produced_icon<nth>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(tag))
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws, tw);
 	}
 
 	template<int32_t nth>
@@ -487,7 +487,7 @@ namespace current_state {
 	template<int32_t nth>
 	inline void top_imported_icon<nth>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(tag))
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws, tw);
 	}
 
 	template<int32_t nth>
@@ -501,7 +501,7 @@ namespace current_state {
 	template<int32_t nth>
 	inline void top_exported_icon<nth>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		if(is_valid_index(tag))
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws, tw);
 	}
 
 	template<typename lb_type>

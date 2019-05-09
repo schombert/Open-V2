@@ -187,17 +187,9 @@ namespace messages {
 		ui::text_format& fmt,
 		world_state& ws) {
 
-		char16_t local_buffer[16];
-		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.currently_displayed_index + 1);
-		ui::xy_pair cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-
-		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.current_message_count);
-		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u" / "), box, cursor, fmt, lm);
-
-		put_value_in_buffer(local_buffer, display_type::exact_integer, ws.w.message_w.current_message_count);
-		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, cursor, fmt, lm);
-
-		lm.finish_current_line();
+		auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, text_data::exact_integer{ ws.w.message_w.currently_displayed_index + 1 }, fmt, ws, box, lm);
+		cursor = ui::add_text(cursor, u" / ", fmt, ws, box, lm);
+		cursor = ui::add_text(cursor, text_data::exact_integer{ ws.w.message_w.current_message_count }, fmt, ws, box, lm);
 	}
 
 	void message_body::update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws) {
@@ -217,18 +209,6 @@ namespace messages {
 	}
 
 
-	class nation_hyperlink {
-	public:
-		nations::country_tag target;
-
-		nation_hyperlink(nations::country_tag t) : target(t) {}
-
-		void button_function(ui::simple_button<nation_hyperlink>&, world_state& ws) {
-			ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, target);
-			graphics::map_goto(ws, target);
-		}
-	};
-
 	template<typename ... types>
 	struct t_replacements {
 		static_assert(sizeof...(types) != 0);
@@ -246,12 +226,12 @@ namespace messages {
 			return int32_t(sizeof...(types));
 		}
 		template<size_t n>
-		void populate_internal(world_state& ws, text_data::replacement* repl) const {
+		void populate_internal(world_state& ws, text_data::text_replacement* repl) const {
 			if constexpr(n != 0)
 				populate_internal<n - 1>(ws, repl);
 			std::get<n>(members).fill(ws, *(repl + n));
 		}
-		void populate(world_state& ws, text_data::replacement* repl) const {
+		void populate(world_state& ws, text_data::text_replacement* repl) const {
 			populate_internal<sizeof...(types) - 1>(ws, repl);
 		}
 	};
@@ -261,7 +241,7 @@ namespace messages {
 		static int32_t count() {
 			return 0;
 		}
-		static void populate(world_state const& ws, text_data::replacement* repl) {
+		static void populate(world_state const& ws, text_data::text_replacement* repl) {
 		}
 	};
 
@@ -270,13 +250,15 @@ namespace messages {
 		nations::country_tag n;
 		nation_replacement(nations::country_tag t) : n(t) {}
 
-		void fill(world_state& ws, text_data::replacement& r) const {
-			r = text_data::replacement{
+		void fill(world_state& ws, text_data::text_replacement& r) const {
+			r = text_data::text_replacement{
 				param,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(n)),
-				[&ws, n = this->n](ui::tagged_gui_object b) {
-					ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, n);
-				}
+				ws.w.nation_s.nations.get<nation::name>(n),
+				[n = this->n](world_state& ws) {
+					ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, n);
+					graphics::map_goto(ws, n);
+				},
+				text_data::text_color::light_blue
 			};
 		}
 	};
@@ -286,11 +268,10 @@ namespace messages {
 		text_data::text_tag tag;
 		text_replacement(text_data::text_tag t) : tag(t) {}
 
-		void fill(world_state const& ws, text_data::replacement& r) const {
-			r = text_data::replacement{
+		void fill(world_state const& ws, text_data::text_replacement& r) const {
+			r = text_data::text_replacement{
 				param,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, tag),
-				[&ws](ui::tagged_gui_object b) { }
+				tag
 			};
 		}
 	};
@@ -298,32 +279,26 @@ namespace messages {
 
 	template<text_data::value_type param>
 	struct fp_replacement {
-		char16_t local_buffer[16] = {};
-		fp_replacement(float v) {
-			put_value_in_buffer(local_buffer, display_type::fp_one_place, v);
-		}
+		float value;
+		fp_replacement(float v) : value(v) {}
 
-		void fill(world_state const& ws, text_data::replacement& r) const {
-			r = text_data::replacement { 
+		void fill(world_state const& ws, text_data::text_replacement& r) const {
+			r = text_data::text_replacement{
 				param,
-				vector_backed_string<char16_t>(local_buffer),
-				[](ui::tagged_gui_object) { }
+				text_data::fp_one_place{value}
 			};
 		}
 	};
 
 	template<text_data::value_type param>
 	struct integer_replacement {
-		char16_t local_buffer[8] = {};
-		integer_replacement(int32_t v) {
-			put_value_in_buffer(local_buffer, display_type::integer, v);
-		}
+		int32_t value;
+		integer_replacement(int32_t v) : value(v) {}
 		
-		void fill(world_state const& ws, text_data::replacement& r) const {
-			r = text_data::replacement{
+		void fill(world_state const& ws, text_data::text_replacement& r) const {
+			r = text_data::text_replacement{
 				param,
-				vector_backed_string<char16_t>(local_buffer),
-				[](ui::tagged_gui_object) {}
+				text_data::integer{value}
 			};
 		}
 	};
@@ -337,14 +312,14 @@ namespace messages {
 			case message_setting::popup:
 				submit_message(ws, goto_tag, [message_id, replacements_maker, popup_text](world_state& ws, ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt) {
 					const auto repl_count = replacements_maker.count();
-					text_data::replacement* repl = (text_data::replacement*)_alloca(sizeof(text_data::replacement) * repl_count);
+					text_data::text_replacement* repl = (text_data::text_replacement*)_alloca(sizeof(text_data::text_replacement) * repl_count);
 					std::uninitialized_default_construct_n(repl, repl_count);
 					replacements_maker.populate(ws, repl);
 
-					auto new_cursor = ui::add_multiline_text(
+					auto new_cursor = ui::add_text(
 						ui::xy_pair{ 0,0 },
 						ws.s.message_m.log_text[message_id],
-						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, repl_count);
+						fmt, ws, box, lm, repl, repl_count);
 					new_cursor = ui::advance_cursor_to_newline(new_cursor, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 					new_cursor = ui::advance_cursor_to_newline(new_cursor, ws.s.gui_m, fmt);
@@ -355,14 +330,14 @@ namespace messages {
 			case message_setting::log:
 				submit_log_item(ws, message_category::diplomacy, [message_id, replacements_maker](world_state& ws, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt) {
 					const auto repl_count = replacements_maker.count();
-					text_data::replacement* repl = (text_data::replacement*)_alloca(sizeof(text_data::replacement) * repl_count);
+					text_data::text_replacement* repl = (text_data::text_replacement*)_alloca(sizeof(text_data::text_replacement) * repl_count);
 					std::uninitialized_default_construct_n(repl, repl_count);
 					replacements_maker.populate(ws, repl);
 				
-					ui::add_linear_text(
+					ui::add_text(
 						ui::xy_pair{ 0,0 },
 						ws.s.message_m.log_text[message_id],
-						fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, repl_count);
+						fmt, ws, box, lm, repl, repl_count);
 					lm.finish_current_line();
 				});
 				// fallthrough
@@ -509,10 +484,10 @@ namespace messages {
 					auto end = put_value_in_buffer(local_buffer, display_type::exact_integer, int32_t(ws.w.nation_s.upper_house.get(n, itag)));
 					*end = u'%';
 					*(end + 1) = 0;
-					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, cursor, fmt, lm);
+					cursor = ui::add_text(cursor, local_buffer, fmt, ws, box, lm);
 
 					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
-					cursor = ui::add_linear_text(cursor, ws.s.ideologies_m.ideology_container[itag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					cursor = ui::add_text(cursor, ws.s.ideologies_m.ideology_container[itag].name, fmt, ws, box, lm);
 					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}

@@ -20,8 +20,13 @@ void ui::display_text<BASE, y_adjust>::update_data(gui_object_tag, world_state& 
 		temp_holder.object.size = associated_object->size;
 		temp_holder.object.position = associated_object->position;
 
-		text_box_line_manager lm(align, associated_object->size.x, border_x, border_y);
+		text_box_line_manager lm(align, associated_object->size.x - border_x * 2, line_manager::textbox{});
 		BASE::update(temp_holder, lm, format, w);
+		lm.finish_current_line();
+
+		ui::for_each_child(w.w.gui_m, temp_holder, [off = xy_pair{ int16_t(border_x), int16_t(border_y) }](tagged_gui_object o) {
+			o.object.position += off;
+		});
 
 		ui::replace_children(w.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
 		w.w.gui_m.gui_objects.free(temp_holder.id);
@@ -90,8 +95,12 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 		temp_holder.object.size = associated_object->size;
 		temp_holder.object.position = associated_object->position;
 
-		text_box_line_manager lm(align, associated_object->size.x, border_x, border_y);
+		text_box_line_manager lm(align, associated_object->size.x - border_x * 2, line_manager::textbox{});
 		BASE::windowed_update(w, temp_holder, lm, format, s);
+		lm.finish_current_line();
+		ui::for_each_child(s.w.gui_m, temp_holder, [off = xy_pair{ int16_t(border_x), int16_t(border_y) }](tagged_gui_object o) {
+			o.object.position += off;
+		});
 
 		ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
 		s.w.gui_m.gui_objects.free(temp_holder.id);
@@ -233,7 +242,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 		ui::text_aligment_from_text_definition(text_def),
 		text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size });
 	
-	const auto new_gobj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	const auto new_gobj = ui::detail::create_element_instance(ws, handle);
 
 	b.set_self(new_gobj.id);
 
@@ -259,8 +268,11 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 		b.on_create(b, ws);
 	else if constexpr(ui::detail::has_on_create<display_text<B, y_adjust>, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
 		ui::clear_children(ws.w.gui_m, new_gobj);
-		text_box_line_manager lm(b.align, text_def.max_width, b.border_x, b.border_y);
+		text_box_line_manager lm(b.align, text_def.max_width - b.border_x * 2, line_manager::textbox{});
 		b.on_create(new_gobj, lm, b.format, ws);
+		ui::for_each_child(ws.w.gui_m, new_gobj, [off = xy_pair{ int16_t(b.border_x), int16_t(b.border_y) }](tagged_gui_object o) {
+			o.object.position += off;
+		});
 	}
 
 	ws.w.gui_m.flag_minimal_update();

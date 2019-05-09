@@ -11,9 +11,11 @@ namespace ui {
 	class gui_object;
 }
 
+class world_state;
+
 namespace text_data {
 	enum class text_color {
-		black, white, red, green, yellow, unspecified
+		black, white, red, green, yellow, unspecified, light_blue, dark_blue
 	};
 	enum class alignment {
 		left, right, center
@@ -92,7 +94,54 @@ namespace text_data {
 		text_sequences() : key_to_sequence_map(vector_backed_string_less_ci(key_data)) {}
 	};
 
-	using replacement = std::tuple<value_type, vector_backed_string<char16_t>, std::function<void(tagged_object<ui::gui_object, ui::gui_object_tag>)>>;
+
+	struct percent {
+		float value;
+	};
+	struct integer {
+		int32_t value;
+		integer(int32_t v) : value(v) {}
+		integer(uint32_t v) : value(int32_t(v)) {}
+		integer(float v) : value(int32_t(v + 0.5f)) {}
+	};
+	struct exact_integer {
+		int32_t value;
+		exact_integer(int32_t v) : value(v) {}
+		exact_integer(uint32_t v) : value(int32_t(v)) {}
+		exact_integer(float v) : value(int32_t(v + 0.5f)) {}
+	};
+	struct fp_three_places {
+		float value;
+	};
+	struct fp_two_places {
+		float value;
+	};
+	struct fp_one_place {
+		float value;
+	};
+	struct percent_fp_one_place {
+		float value;
+	};
+	struct currency {
+		float value;
+	};
+
+	using replacement_data_variant = std::variant<std::monostate, text_data::text_tag, char16_t const*, 
+		percent, integer, exact_integer, fp_three_places, fp_two_places, fp_one_place, percent_fp_one_place, currency, date_tag>;
+
+	struct text_replacement {
+		value_type key = value_type::value;
+		text_color new_color = text_color::unspecified;
+		replacement_data_variant data;
+		std::function<void(world_state&)> click_function;
+
+		text_replacement() = default;
+		text_replacement(value_type k, replacement_data_variant dat) : key(k), data(dat) {}
+		template<typename F>
+		text_replacement(value_type k, replacement_data_variant dat, F const& fun) : key(k), data(dat), click_function(fun) {}
+		template<typename F>
+		text_replacement(value_type k, replacement_data_variant dat, F const& fun, text_color c) : key(k), new_color(c), data(dat), click_function(fun) {}
+	};
 
 	void add_win1250_text_to_container(text_sequences& container, const char* s, const char *e);
 	void add_utf8_text_to_container(text_sequences& container, const char* s, const char *e);
@@ -103,7 +152,7 @@ namespace text_data {
 	value_type value_type_from_name(const char* start, const char* end);
 	const char16_t* name_from_value_type(value_type v);
 
-	const replacement* find_replacement(value_placeholder placeholder, const replacement* candidates, uint32_t count);
+	const text_replacement* find_replacement(value_placeholder placeholder, const text_replacement* candidates, uint32_t count);
 
 	std::pair<int32_t, int32_t> align_in_bounds(text_data::alignment align, int32_t width, int32_t height, int32_t bound_x, int32_t bound_y);
 

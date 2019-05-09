@@ -20,7 +20,7 @@ namespace current_state {
 		ws.w.find_w.show_find_window(ws);
 	}
 	void goto_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::find_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::find_label], ui::tooltip_text_format, ws, tw);
 	}
 	void zoom_in_button::button_function(ui::simple_button<zoom_in_button>& self, world_state & ws) {
 		ws.w.map.state.rescale_by(2.0f);
@@ -58,6 +58,6 @@ namespace current_state {
 		ws.w.message_settings_w.show_message_settings_window(ws.w.gui_m);
 	}
 	void message_settings_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_settings], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::message_settings], ui::tooltip_text_format, ws, tw);
 	}
 }

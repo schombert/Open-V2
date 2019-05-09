@@ -70,34 +70,27 @@ void menu::graphics_menu_close_button::button_function(ui::simple_button<graphic
 }
 
 void menu::window_mode_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-	ui::add_linear_text(
+	ui::add_text(
 		ui::xy_pair{0, 0},
 		ws.s.fixed_ui_text[scenario::window_mode_labels[ws.s.settings.window_mode]],
 		fmt,
-		ws.s.gui_m,
-		ws.w.gui_m,
+		ws,
 		box,
 		lm);
-	lm.finish_current_line();
 }
 
 void menu::projection_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-	ui::add_linear_text(
+	ui::add_text(
 		ui::xy_pair{ 0, 0 },
 		ws.s.fixed_ui_text[scenario::projection_labels[ws.s.settings.projection]],
 		fmt,
-		ws.s.gui_m,
-		ws.w.gui_m,
+		ws,
 		box,
 		lm);
-	lm.finish_current_line();
 }
 
 void menu::ui_scale_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-	char16_t local_buffer[16];
-	put_value_in_buffer(local_buffer, display_type::fp_two_places, scenario::ui_scales[ws.s.settings.ui_scale]);
-	ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-	lm.finish_current_line();
+	ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ scenario::ui_scales[ws.s.settings.ui_scale] }, fmt, ws, box, lm);
 }
 
 void menu::controls_menu_close_button::button_function(ui::simple_button<controls_menu_close_button>&, world_state & ws) {
@@ -110,15 +103,13 @@ void menu::controls_menu_close_button::button_function(ui::simple_button<control
 }
 
 void menu::zoom_mode_text::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-	ui::add_linear_text(
+	ui::add_text(
 		ui::xy_pair{ 0, 0 },
 		ws.s.fixed_ui_text[scenario::zoom_labels[int32_t(ws.s.settings.zoom_setting)]],
 		fmt,
-		ws.s.gui_m,
-		ws.w.gui_m,
+		ws,
 		box,
 		lm);
-	lm.finish_current_line();
 }
 
 void menu::sound_menu_close_button::button_function(ui::simple_button<sound_menu_close_button>&, world_state & ws) {

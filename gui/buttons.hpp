@@ -244,9 +244,9 @@ void ui::masked_flag<BASE>::create_tooltip(gui_object_tag, world_state& ws, cons
 		if(is_valid_index(displayed_flag)) {
 			auto holder = ws.w.culture_s.tags_to_holders[displayed_flag];
 			if(holder)
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(holder), ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(holder), ui::tooltip_text_format, ws, tw);
 			else
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[displayed_flag].default_name.name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[displayed_flag].default_name.name, ui::tooltip_text_format, ws, tw);
 		}
 	}
 }
@@ -359,7 +359,7 @@ void ui::button<BASE>::set_enabled(bool enabled) {
 }
 
 template<typename BASE>
-void ui::button<BASE>::set_text(world_state& ws, text_data::text_tag t, const text_data::replacement* candidates, uint32_t count) {
+void ui::button<BASE>::set_text(world_state& ws, text_data::text_tag t, const text_data::text_replacement* candidates, uint32_t count) {
 	ui::clear_children(ws.w.gui_m, ui::tagged_gui_object{*associated_object, id});
 
 	if(is_valid_index(t))
@@ -391,7 +391,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 	b.fmt = text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size };
 
 	if(is_valid_index(def.text_handle)) {
-		detail::create_linear_text(ws.s.gui_m, ws.w.gui_m, new_gobj, def.text_handle, b.text_align, b.fmt);
+		detail::create_linear_text(ws, new_gobj, def.text_handle, b.text_align, b.fmt);
 	}
 
 	new_gobj.object.associated_behavior = &b;
@@ -416,7 +416,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, ui::masked_flag<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
@@ -439,7 +439,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::icon_tag ha
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag handle, ui::tagged_gui_object parent, masked_flag<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
@@ -463,7 +463,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::button_tag 
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, simple_button<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;
@@ -487,7 +487,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag hand
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, simple_button<B>& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;

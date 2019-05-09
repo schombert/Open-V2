@@ -482,9 +482,9 @@ namespace text_data {
 		}
 	}
 
-	const replacement * find_replacement(value_placeholder placeholder, const replacement * candidates, uint32_t count) {
+	const text_replacement* find_replacement(value_placeholder placeholder, const text_replacement* candidates, uint32_t count) {
 		for (int32_t i = int32_t(count) - 1; i >= 0; --i) {
-			if (std::get<0>(candidates[i]) == placeholder.value)
+			if (candidates[i].key == placeholder.value)
 				return &(candidates[i]);
 		}
 		return nullptr;

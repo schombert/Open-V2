@@ -46,7 +46,7 @@ namespace ui {
 	}
 	template<typename B>
 	tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, progress_bar<B>& b) {
-		auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+		auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 		new_obj.object.associated_behavior = &b;
 		b.associated_object = &new_obj.object;

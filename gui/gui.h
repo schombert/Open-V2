@@ -38,7 +38,7 @@ namespace ui {
 	constexpr int32_t piechart_resolution = 200;
 
 	enum class text_color : uint8_t {
-		black, white, red, green, yellow, blue,
+		black, white, red, green, yellow, blue, dark_blue,
 		outlined_white, outlined_black
 	};
 	constexpr bool is_outlined_color(text_color c) {
@@ -277,7 +277,7 @@ namespace ui {
 
 		void set_frame(gui_manager&, uint32_t frame_num);
 		void set_visibility(gui_manager&, bool visible);
-		void set_text(world_state& ws, text_data::text_tag t, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+		void set_text(world_state& ws, text_data::text_tag t, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0);
 		void set_enabled(bool enabled);
 
 		virtual bool mouse_consumer(ui::xy_pair) final override;
@@ -873,15 +873,14 @@ namespace ui {
 		void render_object_type(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, const screen_position& position, uint32_t type, graphics::color_modification currently_enabled);
 		void render(gui_static& static_manager, const gui_manager& manager, graphics::open_gl_wrapper&, const gui_object&, ui::xy_pair position, ui::xy_pair container_size, graphics::color_modification parent_enabled);
 
-		void create_linear_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
-		void create_multiline_text(gui_static& static_manager, gui_manager& manager, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
-
+		void create_linear_text(world_state& ws, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format&, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0);
+		
 		tagged_gui_object last_sibling_of(const gui_manager& manager, tagged_gui_object g);
 
 		void instantiate_graphical_object(gui_static& static_manager, ui::gui_manager& manager, ui::tagged_gui_object container, graphics::obj_definition_tag gtag, int32_t frame = 0, bool force_tinted = false);
-		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, button_tag handle);
-		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, icon_tag handle);
-		tagged_gui_object create_element_instance(gui_static& static_manager, gui_manager& manager, ui::text_tag handle, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+		tagged_gui_object create_element_instance(world_state& ws, button_tag handle);
+		tagged_gui_object create_element_instance(world_state& ws, icon_tag handle);
+		tagged_gui_object create_element_instance(world_state& ws, ui::text_tag handle, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0);
 
 		void update(tagged_gui_object obj, world_state&);
 		void minimal_update(tagged_gui_object obj, world_state&);
@@ -899,7 +898,7 @@ namespace ui {
 	ui::tagged_gui_object create_dynamic_element(world_state& ws, T handle, tagged_gui_object parent, PARAMS&& ... params);
 
 	template<typename BEHAVIOR, typename ... PARAMS>
-	void attach_dynamic_behavior(world_state& ws, ui::tagged_gui_object target_object, PARAMS&& ... params);
+	void attach_dynamic_behavior(gui_manager& m, ui::tagged_gui_object target_object, PARAMS&& ... params);
 
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, text_tag handle, tagged_gui_object parent, edit_box<B>& b);
@@ -960,8 +959,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_fixed_sz_scrollbar(world_state& ws, scrollbar_tag handle, tagged_gui_object parent, ui::xy_pair position, int32_t extent, scrollbar<BEHAVIOR>& b);
 	template<typename FILL_FUNCTION>
 	ui::tagged_gui_object create_scrollable_region(world_state& ws, tagged_gui_object parent, ui::xy_pair position, int32_t height, int32_t step_size, graphics::obj_definition_tag bg, const FILL_FUNCTION& f);
-	ui::tagged_gui_object create_scrollable_text_block(world_state& ws, ui::text_tag handle, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
-	ui::tagged_gui_object create_scrollable_text_block(world_state& ws, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+	ui::tagged_gui_object create_scrollable_text_block(world_state& ws, ui::text_tag handle, tagged_gui_object parent, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0);
+	ui::tagged_gui_object create_scrollable_text_block(world_state& ws, ui::text_tag handle, text_data::text_tag contents, tagged_gui_object parent, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0);
 	ui::tagged_gui_object create_dynamic_window(world_state& ws, window_tag t, tagged_gui_object parent);
 
 	text_data::alignment text_aligment_from_button_definition(const button_def& def);
@@ -969,17 +968,31 @@ namespace ui {
 	text_data::alignment text_aligment_from_overlapping_definition(const overlapping_region_def& def);
 	ui::text_color text_color_to_ui_text_color(text_data::text_color c);
 
+
 	class line_manager {
 	private:
 		constexpr static int32_t indent_size = 15;
 
 		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
-		const text_data::alignment align;
-		const int32_t max_line_extent;
+
+		const text_data::alignment align = text_data::alignment::left;
+		int32_t max_line_extent = 0;
+		
 		int32_t indent = 0;
+
+		bool no_auto_newline = false;
 	public:
-		line_manager(text_data::alignment a, int32_t m);
-		line_manager();
+		struct textbox {};
+
+		//standard constructor
+		line_manager(text_data::alignment a, int32_t m) : align(a), max_line_extent(m) {}
+
+		//text box constructor
+		line_manager(text_data::alignment a, int32_t m, textbox) : align(a), max_line_extent(m), no_auto_newline(true) {}
+		
+		// unlimited line constructor
+		line_manager() : no_auto_newline(true) {}
+
 		bool exceeds_extent(int32_t w) const;
 		void add_object(gui_object* o);
 		void finish_current_line();
@@ -988,46 +1001,159 @@ namespace ui {
 	};
 
 	using unlimited_line_manager = line_manager;
+	using single_line_manager = line_manager;
+	using text_box_line_manager = line_manager;
 
-	class text_box_line_manager {
-	private:
-		boost::container::small_vector<gui_object*, 16, concurrent_allocator<gui_object*>> current_line;
-		const text_data::alignment align;
-		const int32_t max_line_extent;
-		const int32_t border_x = 0;
-		int32_t border_y = 0;
-	public:
-		text_box_line_manager(text_data::alignment a, int32_t m, int32_t bx, int32_t by);
-		void set_border_y(int32_t v) { border_y = v; }
-		bool exceeds_extent(int32_t) const { return false; }
-		void add_object(gui_object* o);
-		void finish_current_line();
+	namespace detail {
+		class generic_button {
+		public:
+			std::function<void(world_state&)> f;
+
+			generic_button(generic_button const& o) noexcept : f(o.f) {}
+			generic_button(generic_button const&& o) noexcept : f(o.f) {}
+			generic_button(generic_button&& o) noexcept : f(std::move(o.f)) {}
+
+			template<typename F>
+			generic_button(F&& fun) : f(std::forward<F>(fun)) {}
+
+			void button_function(ui::simple_button<generic_button>&, world_state& ws) {
+				f(ws);
+			}
+		};
+	}
+
+	struct behavior_manager {
+		text_data::text_color c = text_data::text_color::unspecified;
+		std::function<void(world_state&)> f;
+
+		void operator()(gui_manager& m, tagged_gui_object obj, tagged_object<text_instance, text_instance_tag> tobj) const {
+			if(c != text_data::text_color::unspecified)
+				tobj.object.color = text_color_to_ui_text_color(c);
+			if(f)
+				attach_dynamic_behavior<simple_button<detail::generic_button>>(m, obj, f);
+		}
+		operator bool() const {
+			return c != text_data::text_color::unspecified || bool(f);
+		}
 	};
 
-	class single_line_manager {
-	public:
-		bool exceeds_extent(int32_t) const { return false; }
-		void add_object(gui_object*) const {}
-		void finish_current_line() const {}
-	};
-
-	class null_behavior_creation {
-	public:
-		void operator()(tagged_gui_object) const {}
-	};
-	
 	xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt);
 	xy_pair advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count = 1);
 
-	template<typename LM = single_line_manager>
-	xy_pair add_linear_text(xy_pair cursor, text_data::text_tag, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, LM&& lm = single_line_manager(), const text_data::replacement* candidates = nullptr, uint32_t count = 0);
-	xy_pair add_multiline_text(xy_pair position, text_data::text_tag text_handle, text_format const& fmt, gui_static& static_manager, gui_manager& manager, tagged_gui_object container, line_manager& lm, const text_data::replacement* candidates = nullptr, uint32_t count = 0);
+	namespace detail {
+		xy_pair impl_add_text(xy_pair cursor, std::monostate, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::text_tag, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, char16_t const*, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::percent, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::integer, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::exact_integer, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::fp_three_places, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::fp_two_places, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::fp_one_place, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::percent_fp_one_place, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, text_data::currency, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, date_tag, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count ,
+			behavior_manager& b_manager);
+	}
+
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, std::monostate v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::text_tag v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, char16_t const* v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::percent v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::integer v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::exact_integer v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::fp_three_places v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::fp_two_places v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::fp_one_place v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::percent_fp_one_place v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, text_data::currency v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, date_tag v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
 
 	void shorten_text_instance_to_space(ui::text_instance& txt);
 	float text_component_width(const text_data::text_component& c, const std::vector<char16_t>& text_data, graphics::font& this_font, uint32_t font_size);
-
-	template<typename LM = single_line_manager, typename BH = null_behavior_creation>
-	xy_pair text_chunk_to_instances(gui_static& static_manager, gui_manager& container, vector_backed_string<char16_t> text_source, tagged_gui_object parent_object, ui::xy_pair position, const text_format& fmt, LM&& lm = single_line_manager(), const BH& behavior_creator = null_behavior_creation());
 
 	void clear_children(gui_manager& manager, tagged_gui_object g);
 	void replace_children(gui_manager& manager, tagged_gui_object g, tagged_gui_object replacement);

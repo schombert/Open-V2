@@ -124,20 +124,11 @@ namespace ui {
 	}
 	template<typename BASE>
 	void edit_box<BASE>::update_data(gui_object_tag self, world_state& ws) {
-		ui::unlimited_line_manager lm;
-
 		auto temp_holder = ws.w.gui_m.gui_objects.emplace();
 		temp_holder.object.size = associated_object->size;
 		temp_holder.object.position = associated_object->position;
 
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(contents),
-			temp_holder,
-			xy_pair{int16_t(border_size), int16_t(border_size)},
-			format,
-			lm);
+		ui::add_text(xy_pair{ int16_t(border_size), int16_t(border_size) }, contents, format, ws, temp_holder);
 
 		ui::replace_children(ws.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
 		ws.w.gui_m.gui_objects.free(temp_holder.id);

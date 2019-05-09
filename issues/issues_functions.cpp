@@ -114,6 +114,10 @@ namespace issues {
 				}
 			}
 
+			ws.w.nation_s.upper_house.get(nation_for, ws.s.ideologies_m.conservative_ideology) 
+				+= uint8_t(ws.s.modifiers_m.global_defines.conservative_increase_after_reform * 100.0f + 0.5f);
+			normalize_integer_vector(ws.w.nation_s.upper_house.get_row(nation_for).data(), ws.s.ideologies_m.ideologies_count, 100ui8, to_index(ws.s.ideologies_m.conservative_ideology));
+
 			nations::parallel_for_each_province(ws, nation_for, [support_factors, opt, &ws](provinces::province_tag p) {
 				provinces::for_each_pop(ws, p, [support_factors, opt, &ws](population::pop_tag o) {
 					float const pop_size = ws.w.population_s.pops.get<pop::size>(o);
@@ -195,10 +199,13 @@ namespace issues {
 	}
 
 	bool is_reform_possible(world_state const& ws, nations::country_tag nation_for, issues::option_tag opt) {
+		return true;
+		/*
 		auto const opt_trigger = ws.s.issues_m.options[opt].allow;
 		return is_reform_timer_ready(ws, nation_for)
 			&& is_reform_next_step(ws, nation_for, opt)
 			&& (!is_valid_index(opt_trigger) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(opt_trigger), ws, nation_for, nation_for, nation_for))
 			&& get_uh_reform_support(ws, nation_for, opt) > 50.0f;
+		*/
 	}
 }

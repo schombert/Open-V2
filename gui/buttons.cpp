@@ -34,7 +34,7 @@ void ui::button_group_member::set_group(button_group_common_base* g, uint32_t i)
 }
 
 ui::tagged_gui_object ui::create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, button_group_member& b) {
-	auto new_obj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	auto new_obj = ui::detail::create_element_instance(ws, handle);
 
 	new_obj.object.associated_behavior = &b;
 	b.associated_object = &new_obj.object;

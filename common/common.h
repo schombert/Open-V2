@@ -95,7 +95,7 @@ template<typename T>
 struct individuator_of_s { using type = std::false_type; };
 
 template<typename T>
-void normalize_integer_vector(T* vec, uint32_t count, T sum) {
+void normalize_integer_vector(T* vec, uint32_t count, T sum, uint32_t remainder_index = 0) {
 	int32_t current_sum = std::accumulate(vec, vec + count, 0);
 	float factor = current_sum != 0 ? float(sum) / float(current_sum) : 0.0f;
 
@@ -106,7 +106,7 @@ void normalize_integer_vector(T* vec, uint32_t count, T sum) {
 		fractional_part = std::modf(factor * float(vec[i]) + fractional_part, &integral_point);
 		vec[i] = T(integral_point);
 	}
-	vec[0] += T(int32_t(sum) - std::accumulate(vec, vec + count, 0));
+	vec[remainder_index] += T(int32_t(sum) - std::accumulate(vec, vec + count, 0));
 }
 
 template<typename value_base, typename zero_is_null, typename individuator>

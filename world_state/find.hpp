@@ -102,7 +102,7 @@ namespace find_dialog {
 	template<typename window_type>
 	void find_item_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto const t = find_item_to_text(ws, win.value); t)
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, t, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, t, fmt, ws, box, lm);
 	}
 	template<typename window_type>
 	void find_item_button::windowed_update(ui::simple_button<find_item_button>& self, window_type & win, world_state & ws) {
