@@ -848,23 +848,18 @@ ui::tagged_gui_object ui::detail::create_element_instance(world_state& ws, ui::t
 	const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
 	
 	new_gobj.object.position = text_def.position;
-	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(text_def.max_width), 0 };
+	new_gobj.object.size = ui::xy_pair{ static_cast<int16_t>(text_def.max_width), static_cast<int16_t>(text_def.max_height) };
 	new_gobj.object.align = alignment_from_definition(text_def);
-
-	new_gobj.object.size.x -= text_def.border_size.x * 2;
 
 	if (is_valid_index(text_def.text_handle)) {
 		const auto[font_h, is_black, int_font_size] = graphics::unpack_font_handle(text_def.font_handle);
 		add_text(xy_pair{ 0,0 }, text_def.text_handle, text_format{ is_black ? ui::text_color::black : ui::text_color::white, font_h, int_font_size }, ws,
-			new_gobj, line_manager(text_aligment_from_text_definition(text_def), new_gobj.object.size.x), candidates, count);
+			new_gobj, line_manager(text_aligment_from_text_definition(text_def), new_gobj.object.size.x - text_def.border_size.x * 2, line_manager::textbox{}), candidates, count);
 	}
 
 	for_each_child(ws.w.gui_m, new_gobj, [adjust = text_def.border_size](tagged_gui_object c) {
 		c.object.position += adjust;
 	});
-
-	new_gobj.object.size.x += text_def.border_size.x * 2;
-	new_gobj.object.size.y += text_def.border_size.y * 2;
 
 	return new_gobj;
 }
@@ -1059,10 +1054,10 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 1.0f, 0.75f, 0.2f }, fnt);
 						break;
 					case ui::text_color::blue:
-						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.4f, 0.4f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.6f, 0.6f, 1.0f }, fnt);
 						break;
 					case ui::text_color::dark_blue:
-						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.1f, 0.1f, 1.0f }, fnt);
+						ogl.render_text(ti->text, ti->length, cmod, position.effective_position_x, position.effective_position_y, ui::detail::font_size_to_render_size(fnt, ti->size * 2) * manager.scale(), graphics::color{ 0.05f, 0.05f, 0.7f }, fnt);
 						break;
 				}
 			}

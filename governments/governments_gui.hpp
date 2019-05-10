@@ -1009,20 +1009,13 @@ namespace governments {
 
 	template<typename window_type>
 	void upperhouse_ideology_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager &lm, ui::text_format &fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	template<typename window_type>
 	void upperhouse_ideology_percentage::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		char16_t formatted_value[64];
-		put_value_in_buffer(formatted_value, display_type::percent, win.percentage);
-
-		ui::text_chunk_to_instances( ws.s.gui_m, ws.w.gui_m,
-			vector_backed_string<char16_t>(formatted_value),
-			box, ui::xy_pair{ 0,0 }, fmt, lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{win.percentage}, fmt, ws, box, lm);
 	}
 
 	template<typename lb_type>
@@ -1075,31 +1068,17 @@ namespace governments {
 
 	template<typename window_type>
 	void issues_item_popular_percentage::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		char16_t formatted_value[64];
-		put_value_in_buffer(formatted_value, display_type::percent, win.people_percentage);
-
-		ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m,
-			vector_backed_string<char16_t>(formatted_value),
-			box, ui::xy_pair{ 0,0 }, fmt, lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ win.people_percentage }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void issues_voter_percentage::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		char16_t formatted_value[64];
-		put_value_in_buffer(formatted_value, display_type::percent, win.voters_percent);
-
-		ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m,
-			vector_backed_string<char16_t>(formatted_value),
-			box, ui::xy_pair{ 0,0 }, fmt, lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ win.voters_percent }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void issues_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager &lm, ui::text_format &fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
@@ -1116,7 +1095,7 @@ namespace governments {
 	template<typename window_type>
 	void decision_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].title, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].title, fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1124,7 +1103,7 @@ namespace governments {
 	template<typename window_type>
 	void decision_item_description::windowed_update(window_type & win, ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].body, ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size }, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.event_m.decision_container[win.tag].body, ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size }, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1195,7 +1174,7 @@ namespace governments {
 	template<typename window_type>
 	void movements_item_name::windowed_update(window_type & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.data.is_issue_type)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[w.data.issue_option_tag].movement_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[w.data.issue_option_tag].movement_name, fmt, ws, box, lm);
 			lm.finish_current_line();
 		} else {
 			// leave blank
@@ -1210,42 +1189,25 @@ namespace governments {
 			nations::country_tag holder = ws.w.culture_s.tags_to_holders[win.data.liberation_tag];
 			auto adj = holder ? ws.w.nation_s.nations.get<nation::adjective>(holder) : ws.s.culture_m.national_tags[win.data.liberation_tag].default_name.adjective;
 
-			text_data::replacement repl[1] = {
-				text_data::replacement{
+			text_data::text_replacement repl[1] = {
+				text_data::text_replacement{
 					text_data::value_type::country,
-					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
-					[](ui::tagged_gui_object) {}
+					adj ? text_data::replacement_data_variant(adj) : text_data::replacement_data_variant(u"")
 				}
 			};
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::nationalist_movement], fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 1);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::nationalist_movement], fmt, ws, box, lm, repl, 1);
 			lm.finish_current_line();
 		}
 	}
 
 	template<typename window_type>
 	void movements_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		char16_t local_buf[16];
-		put_value_in_buffer(local_buf, display_type::integer, win.data.support);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-
-		lm.finish_current_line();	
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ win.data.support }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void movements_item_radicalism::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		char16_t local_buf[16];
-		put_value_in_buffer(local_buf, display_type::fp_one_place, win.data.radicalism);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_one_place{ win.data.radicalism }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
@@ -1269,75 +1231,49 @@ namespace governments {
 		auto type = win.data.is_rebel_type ? win.data.rebel_type_tag : ws.s.population_m.nationalist_rebels;
 
 		if(type) {
-			text_data::replacement repl[3] = {
-				text_data::replacement{
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{
 					text_data::value_type::union_adj,
-					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
-					[](ui::tagged_gui_object) {}
+					adj ? text_data::replacement_data_variant(adj) : text_data::replacement_data_variant(u"")
 				},
-				text_data::replacement{
+				text_data::text_replacement{
 					text_data::value_type::indep,
-					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
-					[](ui::tagged_gui_object) {}
+					adj ? text_data::replacement_data_variant(adj) : text_data::replacement_data_variant(u"")
 				},
-				text_data::replacement{
+				text_data::text_replacement{
 					text_data::value_type::country,
-					adj ? text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, adj) : vector_backed_string<char16_t>(u""),
-					[](ui::tagged_gui_object) {}
+					adj ? text_data::replacement_data_variant(adj) : text_data::replacement_data_variant(u"")
 				}
 			};
 
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].label, fmt, ws.s.gui_m, ws.w.gui_m, box, lm, repl, 3);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.population_m.rebel_types[type].label, fmt, ws, box, lm, repl, 3);
 			lm.finish_current_line();
 		}
 	}
 
 	template<typename window_type>
 	void rebels_item_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		char16_t local_buf[16];
-		put_value_in_buffer(local_buf, display_type::integer, win.data.support);
-		
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ win.data.support }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void rebels_item_brigades_ready::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, u"0", fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void rebels_item_brigades_active::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, u"0", fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void rebels_item_organization::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, u"0", fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void rebels_item_revolt_risk::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"0"),
-			box, ui::xy_pair{ 0,0 }, fmt, lm
-		);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, u"0", fmt, ws, box, lm);
 	}
 
 
@@ -1423,7 +1359,7 @@ namespace governments {
 	template<typename window_type>
 	void reform_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.for_issue)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.issues_container[win.for_issue].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.issues_container[win.for_issue].name, fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1449,7 +1385,7 @@ namespace governments {
 	template<typename window_type>
 	void option_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[win.tag].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[win.tag].name, fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1537,7 +1473,7 @@ namespace governments {
 	template<typename window_type>
 	void release_nation_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[win.tag].default_name.name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.national_tags[win.tag].default_name.name, fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1578,7 +1514,7 @@ namespace governments {
 		auto party_option = ws.s.governments_m.party_issues.get(win.value.first, win.value.second);
 		auto parent_issue = ws.s.issues_m.options[party_option].parent_issue;
 
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.issues_container[parent_issue].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.issues_container[parent_issue].name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 	template<typename window_type>
@@ -1586,7 +1522,7 @@ namespace governments {
 		value = win.value;
 		auto party_option = ws.s.governments_m.party_issues.get(value.first, value.second);
 
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[party_option].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[party_option].name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 

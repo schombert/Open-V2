@@ -57,30 +57,23 @@ namespace economy {
 		ui::xy_pair cursor{ 0,0 };
 		{
 			auto v = economy::state_current_production(ws, s, tag);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::supply_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::supply_label], ui::tooltip_text_format, ws, tw);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, v);
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
-						
+			cursor = ui::add_text(cursor, text_data::fp_two_places{ v }, ui::tooltip_text_format, ws, tw);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		}
 		{
 			auto v = economy::state_current_demand(ws, s);
 			auto prices = economy::state_current_prices(ws, s);
 
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::demand_label], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::demand_label], ui::tooltip_text_format, ws, tw);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[tag] != 0 ? v[tag] / prices[tag] : money_qnty_type(0));
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, text_data::fp_two_places{ prices[tag] != 0 ? v[tag] / prices[tag] : money_qnty_type(0) }, ui::tooltip_text_format, ws, tw);
 
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-			put_value_in_buffer(local_buffer, display_type::currency, v[tag]);
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, text_data::currency{ v[tag] }, ui::tooltip_text_format, ws, tw);
 
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		}

@@ -48,7 +48,7 @@ ui::tooltip_behavior ui::piechart<BASE>::has_tooltip(gui_object_tag, world_state
 		const int32_t data_index = std::min(ui::piechart_resolution - 1, std::max(0, static_cast<int32_t>(fraction * static_cast<double>(ui::piechart_resolution))));
 		const auto label = labels[data_index];
 
-		if (label.length() == 0)
+		if (!is_valid_index(label))
 			return tooltip_behavior::no_tooltip;
 		else
 			return tooltip_behavior::variable_tooltip;
@@ -70,31 +70,15 @@ void ui::piechart<BASE>::create_tooltip(gui_object_tag, world_state& ws, const m
 
 	ui::xy_pair cursor{ 0,0 };
 	
-	char16_t lbuffer[8] = { 0,0,0,0,0,0,0,0 };
-	put_value_in_buffer(lbuffer, display_type::percent, amount);
-	cursor = ui::text_chunk_to_instances(
-		ws.s.gui_m,
-		ws.w.gui_m,
-		vector_backed_string<char16_t>(lbuffer),
-		tw,
-		ui::xy_pair{ 0,0 },
-		ui::tooltip_text_format);
+	cursor = ui::add_text(cursor, text_data::percent{ amount }, ui::tooltip_text_format, ws, tw);
 	cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-	ui::text_chunk_to_instances(
-		ws.s.gui_m,
-		ws.w.gui_m,
-		label,
-		tw,
-		cursor,
-		ui::tooltip_text_format);
+	cursor = ui::add_text(cursor, label, ui::tooltip_text_format, ws, tw);
 }
 template<typename BASE>
 void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
-	for (int32_t i = ui::piechart_resolution - 1; i >= 0; --i) {
-		labels[i] = vector_backed_string<char16_t>(); // to ensure atomic assignment
-	}
-	memset(labels, 0, ui::piechart_resolution * sizeof(vector_backed_string<char16_t>));
-	memset(fractions, 0, ui::piechart_resolution * sizeof(float));
+	std::fill_n(labels, ui::piechart_resolution, text_data::text_tag());
+	std::fill_n(fractions, ui::piechart_resolution, 0.0f);
+
 	if (const auto dt = manager.data_textures.safe_at(data_texture_tag(associated_object->type_dependant_handle)); dt)
 		memset(dt->data(), 255, ui::piechart_resolution * 3);
 	portion_used = 0;
@@ -102,7 +86,7 @@ void ui::piechart<BASE>::clear_entries(gui_manager& manager) {
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color) {
+void ui::piechart<BASE>::add_entry(gui_manager& manager, text_data::text_tag label, float fraction, graphics::color_rgb color) {
 	const int32_t last_entry = portion_used;
 
 	float adjusted_amount = 0.0f;
@@ -122,7 +106,7 @@ void ui::piechart<BASE>::add_entry(gui_manager& manager, vector_backed_string<ch
 }
 
 template<typename BASE>
-void ui::piechart<BASE>::fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color) {
+void ui::piechart<BASE>::fill_remainder(gui_manager& manager, text_data::text_tag label, graphics::color_rgb color) {
 	const int32_t last_entry = portion_used;
 	const float unused = (float(ui::piechart_resolution - portion_used) - remainder) / float(ui::piechart_resolution);
 
@@ -168,7 +152,7 @@ std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, wind
 
 template<typename BASE>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, piechart<BASE>& b) {
-	const auto res = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	const auto res = ui::detail::create_element_instance(ws, handle);
 
 	res.object.associated_behavior = &b;
 	b.associated_object = &res.object;

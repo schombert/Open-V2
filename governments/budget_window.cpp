@@ -169,7 +169,7 @@ namespace governments {
 				if(total_strata_pop == 0) {
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+						 ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 						1.0f,
 						graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 					return;
@@ -177,22 +177,22 @@ namespace governments {
 
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx],
 					float(total_lx) / float(total_strata_pop),
 					graphics::color_rgb{50ui8, 255ui8, 50ui8});
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_en]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_en],
 					float(total_en - total_lx) / float(total_strata_pop),
 					graphics::color_rgb{ 50ui8, 50ui8, 255ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln],
 					float(total_ln - total_en) / float(total_strata_pop),
 					graphics::color_rgb{ 220ui8, 220ui8, 70ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 					float(total_strata_pop - total_ln) / float(total_strata_pop),
 					graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 			}
@@ -209,7 +209,7 @@ namespace governments {
 				if(total_strata_pop == 0) {
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+						ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 						1.0f,
 						graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 					return;
@@ -217,22 +217,22 @@ namespace governments {
 
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx],
 					float(total_lx) / float(total_strata_pop),
 					graphics::color_rgb{ 50ui8, 255ui8, 50ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_en]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_en],
 					float(total_en - total_lx) / float(total_strata_pop),
 					graphics::color_rgb{ 50ui8, 50ui8, 255ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln],
 					float(total_ln - total_en) / float(total_strata_pop),
 					graphics::color_rgb{ 220ui8, 220ui8, 70ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 					float(total_strata_pop - total_ln) / float(total_strata_pop),
 					graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 			}
@@ -249,7 +249,7 @@ namespace governments {
 				if(total_strata_pop == 0) {
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+						ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 						1.0f,
 						graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 					return;
@@ -257,22 +257,22 @@ namespace governments {
 
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx],
 					float(total_lx) / float(total_strata_pop),
 					graphics::color_rgb{ 50ui8, 255ui8, 50ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_en]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_en],
 					float(total_en - total_lx) / float(total_strata_pop),
 					graphics::color_rgb{ 50ui8, 50ui8, 255ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln],
 					float(total_ln - total_en) / float(total_strata_pop),
 					graphics::color_rgb{ 220ui8, 220ui8, 70ui8 });
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs]),
+					ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs],
 					float(total_strata_pop - total_ln) / float(total_strata_pop),
 					graphics::color_rgb{ 255ui8, 50ui8, 50ui8 });
 			}
@@ -332,44 +332,38 @@ namespace governments {
 			});
 
 			ui::xy_pair cursor{ 0,0 };
-			cursor = ui::add_linear_text(cursor, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+			cursor = ui::add_text(cursor, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws, tw);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
 			if(total_pop == 0) {
-				ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::no_pops_of_type], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::no_pops_of_type], ui::tooltip_text_format, ws, tw);
 			} else {
-				char16_t local_buffer[16];
-
-				put_value_in_buffer(local_buffer, display_type::percent, none_qnty / total_pop);
-				cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+				cursor = ui::add_text(cursor, text_data::percent{ none_qnty / total_pop }, ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_no_needs], ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-				put_value_in_buffer(local_buffer, display_type::percent, ln_qnty / total_pop);
-				cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+				cursor = ui::add_text(cursor, text_data::percent{ ln_qnty / total_pop }, ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_ln], ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-				put_value_in_buffer(local_buffer, display_type::percent, en_qnty / total_pop);
-				cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+				cursor = ui::add_text(cursor, text_data::percent{ en_qnty / total_pop }, ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_en], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_en], ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 
-				put_value_in_buffer(local_buffer, display_type::percent, lx_qnty / total_pop);
-				cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, cursor, ui::tooltip_text_format);
+				cursor = ui::add_text(cursor, text_data::percent{ lx_qnty / total_pop }, ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-				cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pie_lx], ui::tooltip_text_format, ws, tw);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			}
 		}
 	}
 
 	void warning_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::bankruptcy_warning], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::bankruptcy_warning], ui::tooltip_text_format, ws, tw);
 	}
 
 	void expenses_pie_chart::update(ui::piechart<expenses_pie_chart>& pie, world_state & ws) {
@@ -389,37 +383,37 @@ namespace governments {
 
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::national_stockpile]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::national_stockpile],
 				b_amount / total,
 				graphics::color_rgb{ 30ui8, 155ui8, 250ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::edu_spending]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::edu_spending],
 				e_amount / total,
 				graphics::color_rgb{ 30ui8, 155ui8, 30ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::admin_spending]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::admin_spending],
 				a_amount / total,
 				graphics::color_rgb{ 155ui8, 155ui8, 30ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::social_spending]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::social_spending],
 				s_amount / total,
 				graphics::color_rgb{ 35ui8, 155ui8, 150ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::mil_spending]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::mil_spending],
 				m_amount / total,
 				graphics::color_rgb{ 155ui8, 35ui8, 150ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::tariffs]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::tariffs],
 				tariff_costs / total,
 				graphics::color_rgb{ 255ui8, 155ui8, 55ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::interest]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::interest],
 				interest / total,
 				graphics::color_rgb{ 35ui8, 35ui8, 150ui8 });
 		}
@@ -438,22 +432,22 @@ namespace governments {
 
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_poor_tax]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::b_poor_tax],
 				ptax_income / total,
 				graphics::color_rgb{ 50ui8, 255ui8, 150ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_middle_tax]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::b_middle_tax],
 				mtax_income / total,
 				graphics::color_rgb{ 150ui8, 255ui8, 50ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::b_rich_tax]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::b_rich_tax],
 				rtax_income / total,
 				graphics::color_rgb{ 50ui8, 155ui8, 255ui8 });
 			pie.add_entry(
 				ws.w.gui_m,
-				text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::tariffs]),
+				ws.s.fixed_ui_text[scenario::fixed_ui::tariffs],
 				tariff_income / total,
 				graphics::color_rgb{ 255ui8, 155ui8, 55ui8 });
 		}

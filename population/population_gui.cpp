@@ -115,32 +115,32 @@ namespace population {
 	}
 
 	void workforce_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::workforce], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::workforce], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	void religion_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::religion], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::religion], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	void culture_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::nationality], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::nationality], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	void ideology_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::ideology], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::ideology], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	void issues_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::dominant_issues], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::dominant_issues], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	void electorate_title::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::electorate], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::electorate], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
@@ -164,7 +164,7 @@ namespace population {
 			if(sums_out[i] != 0)
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name),
+					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size),
 					ws.s.population_m.pop_types[population::pop_type_tag(static_cast<population::pop_type_tag::value_base_t>(i))].color);
 		}
@@ -190,7 +190,7 @@ namespace population {
 			if(sums_out[i] != 0)
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.religions[cultures::religion_tag(static_cast<cultures::religion_tag::value_base_t>(i))].name),
+					 ws.s.culture_m.religions[cultures::religion_tag(static_cast<cultures::religion_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size),
 					ws.s.culture_m.religions[cultures::religion_tag(static_cast<cultures::religion_tag::value_base_t>(i))].color);
 		}
@@ -216,7 +216,7 @@ namespace population {
 			if(sums_out[i] != 0)
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name),
+					ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size),
 					ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
 		}
@@ -242,7 +242,7 @@ namespace population {
 				if(vote[i] > 0.0f && party_id)
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.governments_m.parties[party_id].name),
+						ws.s.governments_m.parties[party_id].name,
 						vote[i] / total,
 						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
 			}
@@ -268,7 +268,7 @@ namespace population {
 			if(sums_out[i] != 0)
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].name),
+					ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size),
 					ws.s.culture_m.culture_container[cultures::culture_tag(static_cast<cultures::culture_tag::value_base_t>(i))].color);
 		}
@@ -293,7 +293,7 @@ namespace population {
 			if(sums_out[i] != 0)
 				pie.add_entry(
 					ws.w.gui_m,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name),
+					ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name,
 					float(sums_out[i]) / float(total_size),
 					ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].color);
 		}
@@ -337,16 +337,9 @@ namespace population {
 			char16_t local_buf[32] = u"+";
 			put_value_in_buffer(local_buf + 1, display_type::integer, amount);
 
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				green_text,
-				lm);
+			cursor = ui::add_text(cursor, local_buf, green_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_growth], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_growth], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
@@ -356,91 +349,41 @@ namespace population {
 			return; 
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_combat>(p); amount >= 1.0f) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, -amount);
-
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				red_text,
-				lm);
+			cursor = ui::add_text(cursor, text_data::integer{ -amount }, red_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_combat], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_combat], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_assimilation_away>(p); amount >= 1.0f) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, -amount);
-
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				red_text,
-				lm);
+			cursor = ui::add_text(cursor, text_data::integer{ -amount }, red_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_assimilation], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_assimilation], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_emigration>(p); amount >= 1.0f) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, -amount);
-
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				red_text,
-				lm);
+			cursor = ui::add_text(cursor, text_data::integer{ -amount }, red_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_emigration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_emigration], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_local_migration>(p); amount >= 1.0f) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, -amount);
-
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				red_text,
-				lm);
+			cursor = ui::add_text(cursor, text_data::integer{ -amount }, red_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_migration], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_migration], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
 
 		if(auto const amount = ws.w.population_s.pops.get<pop::size_change_from_type_change_away>(p); amount >= 1.0f) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, -amount);
-
-			cursor = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				tw,
-				cursor,
-				red_text,
-				lm);
+			cursor = ui::add_text(cursor, text_data::integer{ -amount }, red_text, ws, tw, lm);
 			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-			cursor = ui::add_linear_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_type_change], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::pop_size_type_change], ui::tooltip_text_format, ws, tw, lm);
 			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 			lm.finish_current_line();
 		}
@@ -478,102 +421,50 @@ namespace population {
 	}
 	void pop_filter_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		ui::add_linear_text(ui::xy_pair{0, 0}, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		ui::add_text(ui::xy_pair{0, 0}, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws, tw, lm);
 		lm.finish_current_line();
 	}
 
 	void pop_type_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
 		if(is_valid_index(type))
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.population_m.pop_types[type].name, ui::tooltip_text_format, ws, tw, lm);
 		lm.finish_current_line();
 	}
 
 	void pop_religion::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
 		if(is_valid_index(religion))
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.religions[religion].name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.religions[religion].name, ui::tooltip_text_format, ws, tw, lm);
 		lm.finish_current_line();
 	}
 
 	void pops_unempl_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::unemployment], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::unemployment], ui::tooltip_text_format, ws, tw, lm);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::percent, value);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			tw,
-			cursor,
-			ui::tooltip_text_format,
-			lm);
-
-		lm.finish_current_line();
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
 	}
 
 	void lifeneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::life_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::life_needs], ui::tooltip_text_format, ws, tw, lm);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::percent, value);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			tw,
-			cursor,
-			ui::tooltip_text_format,
-			lm);
-
-		lm.finish_current_line();
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
 	}
 
 	void eveneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::everyday_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::everyday_needs], ui::tooltip_text_format, ws, tw, lm);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::percent, value);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			tw,
-			cursor,
-			ui::tooltip_text_format,
-			lm);
-
-		lm.finish_current_line();
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
 	}
 
 	void luxneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
-		auto cursor = ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::luxury_needs], ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw, lm);
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::luxury_needs], ui::tooltip_text_format, ws, tw, lm);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::percent, value);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			tw,
-			cursor,
-			ui::tooltip_text_format,
-			lm);
-
-		lm.finish_current_line();
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
 	}
 
 

@@ -87,29 +87,29 @@ namespace issues {
 			if(!is_reform) {
 				if(ws.s.issues_m.issues_container[p_issue].type == issue_group::social) {
 					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
-						auto const ftag = ws.s.ideologies_m.ideology_container[i].add_social_reform;
-						if(ftag)
-							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
-					});
-				} else if(ws.s.issues_m.issues_container[p_issue].type == issue_group::political) {
-					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
-						auto const ftag = ws.s.ideologies_m.ideology_container[i].add_political_reform;
-						if(ftag)
-							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
-					});
-				}
-			} else {
-				if(ws.s.issues_m.issues_container[p_issue].type == issue_group::social) {
-					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
 						auto const ftag = ws.s.ideologies_m.ideology_container[i].remove_social_reform;
 						if(ftag)
-							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
+							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * 0.01f * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
 					});
 				} else if(ws.s.issues_m.issues_container[p_issue].type == issue_group::political) {
 					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
 						auto const ftag = ws.s.ideologies_m.ideology_container[i].remove_political_reform;
 						if(ftag)
-							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
+							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * 0.01f* modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
+					});
+				}
+			} else {
+				if(ws.s.issues_m.issues_container[p_issue].type == issue_group::social) {
+					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
+						auto const ftag = ws.s.ideologies_m.ideology_container[i].add_social_reform;
+						if(ftag)
+							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * 0.01f * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
+					});
+				} else if(ws.s.issues_m.issues_container[p_issue].type == issue_group::political) {
+					ws.s.ideologies_m.for_each_ideology([nation_for, support_factors, &ws](ideologies::ideology_tag i) {
+						auto const ftag = ws.s.ideologies_m.ideology_container[i].add_political_reform;
+						if(ftag)
+							support_factors[to_index(i)] = float(ws.w.nation_s.upper_house.get(nation_for, i)) * 0.01f * modifiers::test_additive_factor(ftag, ws, nation_for, nation_for);
 					});
 				}
 			}
@@ -148,7 +148,7 @@ namespace issues {
 		auto const last_date = ws.w.nation_s.nations.get<nation::last_reform_date>(nation_for);
 		return 
 			!is_valid_index(last_date)
-			|| ((to_index(last_date) + int32_t(ws.s.modifiers_m.global_defines.min_delay_between_reforms) * 32) > to_index(ws.w.current_date));
+			|| ((to_index(last_date) + int32_t(ws.s.modifiers_m.global_defines.min_delay_between_reforms) * 32) < to_index(ws.w.current_date));
 	}
 
 	bool is_reform_next_step(world_state const& ws, nations::country_tag nation_for, issues::option_tag opt) {
@@ -199,13 +199,10 @@ namespace issues {
 	}
 
 	bool is_reform_possible(world_state const& ws, nations::country_tag nation_for, issues::option_tag opt) {
-		return true;
-		/*
 		auto const opt_trigger = ws.s.issues_m.options[opt].allow;
 		return is_reform_timer_ready(ws, nation_for)
 			&& is_reform_next_step(ws, nation_for, opt)
 			&& (!is_valid_index(opt_trigger) || triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(opt_trigger), ws, nation_for, nation_for, nation_for))
 			&& get_uh_reform_support(ws, nation_for, opt) > 50.0f;
-		*/
 	}
 }

@@ -450,7 +450,7 @@ namespace current_state {
 		CT_STRING("pause_bg"), ui::simple_button<pause_button>,
 		CT_STRING("speed_indicator"), ui::simple_button<speed_indicator_button>,
 		CT_STRING("DateText"), ui::display_text<topbar_date, -8>,
-		CT_STRING("CountryName"), ui::display_text<topbar_country_name>,
+		CT_STRING("CountryName"), ui::display_text<topbar_country_name, -14>,
 		topbar_base
 	> {};
 

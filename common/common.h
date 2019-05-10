@@ -982,7 +982,53 @@ inline char16_t* put_pos_value_in_buffer(char16_t* dest, display_type display_as
 		case display_type::currency:
 		{
 			uint64_t int_value = uint64_t(value + value_type(0.5));
-			if(int_value < 10'000) {
+
+			if(value < value_type(10)) {
+				value_type integer_part = value_type(0);
+				value_type fractional_part = wrapped_modf(value_type(value + value_type(0.005)), &integer_part);
+
+				auto value_end = _u16itoa(uint32_t(integer_part), dest);
+				*value_end = u'.';
+
+				uint32_t f_value = uint32_t(fractional_part * value_type(100));
+				if(f_value == 0ui32) {
+					*(value_end + 1) = u'0';
+					*(value_end + 2) = u'0';
+					*(value_end + 3) = u'\u00A3';
+					*(value_end + 4) = char16_t(0);
+					return value_end + 4;
+				} else if(f_value < 10ui32) {
+					*(value_end + 1) = u'0';
+					auto new_value_end = _u16itoa(f_value, value_end + 2);
+					*new_value_end = u'\u00A3';
+					*(new_value_end + 1) = char16_t(0);
+					return new_value_end + 1;
+				} else {
+					auto new_value_end = _u16itoa(f_value, value_end + 1);
+					*new_value_end = u'\u00A3';
+					*(new_value_end + 1) = char16_t(0);
+					return new_value_end + 1;
+				}
+			} else if(value < value_type(100)) {
+				value_type integer_part = value_type(0);
+				value_type fractional_part = wrapped_modf(value_type(value + value_type(0.05)), &integer_part);
+
+				auto value_end = _u16itoa(uint32_t(integer_part), dest);
+				*value_end = u'.';
+
+				uint32_t f_value = uint32_t(fractional_part * value_type(10));
+				if(f_value == 0ui32) {
+					*(value_end + 1) = u'0';
+					*(value_end + 2) = u'\u00A3';
+					*(value_end + 3) = char16_t(0);
+					return value_end + 3;
+				} else {
+					auto new_value_end = _u16itoa(f_value, value_end + 1);
+					*new_value_end = u'\u00A3';
+					*(new_value_end + 1) = char16_t(0);
+					return new_value_end + 1;
+				}
+			} else if(int_value < 10'000) {
 				auto value_end = _u16itoa(uint32_t(int_value), dest);
 				*value_end = u'\u00A3';
 				*(value_end + 1) = char16_t(0);

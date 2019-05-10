@@ -90,22 +90,22 @@ namespace ui {
 		template<typename RES, typename HANDLE>
 		struct can_create_instance_s : public std::false_type {};
 		template<typename HANDLE>
-		struct can_create_instance_s<decltype(create_element_instance(std::declval<gui_static&>(), std::declval<gui_manager&>(), std::declval<HANDLE>())), HANDLE> : public std::true_type {};
+		struct can_create_instance_s<decltype(create_element_instance(std::declval<world_state&>(), std::declval<HANDLE>())), HANDLE> : public std::true_type {};
 		template<typename HANDLE>
 		constexpr bool can_create_instance = can_create_instance_s<tagged_gui_object, HANDLE>::value;
 
 		template<typename T>
-		ui::tagged_gui_object safe_create_element_instance(gui_static& static_manager, gui_manager& manager, T handle) {
+		ui::tagged_gui_object safe_create_element_instance(world_state& ws, T handle) {
 			if constexpr(can_create_instance<T>)
-				return ui::detail::create_element_instance(static_manager, manager, handle);
+				return ui::detail::create_element_instance(ws, handle);
 			else
-				return manager.gui_objects.emplace();
+				return ws.w.gui_m.gui_objects.emplace();
 		}
 
 		template<typename RES, typename HANDLE, typename TYPE>
 		struct can_create_static_s : public std::false_type {};
 		template<typename HANDLE, typename TYPE>
-		struct can_create_static_s<decltype(create_static_element(std::declval<gui_static&>(), std::declval<gui_manager&>(), std::declval<HANDLE>(), std::declval<tagged_gui_object>(), std::declval<TYPE&>())), HANDLE, TYPE> : public std::true_type {};
+		struct can_create_static_s<decltype(create_static_element(std::declval<world_state&>(), std::declval<HANDLE>(), std::declval<tagged_gui_object>(), std::declval<TYPE&>())), HANDLE, TYPE> : public std::true_type {};
 		template<typename HANDLE, typename TYPE>
 		constexpr bool can_create_static = can_create_static_s<tagged_gui_object, HANDLE, TYPE>::value;
 	}
@@ -122,7 +122,7 @@ ui::tagged_gui_object ui::create_dynamic_element(world_state& ws, T handle, tagg
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 			return new_obj;
 		} else {
-			auto new_obj = ui::detail::safe_create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+			auto new_obj = ui::detail::safe_create_element_instance(ws, handle);
 			new_obj.object.flags.fetch_or(ui::gui_object::dynamic_behavior, std::memory_order_acq_rel);
 
 			new_obj.object.associated_behavior = b;
@@ -132,7 +132,7 @@ ui::tagged_gui_object ui::create_dynamic_element(world_state& ws, T handle, tagg
 			return new_obj;
 		}
 	} else {
-		auto new_obj = ui::detail::safe_create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+		auto new_obj = ui::detail::safe_create_element_instance(ws, handle);
 		ui::add_to_back(ws.w.gui_m, parent, new_obj);
 		return new_obj;
 	}

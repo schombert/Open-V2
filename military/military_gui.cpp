@@ -69,15 +69,13 @@ namespace military {
 		ui::text_format& fmt,
 		world_state& ws) {
 		
-		ui::add_linear_text(
+		ui::add_text(
 			ui::xy_pair{0, 0},
 			ws.s.fixed_ui_text[scenario::fixed_ui::fabricate_title],
 			fmt,
-			ws.s.gui_m,
-			ws.w.gui_m,
+			ws,
 			box,
 			lm);
-		lm.finish_current_line();
 	}
 
 	void description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -85,30 +83,23 @@ namespace military {
 			auto const daily_amount = daily_cb_progress(ws, ws.w.local_player_nation, type);
 			auto const total_days = daily_amount > 0 ? std::ceil(1.0f / daily_amount) : 9999.0f;
 
-			char16_t days_buffer[16];
-			put_value_in_buffer(days_buffer, display_type::exact_integer, total_days);
-
-			char16_t infamy_buffer[16];
-			put_value_in_buffer(infamy_buffer, display_type::fp_one_place, base_cb_infamy(ws, type));
-
-			text_data::replacement repl[3] = {
-				text_data::replacement{text_data::value_type::type,
-					text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.military_m.cb_types[type].name),
-					[](ui::tagged_gui_object) {}},
-				text_data::replacement{text_data::value_type::days,
-					vector_backed_string<char16_t>(days_buffer),
-					[](ui::tagged_gui_object) {}},
-				text_data::replacement{text_data::value_type::badboy,
-					vector_backed_string<char16_t>(infamy_buffer),
-					[](ui::tagged_gui_object) {}}
+			text_data::text_replacement repl[3] = {
+				text_data::text_replacement{text_data::value_type::type,
+					 ws.s.military_m.cb_types[type].name
+					},
+				text_data::text_replacement{text_data::value_type::days,
+					text_data::exact_integer{total_days}
+					},
+				text_data::text_replacement{text_data::value_type::badboy,
+					text_data::fp_one_place{base_cb_infamy(ws, type)}
+					}
 			};
 
-			ui::add_multiline_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.fixed_ui_text[scenario::fixed_ui::fabricate_description],
 				fmt,
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
 				lm,
 				repl,

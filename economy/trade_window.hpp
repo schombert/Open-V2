@@ -183,12 +183,7 @@ namespace economy {
 
 		
 		auto prices = economy::state_current_prices(ws, s);
-
-		char16_t local_buffer[16];
-		put_value_in_buffer(local_buffer, display_type::fp_two_places, prices[w.tag]);
-		auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-		cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ prices[w.tag] }, fmt, ws, box, lm);
 	}
 	template<typename window_type>
 	void tw_good_item_icon::windowed_update(ui::simple_button<tw_good_item_icon>& self, window_type & win, world_state & ws) {
@@ -275,43 +270,27 @@ namespace economy {
 
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
 			auto price = economy::state_current_prices(ws, s)[g];
-
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, price);
-			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ price }, fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void tw_selected_good_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[g].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[g].name, fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void tw_good_global_max_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
 			auto range = global_price_range(ws, g);
-
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, range.maximum);
-			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ range.maximum }, fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void tw_good_global_min_price::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto g = ws.w.trade_w.selected_good; is_valid_index(g)) {
 			auto range = global_price_range(ws, g);
-
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, range.minimum - 0.01f);
-			auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u00A3"), box, cursor, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ range.minimum - 0.01f }, fmt, ws, box, lm);
 		}
 	}
 	template<typename window_type>

@@ -1,0 +1,49 @@
+%% Based on a TeXnicCenter-Template by Gyorgy SZEIDL.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%----------------------------------------------------------
+%
+\documentclass{book}%
+%
+%----------------------------------------------------------
+% This is a sample document for the standard LaTeX Book Class
+% Class options
+%       --  Body text point size:
+%                        10pt (default), 11pt, 12pt
+%       --  Paper size:  letterpaper (8.5x11 inch, default)
+%                        a4paper, a5paper, b5paper,
+%                        legalpaper, executivepaper
+%       --  Orientation (portrait is the default):
+%                        landscape
+%       --  Printside:   oneside, twoside (default)
+%       --  Quality:     final(default), draft
+%       --  Title page:  titlepage, notitlepage
+%       --  Columns:     onecolumn (default), twocolumn
+%       --  Start chapter on left:
+%                        openright(no, default), openany
+%       --  Equation numbering (equation numbers on right is the default):
+%                        leqno
+%       --  Displayed equations (centered is the default):
+%                        fleqn (flush left)
+%       --  Open bibliography style (closed bibliography is the default):
+%                        openbib
+% For instance the command
+%          \documentclass[a4paper,12pt,reqno]{book}
+% ensures that the paper size is a4, fonts are typeset at the size 12p
+% and the equation numbers are on the right side.
+%
+\usepackage{amsmath}%
+\usepackage{amsfonts}%
+\usepackage{amssymb}%
+\usepackage{graphicx}
+%----------------------------------------------------------
+\begin{document}
+
+\frontmatter
+\title{Open V2 Manual}
+\author{Peter Schombert}
+\maketitle
+\tableofcontents
+\mainmatter
+\input{events}
+\end{document}

@@ -117,8 +117,8 @@ namespace events {
 		value = w.data.second;
 		e = w.data.first;
 
-		text_data::replacement rep_array[events::replacement_size];
-		populate_replacements(ws, rep_array, e.event_for, e.event_from);
+		text_data::text_replacement rep_array[events::replacement_size];
+		populate_replacements(ws, rep_array, e.event_for, e.event_from, text_data::text_color::dark_blue);
 
 		self.set_text(ws, ws.s.event_m.event_container[e.e].options[value].name, rep_array, events::replacement_size);
 	}
@@ -156,7 +156,7 @@ namespace events {
 
 	class province_event_window_t : public ui::gui_window <
 		CT_STRING("event_images"), ui::dynamic_icon<hidden_image>,
-		CT_STRING("Title"), ui::display_text<province_event_title, -280>,
+		CT_STRING("Title"), ui::display_text<province_event_title, -309>,
 		CT_STRING("Date"), ui::display_text<hidden_text>,
 		CT_STRING("Province"), ui::display_text<province_event_location, -95>,
 		CT_STRING("Description"), ui::multiline_text<province_event_body>,
@@ -344,7 +344,7 @@ namespace events {
 				ui::tagged_gui_object{ *associated_object, w.window_object },
 				event_odds));
 		}
-
+		w.get<CT_STRING("Title")>().associated_object->position.x = 55i16;
 		ui::hide(*associated_object);
 	}
 
@@ -377,7 +377,7 @@ namespace events {
 				ui::tagged_gui_object{ *associated_object, w.window_object },
 				event_odds));
 		}
-
+		w.get<CT_STRING("Title")>().associated_object->position.x = 55i16;
 		ui::hide(*associated_object);
 	}
 

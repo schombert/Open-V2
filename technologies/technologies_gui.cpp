@@ -14,11 +14,9 @@ namespace technologies {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto ts = ws.w.nation_s.nations.get<nation::tech_school>(player);
 			if(is_valid_index(ts)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.national_modifiers[ts].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.national_modifiers[ts].name, fmt, ws, box, lm);
 			} else {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::traditional_academic], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::traditional_academic], fmt, ws, box, lm);
 			}
 		}
 	}
@@ -30,9 +28,10 @@ namespace technologies {
 		else
 			local_buffer[0] = u'+';
 		put_pos_value_in_buffer(local_buffer + 1, display_type::percent, std::abs(modifier));
-		auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), tw, ui::xy_pair{ 0,0 }, rg_format);
+
+		auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, local_buffer, rg_format, ws, tw);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-		ui::add_linear_text(cursor, modifier_name, ui::tooltip_text_format, ws.s.gui_m, ws.w.gui_m, tw);
+		ui::add_text(cursor, modifier_name, ui::tooltip_text_format, ws, tw);
 	}
 	ui::window_tag school_modifiers_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["school_icon_window"]);
@@ -57,19 +56,18 @@ namespace technologies {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto tech = ws.w.nation_s.nations.get<nation::current_research>(player); is_valid_index(tech)) {
 				if(auto total_points = effective_tech_cost(tech, ws, player); total_points != 0.0f) {
-					char16_t local_buffer_a[16];
-					put_pos_value_in_buffer(local_buffer_a, display_type::exact_integer, ws.w.nation_s.nations.get<nation::research_points>(player));
-					
-					auto cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer_a), tw, ui::xy_pair{ 0,0 }, ui::tooltip_text_format);
+
+					auto cursor = ui::add_text(ui::xy_pair{ 0,0 },
+						text_data::exact_integer{ int32_t(ws.w.nation_s.nations.get<nation::research_points>(player)) },
+						ui::tooltip_text_format, ws, tw);
 					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"/"), tw, cursor, ui::tooltip_text_format);
+					cursor = ui::add_text(cursor,
+						u"/",
+						ui::tooltip_text_format, ws, tw);
 					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
-
-					char16_t local_buffer_b[16];
-					put_pos_value_in_buffer(local_buffer_b, display_type::exact_integer, total_points);
-
-					cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer_b), tw, cursor, ui::tooltip_text_format);
+					cursor = ui::add_text(cursor,
+						text_data::exact_integer{ total_points },
+						ui::tooltip_text_format, ws, tw);
 				}
 			}
 		}
@@ -79,11 +77,10 @@ namespace technologies {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto cr = ws.w.nation_s.nations.get<nation::current_research>(player);
 			if(is_valid_index(cr)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[cr].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[cr].name, fmt, ws, box, lm);
 			} else {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_research], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::no_research], fmt, ws, box, lm);
 			}
-			lm.finish_current_line();
 		}
 	}
 	void research_category_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -104,12 +101,11 @@ namespace technologies {
 						}
 						return technologies::tech_subcategory_tag();
 					}();
-					auto cursor = ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technology_categories[tc].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+					auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technology_categories[tc].name, fmt, ws, box, lm);
 					if(is_valid_index(tsc)) {
-						cursor = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u", "), box, cursor, fmt, lm);
-						ui::add_linear_text(cursor, ws.s.technology_m.technology_subcategories[tsc].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+						cursor = ui::add_text(cursor, u", ", fmt, ws, box, lm);
+						ui::add_text(cursor, ws.s.technology_m.technology_subcategories[tsc].name, fmt, ws, box, lm);
 					}
-					lm.finish_current_line();
 				}
 			}
 		}
@@ -180,8 +176,7 @@ namespace technologies {
 				local_buffer[0] = u'+';
 
 			put_pos_value_in_buffer(local_buffer + 1, d_type, std::abs(value));
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, local_buffer, local_fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}
@@ -200,8 +195,8 @@ namespace technologies {
 			local_buffer[0] = u'+';
 
 		put_pos_value_in_buffer(local_buffer + 1, d_type, std::abs(value));
-		cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-			container, cursor_in, local_fmt, lm);
+
+		cursor_in = ui::add_text(cursor_in, local_buffer, local_fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		return cursor_in;
 	}
@@ -212,26 +207,16 @@ namespace technologies {
 		auto& tech = ws.s.technology_m.technologies_container[t];
 
 		if(tech.year != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_activation_year], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_activation_year], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-
-			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, tech.year);
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, fmt, lm);
-
+			cursor_in = ui::add_text(cursor_in, text_data::exact_integer{ tech.year }, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
 		if(tech.cost != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_research_points], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_research_points], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-
-			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, tech.cost);
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, fmt, lm);
-
+			cursor_in = ui::add_text(cursor_in, text_data::exact_integer{ tech.cost }, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
@@ -242,7 +227,7 @@ namespace technologies {
 		if(tech.shared_prestige != 0.0f) {
 			auto adj_value = tech.shared_prestige / float(ws.w.technology_s.discovery_count[t] + 1);
 			if(adj_value >= 0.05f) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::shared_prestige_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::shared_prestige_tech], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = display_value(adj_value, display_type::fp_one_place, true, ws, container, cursor_in, lm, fmt);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -255,7 +240,7 @@ namespace technologies {
 		bool added_item = false;
 		for(uint32_t i = 0; i < tech_definition_size; ++i) {
 			if(tech.attributes.values[i] != 0.0f) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.technology_m.tech_modifier_names[tech.attributes.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.technology_m.tech_modifier_names[tech.attributes.offsets[i]], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 				cursor_in = display_green_value(tech.attributes.values[i], tech_offset_display[tech.attributes.offsets[i]], ws, container, cursor_in, lm, fmt);
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -275,50 +260,50 @@ namespace technologies {
 		}
 
 		if(is_valid_index(tech.enable_crime)) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_crime_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.provincial_modifiers[tech.enable_crime].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enable_crime_tech], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.provincial_modifiers[tech.enable_crime].name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if(is_valid_index(tech.activate_factory)) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[ws.s.economy_m.factory_types[tech.activate_factory].output_good].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[ws.s.economy_m.factory_types[tech.activate_factory].output_good].name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if((tech.flags & technology::activate_fort) != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fort], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if((tech.flags & technology::activate_naval_base) != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::naval_base], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::naval_base], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if((tech.flags & technology::activate_railroad) != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::railroad], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if((tech.flags & technology::gas_attack) != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gas_attack_cap], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gas_attack_cap], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
 		}
 		if((tech.flags & technology::gas_defence) != 0) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gas_defence_cap], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::activate_goods], fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::gas_defence_cap], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 			added_item = true;
@@ -336,9 +321,9 @@ namespace technologies {
 			for(uint32_t i = 0; i < ws.s.population_m.rebel_types.size(); ++i) {
 				population::rebel_type_tag tag(static_cast<population::rebel_type_tag::value_base_t>(i));
 				if(org_row[tag] != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.population_m.rebel_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.population_m.rebel_types[tag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_rebel_org_gain], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_rebel_org_gain], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(org_row[tag], display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -356,9 +341,9 @@ namespace technologies {
 				economy::goods_tag gtag(static_cast<economy::goods_tag::value_base_t>(i));
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_size>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_size], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_size], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -366,9 +351,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_goods_output>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_output_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_output_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -376,9 +361,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::rgo_goods_throughput>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_throughput_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rgo_throughput_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -386,9 +371,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::factory_goods_input>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_input_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_input_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -396,9 +381,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::factory_goods_output>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_output_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_output_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -406,9 +391,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::factory_goods_throughput>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_throughput_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::factory_throughput_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -416,9 +401,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::artisan_goods_input>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_input_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_input_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, false, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -426,9 +411,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::artisan_goods_output>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_output_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_output_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -436,9 +421,9 @@ namespace technologies {
 				}
 				if(auto v = ws.s.technology_m.production_adjustments.get(
 					tech.production_adjustment, economy_tag_to_production_adjustment<production_adjustment::artisan_goods_throughput>(gtag)); v != 0.0f) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.economy_m.goods[gtag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_throughput_tech], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::artisan_throughput_tech], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 					cursor_in = display_value(v, display_type::percent, true, ws, container, cursor_in, lm, fmt);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -456,66 +441,66 @@ namespace technologies {
 
 				for(uint32_t j = 0; j < military::unit_attribute::enabled; ++j) {
 					if(vector[j] != 0) {
-						cursor_in = ui::add_linear_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+						cursor_in = ui::add_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws, container, lm);
 						cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 						switch(j) {
 							case 0:
-								cursor_in = ui::add_linear_text(cursor_in,
+								cursor_in = ui::add_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_hull : scenario::fixed_ui::unit_defence],
-									fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+									fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 1:
-								cursor_in = ui::add_linear_text(cursor_in,
+								cursor_in = ui::add_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_gun_power : scenario::fixed_ui::unit_attack],
-									fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+									fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 2:
-								cursor_in = ui::add_linear_text(cursor_in,
+								cursor_in = ui::add_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_fire_range : scenario::fixed_ui::unit_reconnaissance],
-									fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+									fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 3:
-								cursor_in = ui::add_linear_text(cursor_in,
+								cursor_in = ui::add_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_torpedo_attack : scenario::fixed_ui::unit_support],
-									fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+									fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 4:
-								cursor_in = ui::add_linear_text(cursor_in,
+								cursor_in = ui::add_text(cursor_in,
 									ws.s.fixed_ui_text[military::is_naval_unit(tag, ws) ? scenario::fixed_ui::unit_evasion : scenario::fixed_ui::unit_maneuver],
-									fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+									fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 5:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_speed], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_speed], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 6:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_organization], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_organization], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 7:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_build_time], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_build_time], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 8:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_supply_consumption], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_supply_consumption], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 9:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_strength], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_strength], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 10:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_siege], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_siege], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							case 11:
-								cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_discipline], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+								cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::unit_discipline], fmt, ws, container, lm);
 								cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 								break;
 							default:
@@ -528,22 +513,22 @@ namespace technologies {
 							j != military::unit_attribute::supply_consumption, ws, container, cursor_in, lm, fmt);
 
 						if(j == military::unit_attribute::build_time)
-							cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tx_day], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+							cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tx_day], fmt, ws, container, lm);
 						
 						cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 						lm.finish_current_line();
 					}
 				}
 				if(vector[military::unit_attribute::enabled] > 0) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enabled], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::enabled], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				} else if(vector[military::unit_attribute::enabled] < 0) {
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.military_m.unit_types[tag].name, fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disabled], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::disabled], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					lm.finish_current_line();
 				}
@@ -582,8 +567,7 @@ namespace technologies {
 	}
 	void selected_tech_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(ws.w.technologies_w.selected_technology)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].name, fmt, ws, box, lm);
 		}
 	}
 	void selected_tech_description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -593,18 +577,16 @@ namespace technologies {
 	}
 	void selected_tech_cost::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(ws.w.technologies_w.selected_technology)) {
-			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].cost);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0, 0 },
+				text_data::exact_integer{ ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].cost }, 
+				fmt, ws, box, lm);
 		}
 	}
 	void selected_tech_year::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(ws.w.technologies_w.selected_technology) && ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].year != 0) {
-			char16_t local_buffer[32];
-			put_value_in_buffer(local_buffer, display_type::exact_integer, ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].year);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::exact_integer{ ws.s.technology_m.technologies_container[ws.w.technologies_w.selected_technology].year },
+				fmt, ws, box, lm);
 		}
 	}
 	void start_research_button::update(ui::simple_button<start_research_button>& self, world_state& ws) {

@@ -263,7 +263,7 @@ namespace current_state {
 
 						text_data::text_replacement repl{
 							text_data::value_type::opt,
-							text_data::fp_one_place{ ws.s.population_m.pop_types[this_tag].research_optimum } };
+							text_data::percent_fp_one_place{ ws.s.population_m.pop_types[this_tag].research_optimum } };
 
 						cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::optimal_is], ui::tooltip_text_format, ws, tw, lm, &repl, 1);
 

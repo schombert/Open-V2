@@ -857,8 +857,7 @@ namespace provinces {
 	void province_name::windowed_update(window_type& w, ui::tagged_gui_object obj, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		auto selected = ws.w.province_w.selected_province;
 		if(is_valid_index(selected))
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container.get<province_state::name>(selected), fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
-		lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container.get<province_state::name>(selected), fmt, ws, obj, lm);
 	}
 
 	template<typename window_type>
@@ -866,11 +865,10 @@ namespace provinces {
 		auto selected = ws.w.province_w.selected_province;
 		if(is_valid_index(selected)) {
 			if(auto sid = ws.w.province_s.province_state_container.get<province_state::state_instance>(selected); ws.w.nation_s.states.is_valid_index(sid))
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(sid), fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(sid), fmt, ws, obj, lm);
 			else if(auto stid = ws.s.province_m.province_container.get<province::state_id>(selected); is_valid_index(stid))
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[stid], fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.province_m.state_names[stid], fmt, ws, obj, lm);
 		}
-		lm.finish_current_line();
 	}
 
 	template<typename window_type>
@@ -879,8 +877,7 @@ namespace provinces {
 		if(is_valid_index(selected_prov)) {
 			auto crime = ws.w.province_s.province_state_container.get<province_state::crime>(selected_prov);
 			if(is_valid_index(crime)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.provincial_modifiers[crime].name, fmt, ws.s.gui_m, ws.w.gui_m, obj, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.modifiers_m.provincial_modifiers[crime].name, fmt, ws, obj, lm);
 				ui::make_visible_immediate(obj.object);
 				return;
 			}
@@ -1175,21 +1172,8 @@ namespace provinces {
 
 	template<typename window_type>
 	void progress_counter_text_box::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		
 		if(win.stage >= 5) {
-			char16_t formatted_value[64];
-			put_value_in_buffer(formatted_value, display_type::integer, win.stage);
-
-			ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(formatted_value),
-				box,
-				ui::xy_pair{ 0,0 },
-				fmt,
-				lm);
-
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{win.stage}, fmt, ws, box, lm);
 		}
 	}
 	
@@ -1300,16 +1284,16 @@ namespace provinces {
 		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building_progress"]), ui::tagged_gui_object{ *associated_object, win.window_object }, railroad_bar);
 		ui::create_static_element(ws, std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["building_progress"]), ui::tagged_gui_object{ *associated_object, win.window_object }, naval_base_bar);
 
-		ui::add_linear_text(ui::xy_pair{ 69ui16, 15ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::fort],
-			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+		ui::add_text(ui::xy_pair{ 69ui16, 15ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::fort],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws,
 			ui::tagged_gui_object{ *associated_object, win.window_object });
 
-		ui::add_linear_text(ui::xy_pair{ 69ui16, 50ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::naval_base],
-			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+		ui::add_text(ui::xy_pair{ 69ui16, 50ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::naval_base],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws,
 			ui::tagged_gui_object{ *associated_object, win.window_object });
 
-		ui::add_linear_text(ui::xy_pair{ 69ui16, 85ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::railroad],
-			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws.s.gui_m, ws.w.gui_m,
+		ui::add_text(ui::xy_pair{ 69ui16, 85ui16 }, ws.s.fixed_ui_text[scenario::fixed_ui::railroad],
+			ui::text_format{ ui::text_color::black, graphics::font_tag(2), 20 }, ws,
 			ui::tagged_gui_object{ *associated_object, win.window_object });
 
 		fort_icon.associated_object->position.y = 7i16;

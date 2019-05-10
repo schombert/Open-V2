@@ -177,31 +177,22 @@ namespace modifiers {
 		bool has_effect = false;
 		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 			if(def.values[i] != value_type(0)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.province_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.province_offset_names[def.offsets[i]], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 				if(def.values[i] < value_type(0)) {
 					local_buf[0] = u'-';
 					put_pos_value_in_buffer(local_buf + 1, province_offset_display[def.offsets[i]].display_as, -def.values[i]);
-					cursor_in = ui::text_chunk_to_instances(
-						ws.s.gui_m,
-						ws.w.gui_m,
-						vector_backed_string<char16_t>(local_buf),
-						container,
-						cursor_in,
+					cursor_in = ui::add_text(cursor_in, local_buf, 
 						ui::text_format{ province_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
-						lm);
+						ws, container, lm);
+					
 				} else {
 					local_buf[0] = u'+';
 					put_pos_value_in_buffer(local_buf + 1, province_offset_display[def.offsets[i]].display_as, def.values[i]);
-					cursor_in = ui::text_chunk_to_instances(
-						ws.s.gui_m,
-						ws.w.gui_m,
-						vector_backed_string<char16_t>(local_buf),
-						container,
-						cursor_in,
+					cursor_in = ui::add_text(cursor_in, local_buf,
 						ui::text_format{ province_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
-						lm);
+						ws, container, lm);
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
@@ -209,7 +200,7 @@ namespace modifiers {
 			}
 		}
 		if(has_effect == false) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
@@ -221,31 +212,21 @@ namespace modifiers {
 		bool has_effect = false;
 		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 			if(def.values[i] != value_type(0)) {
-				cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_offset_names[def.offsets[i]], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+				cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_offset_names[def.offsets[i]], fmt, ws, container, lm);
 				cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 				if(def.values[i] < value_type(0)) {
 					local_buf[0] = u'-';
 					put_pos_value_in_buffer(local_buf + 1, national_offset_display[def.offsets[i]].display_as, -def.values[i]);
-					cursor_in = ui::text_chunk_to_instances(
-						ws.s.gui_m,
-						ws.w.gui_m,
-						vector_backed_string<char16_t>(local_buf),
-						container,
-						cursor_in,
+					cursor_in = ui::add_text(cursor_in, local_buf,
 						ui::text_format{ national_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
-						lm);
+						ws, container, lm);
 				} else {
 					local_buf[0] = u'+';
 					put_pos_value_in_buffer(local_buf + 1, national_offset_display[def.offsets[i]].display_as, def.values[i]);
-					cursor_in = ui::text_chunk_to_instances(
-						ws.s.gui_m,
-						ws.w.gui_m,
-						vector_backed_string<char16_t>(local_buf),
-						container,
-						cursor_in,
+					cursor_in = ui::add_text(cursor_in, local_buf,
 						ui::text_format{ national_offset_display[def.offsets[i]].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
-						lm);
+						ws, container, lm);
 				}
 				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				lm.finish_current_line();
@@ -253,7 +234,7 @@ namespace modifiers {
 			}
 		}
 		if(has_effect == false) {
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_effect], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
@@ -262,7 +243,7 @@ namespace modifiers {
 	ui::xy_pair make_province_modifier_text(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_tag t) {
 		auto name = ws.s.modifiers_m.provincial_modifiers[t].name;
 		if(is_valid_index(name)) {
-			cursor_in = ui::add_linear_text(cursor_in, name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
@@ -274,7 +255,7 @@ namespace modifiers {
 	ui::xy_pair make_national_modifier_text(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, national_modifier_tag t) {
 		auto name = ws.s.modifiers_m.national_modifiers[t].name;
 		if(is_valid_index(name)) {
-			cursor_in = ui::add_linear_text(cursor_in, name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, name, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
@@ -304,30 +285,20 @@ namespace modifiers {
 		if(value * multiplier < value_type(0)) {
 			local_buf[0] = u'-';
 			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, -value * multiplier);
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				container,
-				cursor_in,
+			cursor_in = ui::add_text(cursor_in, local_buf,
 				ui::text_format{ province_offset_display[offset].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
-				lm);
+				ws, container, lm);
 		} else {
 			local_buf[0] = u'+';
 			put_pos_value_in_buffer(local_buf + 1, province_offset_display[offset].display_as, value * multiplier);
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				container,
-				cursor_in,
+			cursor_in = ui::add_text(cursor_in, local_buf,
 				ui::text_format{ province_offset_display[offset].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
-				lm);
+				ws, container, lm);
 		}
 
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		if(is_valid_index(ws.s.modifiers_m.provincial_modifiers[mod].name))
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.provincial_modifiers[mod].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.provincial_modifiers[mod].name, fmt, ws, container, lm);
 		
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
@@ -355,30 +326,20 @@ namespace modifiers {
 		if(value * multiplier < value_type(0)) {
 			local_buf[0] = u'-';
 			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, -value * multiplier);
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				container,
-				cursor_in,
+			cursor_in = ui::add_text(cursor_in, local_buf,
 				ui::text_format{ national_offset_display[offset].positive_is_green ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size },
-				lm);
+				ws, container, lm);
 		} else {
 			local_buf[0] = u'+';
 			put_pos_value_in_buffer(local_buf + 1, national_offset_display[offset].display_as, value * multiplier);
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				container,
-				cursor_in,
+			cursor_in = ui::add_text(cursor_in, local_buf,
 				ui::text_format{ national_offset_display[offset].positive_is_green ? ui::text_color::green : ui::text_color::red, fmt.font_handle, fmt.font_size },
-				lm);
+				ws, container, lm);
 		}
 
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		if(is_valid_index(ws.s.modifiers_m.national_modifiers[mod].name))
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.modifiers_m.national_modifiers[mod].name, fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_modifiers[mod].name, fmt, ws, container, lm);
 
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
@@ -526,22 +487,16 @@ namespace modifiers {
 			auto end = put_pos_value_in_buffer(local_buffer + 1, display_type::integer, std::abs(value));
 			*(end) = u'%';
 			*(end + 1) = char16_t(0);
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, local_buffer, local_fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}
 		ui::xy_pair display_multiplicative_value(float value, world_state& ws,
 			ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, bool invert_color) {
 
-			char16_t local_buffer[32];
-
 			ui::text_format local_fmt{ ((value < 1.0f) != invert_color) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
-
-			put_value_in_buffer(local_buffer, display_type::fp_two_places, value);
 			
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-				container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, text_data::fp_two_places{ value }, local_fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}
@@ -554,13 +509,13 @@ namespace modifiers {
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 		lm.increase_indent(1);
 
 		cursor_in = display_value(f.factor, ws, container, cursor_in, lm, fmt);
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_plus], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_plus], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
@@ -576,13 +531,13 @@ namespace modifiers {
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 		lm.increase_indent(1);
 
 		cursor_in = display_value(f.factor, ws, container, cursor_in, lm, fmt);
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_times], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_times], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
@@ -594,27 +549,20 @@ namespace modifiers {
 	ui::xy_pair make_multiplicative_factor_explanation_in_days(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
 
-		char16_t local_buffer[32];
-
 		auto chance = std::max(0.0f, test_multiplicative_factor(f, ws, primary_slot, from_slot));
 
-		put_value_in_buffer(local_buffer, display_type::fp_two_places, chance);
-		cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-			container, cursor_in, fmt, lm);
+		cursor_in = ui::add_text(cursor_in, text_data::fp_two_places{ chance }, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tx_day], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tx_day], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 		lm.increase_indent(1);
 
-		
-		put_value_in_buffer(local_buffer, display_type::fp_two_places, f.factor);
-		cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer),
-			container, cursor_in, fmt, lm);
+		cursor_in = ui::add_text(cursor_in, text_data::fp_two_places{ f.factor }, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_times], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_times], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 

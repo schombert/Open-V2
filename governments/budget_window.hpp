@@ -424,37 +424,31 @@ namespace governments {
 	template<typename W>
 	void tariff_percent::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ ws.w.nation_s.nations.get<nation::f_tariffs>(player) }, fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void poor_tax_collected::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, ws.w.local_player_data.collected_poor_tax * ws.w.nation_s.nations.get<nation::f_poor_tax>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ ws.w.local_player_data.collected_poor_tax * ws.w.nation_s.nations.get<nation::f_poor_tax>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void middle_tax_collected::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void rich_tax_collected::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
@@ -467,46 +461,40 @@ namespace governments {
 				ws.w.local_player_data.collected_middle_tax * ws.w.nation_s.nations.get<nation::f_middle_tax>(player) +
 				ws.w.local_player_data.collected_rich_tax * ws.w.nation_s.nations.get<nation::f_rich_tax>(player);
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, tax_income);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ tax_income },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void total_funds::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			if(auto pid = player; ws.w.nation_s.nations.is_valid_index(pid)) {
-				char16_t local_buffer[16];
-				put_value_in_buffer(local_buffer, display_type::currency, ws.w.nation_s.nations.get<nation::treasury>(pid));
-				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 },
+					text_data::currency{ ws.w.nation_s.nations.get<nation::treasury>(pid) },
+					fmt, ws, box, lm);
 			}
 		}
 	}
 	template<typename W>
 	void debt_total::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, ws.w.nation_s.nations.get<nation::national_debt>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ ws.w.nation_s.nations.get<nation::national_debt>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void debt_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::total_debt], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::total_debt], fmt, ws, box, lm);
 	}
 	template<typename W>
 	void incomes_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::fixed_income], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::fixed_income], fmt, ws, box, lm);
 	}
 	template<typename W>
 	void expenses_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::variable_expenses], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::variable_expenses], fmt, ws, box, lm);
 	}
 	template<typename W>
 	void incomes_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
@@ -517,10 +505,9 @@ namespace governments {
 	template<typename W>
 	void stockpile_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, economy::daily_national_building_cost(ws, player) * ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ economy::daily_national_building_cost(ws, player) * ws.w.nation_s.nations.get<nation::f_projects_stockpile_spending>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
@@ -528,46 +515,41 @@ namespace governments {
 	template<typename W>
 	void education_pay::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, economy::education_spending_amount(ws, player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ economy::education_spending_amount(ws, player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void administrative_pay::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, economy::administrative_spending_amount(ws, player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ economy::administrative_spending_amount(ws, player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void military_pay::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, economy::military_spending_amount(ws, player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ economy::military_spending_amount(ws, player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void social_spending_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, economy::social_spending_amount(ws, player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ economy::social_spending_amount(ws, player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
 	void national_administrative_efficiency::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::percent, ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(player));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::percent{ ws.w.nation_s.nations.get<nation::national_administrative_efficiency>(player) },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
@@ -581,16 +563,15 @@ namespace governments {
 
 			auto total = e_amount + m_amount + s_amount + a_amount + b_amount;
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, total);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ total },
+				fmt, ws, box, lm);
 		}
 	}
 	
 	template<typename W>
 	void debt_and_saving_label::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::borrowing_and_saving], fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::borrowing_and_saving], fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 	template<typename W>
@@ -600,10 +581,9 @@ namespace governments {
 		if(auto player = ws.w.local_player_nation; player) {
 			economy::money_qnty_type tarrif_income = economy::project_player_tariff_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
 				
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, tarrif_income);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ tarrif_income },
+				fmt, ws, box, lm);
 		}
 	}
 	template<typename W>
@@ -624,10 +604,9 @@ namespace governments {
 
 			auto tariff = economy::project_player_tariff_income(ws, ws.w.nation_s.nations.get<nation::f_tariffs>(player));
 
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, tax_income + ex_total + tariff);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 },
+				text_data::currency{ tax_income + ex_total + tariff },
+				fmt, ws, box, lm);
 		}
 	}
 	

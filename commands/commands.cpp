@@ -299,17 +299,15 @@ namespace commands {
 				if(auto owner = p_container.get<province_state::owner>(c.p); is_valid_index(owner)) {
 					if(p_container.get<province_state::fort_level>(c.p) < ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(owner)) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::level_less_than], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::level_less_than], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(owner));
-					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
+					cursor_in = ui::add_text(cursor_in, text_data::integer{ ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_fort>(owner) }, fmt, ws, container, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
@@ -322,29 +320,29 @@ namespace commands {
 					if(p_container.get<province_state::railroad_level>(c.p) <
 						(ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(owner) - ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p))) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rail_tech_prerequisite], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::rail_tech_prerequisite], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, 1.0f + p_container.get<province_state::railroad_level>(c.p) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p));
-					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
+					cursor_in = ui::add_text(cursor_in, text_data::integer{
+						1.0f + p_container.get<province_state::railroad_level>(c.p) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p)
+						}, fmt, ws, container, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 					
 					if((ws.w.nation_s.nations.get<nation::current_rules>(owner) & issues::rules::build_railway) != 0) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::allowed_build_railroad], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::allowed_build_railroad], fmt, ws, container, lm);
 					lm.finish_current_line();
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
@@ -359,40 +357,40 @@ namespace commands {
 
 					if(p_container.get<province_state::naval_base_level>(c.p) < ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(owner)) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::level_less_than], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::level_less_than], fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
-					char16_t local_buffer[16];
-					put_value_in_buffer(local_buffer, display_type::integer, ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(owner));
-					cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), container, cursor_in, fmt, lm);
+					cursor_in = ui::add_text(cursor_in, text_data::integer{
+						ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_naval_base>(owner)
+						}, fmt, ws, container, lm);
 					lm.finish_current_line();
 
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 					if(ws.s.province_m.province_container.get<province::is_coastal>(c.p)) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::is_coastal], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::is_coastal], fmt, ws, container, lm);
 					lm.finish_current_line();
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 					if(port == c.p || !is_valid_index(port)) {
 						ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 					} else {
 						ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-						cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+						cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 					}
-					cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_other_naval_base], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+					cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_other_naval_base], fmt, ws, container, lm);
 					lm.finish_current_line();
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 				}
@@ -423,13 +421,13 @@ namespace commands {
 
 		if(not_fabricating) {
 			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 		} else {
 			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 		}
 
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fabrication_condition], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::fabrication_condition], fmt, ws, container, lm);
 		lm.finish_current_line();
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
@@ -502,33 +500,14 @@ namespace commands {
 	ui::xy_pair explain_command_conditions(set_reform const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 		if(!issues::is_reform_timer_ready(ws, c.nation_for)) {
 			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_more_reform], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::no_more_reform], fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 
 			auto const last_date = ws.w.nation_s.nations.get<nation::last_reform_date>(c.nation_for);
 			auto const next_date = date_tag(to_index(last_date) + int32_t(ws.s.modifiers_m.global_defines.min_delay_between_reforms) * 32);
-			auto ymd = tag_to_date(next_date).year_month_day();
-
-			char16_t local_buf[16];
-
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1], fmt, ws.s.gui_m, ws.w.gui_m, container);
-			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-
-			put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.day));
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-				container, cursor_in, fmt
-			);
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u", "),
-				container, cursor_in, fmt
-			);
-			put_value_in_buffer(local_buf, display_type::integer, int32_t(ymd.year));
-			cursor_in = ui::text_chunk_to_instances(
-				ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf),
-				container, cursor_in, fmt
-			);
+			
+			cursor_in = ui::add_text(cursor_in, next_date, fmt, ws, container, lm);
 			lm.finish_current_line();
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		}
@@ -536,12 +515,12 @@ namespace commands {
 		if(ws.s.issues_m.issues_container[p_issue].next_step_only) {
 			if(is_reform_next_step(ws, c.nation_for, c.reform)) {
 				ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 			} else {
 				ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-				cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 			}
-			cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reform_next_step], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+			cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::reform_next_step], fmt, ws, container, lm);
 			lm.finish_current_line();
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		}
@@ -554,16 +533,12 @@ namespace commands {
 			);
 		}
 
-		char16_t local_buf_b[16];
-		put_value_in_buffer(local_buf_b, display_type::percent, std::clamp(issues::get_uh_reform_support(ws, c.nation_for, c.reform), 0.0f, 100.0f) * 0.01f);
-
-		cursor_in = ui::text_chunk_to_instances(
-			ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf_b),
-			container, cursor_in, fmt
-		);
+		cursor_in = ui::add_text(cursor_in, text_data::percent{
+			std::clamp(issues::get_uh_reform_support(ws, c.nation_for, c.reform), 0.0f, 100.0f) * 0.01f
+			}, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::upper_house_support], fmt,
-			ws.s.gui_m, ws.w.gui_m, container);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::upper_house_support], fmt,
+			ws, container);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 		return cursor_in;
@@ -577,37 +552,37 @@ namespace commands {
 
 		if(tech.year == 0 || tag_to_date(ws.w.current_date).year() >= tech.year) {
 			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 		} else {
 			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 		}
 
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_year], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_year], fmt, ws, container, lm);
 		lm.finish_current_line();
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 
 		if(ws.w.nation_s.active_technologies.get(c.nation_for, c.tech) == false) {
 			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 		} else {
 			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 		}
 
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_not_done], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_not_done], fmt, ws, container, lm);
 		lm.finish_current_line();
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 		if(!is_valid_index(tech.preceeding) || ws.w.nation_s.active_technologies.get(c.nation_for, tech.preceeding) == true) {
 			ui::text_format const local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u2714 "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 		} else {
 			ui::text_format const local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
-			cursor_in = ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(u"\u274C "), container, cursor_in, local_fmt, lm);
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 		}
-		cursor_in = ui::add_linear_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_previous], fmt, ws.s.gui_m, ws.w.gui_m, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::tech_condition_previous], fmt, ws, container, lm);
 		lm.finish_current_line();
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 

@@ -85,7 +85,7 @@ namespace triggers {
 				local_buffer[0] = u'+';
 
 			put_pos_value_in_buffer(local_buffer + 1, d_type, std::abs(value));
-			cursor_in = ui::add_text(cursor_in, local_buffer, fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, local_buffer, local_fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 			return cursor_in;
 		}

@@ -76,23 +76,24 @@ namespace events {
 		ui::text_format& fmt,
 		world_state& ws) {
 		
+		ui::line_manager new_lm { text_data::alignment::center, 260 };
+
 		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.province_event_w.displayed_event.event_for, ws.w.province_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.province_event_w.displayed_event.event_for, ws.w.province_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_linear_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
 				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size},
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
-				lm,
+				new_lm,
 				rep_array,
 				events::replacement_size);
 
-			lm.finish_current_line();
+			new_lm.finish_current_line();
 		}
 
 	}
@@ -105,15 +106,14 @@ namespace events {
 		
 		if(auto const e = ws.w.province_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.province_event_w.displayed_event.event_for, ws.w.province_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.province_event_w.displayed_event.event_for, ws.w.province_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_multiline_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
 				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
 				lm,
 				rep_array,
@@ -128,43 +128,28 @@ namespace events {
 		ui::hide(*self.associated_object);
 	}
 
-	class nation_hyperlink {
-	public:
-		nations::country_tag target;
-
-		nation_hyperlink(nations::country_tag t) : target(t) {}
-
-		void button_function(ui::simple_button<nation_hyperlink>&, world_state& ws) {
+	inline auto goto_nation_function(nations::country_tag target) {
+		return [target](world_state& ws) {
 			ws.w.diplomacy_w.show_diplomacy_window(ws.w.gui_m, target);
 			graphics::map_goto(ws, target);
-		}
-	};
+		};
+	}
 
-	class province_hyperlink {
-	public:
-		provinces::province_tag target;
-
-		province_hyperlink(provinces::province_tag t) : target(t) {}
-
-		void button_function(ui::simple_button<province_hyperlink>&, world_state& ws) {
+	inline auto goto_prov_function(provinces::province_tag target) {
+		return [target](world_state& ws) {
 			ws.w.province_w.show_province_window(ws.w.gui_m, target);
 			graphics::map_goto(ws, target);
-		}
-	};
+		};
+	}
 
-	class state_hyperlink {
-	public:
-		nations::state_tag target;
-
-		state_hyperlink(nations::state_tag t) : target(t) {}
-
-		void button_function(ui::simple_button<province_hyperlink>&, world_state& ws) {
+	inline auto goto_state_function(nations::state_tag target) {
+		return [target](world_state& ws) {
 			ws.w.province_w.show_province_window(ws.w.gui_m, ws.w.nation_s.states.get<state::state_capital>(target));
 			graphics::map_goto(ws, target);
-		}
-	};
+		};
+	}
 
-	void populate_replacements(world_state& ws, text_data::replacement* replacement_array, target_variant event_target, target_variant event_from) {
+	void populate_replacements(world_state& ws, text_data::text_replacement* replacement_array, target_variant event_target, target_variant event_from, text_data::text_color link_color) {
 		auto const target_nation = [event_target, &ws]() {
 			if(std::holds_alternative<nations::country_tag>(event_target))
 				return std::get<nations::country_tag>(event_target);
@@ -223,144 +208,129 @@ namespace events {
 		auto const crisis_for = ws.w.current_crisis.on_behalf_of;
 		auto const crisis_defender = ws.w.current_crisis.target;
 
-		replacement_array[0] = text_data::replacement(
+		replacement_array[0] = text_data::text_replacement(
 			text_data::value_type::capital, 
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(target_cap)),
-			[&ws, target_cap](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<province_hyperlink>>(ws, b, target_cap); }
+			ws.w.province_s.province_state_container.get<province_state::name>(target_cap),
+			goto_prov_function(target_cap), link_color
 		);
-		replacement_array[1] = text_data::replacement(
+		replacement_array[1] = text_data::text_replacement(
 			text_data::value_type::state,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(target_state)),
-			[&ws, target_state](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<state_hyperlink>>(ws, b, target_state); }
+			ws.w.nation_s.states.get<state::name>(target_state),
+			goto_state_function(target_state), link_color
 		);
-		replacement_array[2] = text_data::replacement(
+		replacement_array[2] = text_data::text_replacement(
 			text_data::value_type::statename,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(target_state)),
-			[&ws, target_state](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<state_hyperlink>>(ws, b, target_state); }
+			ws.w.nation_s.states.get<state::name>(target_state),
+			goto_state_function(target_state), link_color
 		);
-		replacement_array[3] = text_data::replacement(
+		replacement_array[3] = text_data::text_replacement(
 			text_data::value_type::fromcountry,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(from_nation)),
-			[&ws, from_nation](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, from_nation); }
+			ws.w.nation_s.nations.get<nation::name>(from_nation),
+			goto_nation_function(from_nation), link_color
 		);
-		replacement_array[4] = text_data::replacement(
+		replacement_array[4] = text_data::text_replacement(
 			text_data::value_type::fromcountry_adj,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(from_nation)),
-			[&ws, from_nation](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, from_nation); }
+			ws.w.nation_s.nations.get<nation::adjective>(from_nation),
+			goto_nation_function(from_nation), link_color
 		);
-		replacement_array[5] = text_data::replacement(
+		replacement_array[5] = text_data::text_replacement(
 			text_data::value_type::culture_group_union,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target_union)),
-			[](ui::tagged_gui_object b) { }
+			ws.w.nation_s.nations.get<nation::name>(target_union)
 		);
-		replacement_array[6] = text_data::replacement(
+		replacement_array[6] = text_data::text_replacement(
 			text_data::value_type::country,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(target_nation)),
-			[&ws, target_nation](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target_nation); }
+			ws.w.nation_s.nations.get<nation::name>(target_nation),
+			goto_nation_function(target_nation), link_color
 		);
-		replacement_array[7] = text_data::replacement(
+		replacement_array[7] = text_data::text_replacement(
 			text_data::value_type::country_adj,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(target_nation)),
-			[&ws, target_nation](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, target_nation); }
+			ws.w.nation_s.nations.get<nation::adjective>(target_nation),
+			goto_nation_function(target_nation), link_color
 		);
-		replacement_array[8] = text_data::replacement(
+		replacement_array[8] = text_data::text_replacement(
 			text_data::value_type::provinceculture,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.culture_m.culture_container[target_culture].name),
-			[](ui::tagged_gui_object b) { }
+			ws.s.culture_m.culture_container[target_culture].name
 		);
-		replacement_array[9] = text_data::replacement(
+		replacement_array[9] = text_data::text_replacement(
 			text_data::value_type::provincename,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(target_province)),
-			[&ws, target_province](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<province_hyperlink>>(ws, b, target_province); }
+			ws.w.province_s.province_state_container.get<province_state::name>(target_province),
+			goto_prov_function(target_province), link_color
 		);
-		replacement_array[10] = text_data::replacement(
+		replacement_array[10] = text_data::text_replacement(
 			text_data::value_type::cb_target_name,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(cb_target)),
-			[&ws, cb_target](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, cb_target); }
+			ws.w.nation_s.nations.get<nation::name>(cb_target),
+			goto_nation_function(cb_target), link_color
 		);
-		replacement_array[11] = text_data::replacement(
+		replacement_array[11] = text_data::text_replacement(
 			text_data::value_type::cb_target_name_adj,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(cb_target)),
-			[&ws, cb_target](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, cb_target); }
+			ws.w.nation_s.nations.get<nation::adjective>(cb_target),
+			goto_nation_function(cb_target), link_color
 		);
-		replacement_array[12] = text_data::replacement(
+		replacement_array[12] = text_data::text_replacement(
 			text_data::value_type::crisisarea,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.states.get<state::name>(crisis_area)),
-			[&ws, crisis_area](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<state_hyperlink>>(ws, b, crisis_area); }
+			ws.w.nation_s.states.get<state::name>(crisis_area),
+			goto_state_function(crisis_area), link_color
 		);
-		replacement_array[13] = text_data::replacement(
+		replacement_array[13] = text_data::text_replacement(
 			text_data::value_type::crisistaker,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(crisis_for)),
-			[&ws, crisis_for](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, crisis_for); }
+			ws.w.nation_s.nations.get<nation::name>(crisis_for),
+			goto_nation_function(crisis_for), link_color
 		);
-		replacement_array[14] = text_data::replacement(
+		replacement_array[14] = text_data::text_replacement(
 			text_data::value_type::crisistaker_adj,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(crisis_for)),
-			[&ws, crisis_for](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, crisis_for); }
+			ws.w.nation_s.nations.get<nation::adjective>(crisis_for),
+			goto_nation_function(crisis_for), link_color
 		);
-		replacement_array[15] = text_data::replacement(
+		replacement_array[15] = text_data::text_replacement(
 			text_data::value_type::crisisattacker,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(ws.w.current_crisis.primary_attacker)),
-			[&ws, n = ws.w.current_crisis.primary_attacker](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, n); }
+			ws.w.nation_s.nations.get<nation::name>(ws.w.current_crisis.primary_attacker),
+			goto_nation_function(ws.w.current_crisis.primary_attacker), link_color
 		);
-		replacement_array[16] = text_data::replacement(
+		replacement_array[16] = text_data::text_replacement(
 			text_data::value_type::crisisdefender,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(ws.w.current_crisis.primary_defender)),
-			[&ws, n = ws.w.current_crisis.primary_defender](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, n); }
+			ws.w.nation_s.nations.get<nation::name>(ws.w.current_crisis.primary_defender),
+			goto_nation_function(ws.w.current_crisis.primary_defender), link_color
 		);
-		replacement_array[17] = text_data::replacement(
+		replacement_array[17] = text_data::text_replacement(
 			text_data::value_type::crisistarget,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::name>(crisis_defender)),
-			[&ws, crisis_defender](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, crisis_defender); }
+			ws.w.nation_s.nations.get<nation::name>(crisis_defender),
+			goto_nation_function(crisis_defender), link_color
 		);
-		replacement_array[18] = text_data::replacement(
+		replacement_array[18] = text_data::text_replacement(
 			text_data::value_type::crisistarget_adj,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.nation_s.nations.get<nation::adjective>(crisis_defender)),
-			[&ws, crisis_defender](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<nation_hyperlink>>(ws, b, crisis_defender); }
+			ws.w.nation_s.nations.get<nation::adjective>(crisis_defender),
+			goto_nation_function(crisis_defender), link_color
 		);
 
 		auto const ymd = tag_to_date(ws.w.current_date).year_month_day();
 
-		replacement_array[19] = text_data::replacement(
+		replacement_array[19] = text_data::text_replacement(
 			text_data::value_type::month,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1]),
-			[](ui::tagged_gui_object b) { }
+			ws.s.fixed_ui_text[scenario::fixed_ui::month_1 + ymd.month - 1]
 		);
-
-		static char16_t year_buffer[16];
-		put_value_in_buffer(year_buffer, display_type::exact_integer, int32_t(ymd.year));
-
-		replacement_array[20] = text_data::replacement(
+		replacement_array[20] = text_data::text_replacement(
 			text_data::value_type::year,
-			vector_backed_string<char16_t>(year_buffer),
-			[](ui::tagged_gui_object b) {}
+			text_data::exact_integer{ int32_t(ymd.year) }
 		);
 	}
 
 	void province_event_location::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.w.province_s.province_state_container.get<province_state::name>(std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for))),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm,
-			[&ws](ui::tagged_gui_object b) { ui::attach_dynamic_behavior<ui::simple_button<province_hyperlink>>(ws, b, std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for)); }
-			);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, 
+			ws.w.province_s.province_state_container.get<province_state::name>(std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for)),
+			ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size }, 
+			ws, box, lm, nullptr, 0,
+			ui::behavior_manager{ text_data::text_color::dark_blue, goto_prov_function(std::get<provinces::province_tag>(ws.w.province_event_w.displayed_event.event_for)) });
 	}
 	ui::window_tag province_options_listbox::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_province_event_option"]);
 	}
 
 	void event_auto_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
-		ui::add_linear_text(
+		ui::add_text(
 			ui::xy_pair{0, 0},
 			ws.s.fixed_ui_text[scenario::fixed_ui::automate_option],
 			ui::tooltip_text_format,
-			ws.s.gui_m,
-			ws.w.gui_m,
+			ws,
 			tw);
 	}
 
@@ -377,9 +347,9 @@ namespace events {
 		ws.w.local_player_data.saved_event_choices[e.e] = int8_t(value + 1);
 
 		ws.w.pending_commands.add<commands::execute_event>(
-			ws.w.province_event_w.displayed_event.generator,
-			to_trigger_param(ws.w.province_event_w.displayed_event.event_for),
-			to_trigger_param(ws.w.province_event_w.displayed_event.event_from),
+			e.generator,
+			to_trigger_param(e.event_for),
+			to_trigger_param(e.event_from),
 			e.e,
 			int8_t(value));
 		ws.w.province_event_w.hide_province_event_window(ws.w.gui_m);
@@ -444,15 +414,14 @@ namespace events {
 		
 		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.nation_event_w.displayed_event.event_for, ws.w.nation_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.nation_event_w.displayed_event.event_for, ws.w.nation_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_multiline_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
 				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
 				lm,
 				rep_array,
@@ -472,24 +441,24 @@ namespace events {
 	}
 
 	void nation_event_title::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::line_manager new_lm{ text_data::alignment::center, 475 };
 
 		if(auto const e = ws.w.nation_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.nation_event_w.displayed_event.event_for, ws.w.nation_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.nation_event_w.displayed_event.event_for, ws.w.nation_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_linear_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
 				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size },
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
-				lm,
+				new_lm,
 				rep_array,
 				events::replacement_size);
 
-			lm.finish_current_line();
+			new_lm.finish_current_line();
 		}
 	}
 
@@ -501,15 +470,14 @@ namespace events {
 
 		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_linear_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].title,
 				ui::text_format{ ui::text_color::black, fmt.font_handle, fmt.font_size },
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
 				lm,
 				rep_array,
@@ -527,15 +495,14 @@ namespace events {
 
 		if(auto const e = ws.w.major_event_w.displayed_event.e; e) {
 
-			text_data::replacement rep_array[events::replacement_size];
-			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from);
+			text_data::text_replacement rep_array[events::replacement_size];
+			populate_replacements(ws, rep_array, ws.w.major_event_w.displayed_event.event_for, ws.w.major_event_w.displayed_event.event_from, text_data::text_color::dark_blue);
 
-			ui::add_multiline_text(
+			ui::add_text(
 				ui::xy_pair{ 0, 0 },
 				ws.s.event_m.event_container[e].body,
 				ui::text_format{ fmt.color, graphics::font_tag(1), fmt.font_size },
-				ws.s.gui_m,
-				ws.w.gui_m,
+				ws,
 				box,
 				lm,
 				rep_array,
@@ -568,12 +535,11 @@ namespace events {
 			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
 				ui::unlimited_line_manager lm;
 				ui::xy_pair cursor{ 0,0 };
-				cursor = ui::add_linear_text(
+				cursor = ui::add_text(
 					cursor,
 					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
 					ui::tooltip_text_format,
-					ws.s.gui_m,
-					ws.w.gui_m,
+					ws,
 					tw,
 					lm);
 
@@ -595,18 +561,8 @@ namespace events {
 
 				const float chance = 1.0f - neg_chance_16;
 
-				static char16_t buffer[16];
-				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
 
-				cursor = ui::text_chunk_to_instances(
-					ws.s.gui_m,
-					ws.w.gui_m,
-					vector_backed_string<char16_t>(buffer),
-					tw,
-					cursor,
-					ui::tooltip_text_format,
-					lm);
-
+				cursor = ui::add_text( cursor, text_data::percent_fp_one_place{ chance }, ui::tooltip_text_format, ws, tw, lm);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				modifiers::make_multiplicative_factor_explanation_in_days(
 					ws.s.modifiers_m.factor_modifiers[chance_tag],
@@ -641,12 +597,11 @@ namespace events {
 			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
 				ui::unlimited_line_manager lm;
 				ui::xy_pair cursor{ 0,0 };
-				cursor = ui::add_linear_text(
+				cursor = ui::add_text(
 					cursor,
 					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
 					ui::tooltip_text_format,
-					ws.s.gui_m,
-					ws.w.gui_m,
+					ws,
 					tw,
 					lm);
 
@@ -668,18 +623,7 @@ namespace events {
 
 				const float chance = 1.0f - neg_chance_16;
 
-				static char16_t buffer[16];
-				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
-
-				cursor = ui::text_chunk_to_instances(
-					ws.s.gui_m,
-					ws.w.gui_m,
-					vector_backed_string<char16_t>(buffer),
-					tw,
-					cursor,
-					ui::tooltip_text_format,
-					lm);
-
+				cursor = ui::add_text(cursor, text_data::percent_fp_one_place{ chance }, ui::tooltip_text_format, ws, tw, lm);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				modifiers::make_multiplicative_factor_explanation_in_days(
 					ws.s.modifiers_m.factor_modifiers[chance_tag],
@@ -714,12 +658,11 @@ namespace events {
 			if(auto const chance_tag = ws.s.event_m.event_container[e].mean_time_to_happen; chance_tag) {
 				ui::unlimited_line_manager lm;
 				ui::xy_pair cursor{ 0,0 };
-				cursor = ui::add_linear_text(
+				cursor = ui::add_text(
 					cursor,
 					ws.s.fixed_ui_text[scenario::fixed_ui::monthly_chance],
 					ui::tooltip_text_format,
-					ws.s.gui_m,
-					ws.w.gui_m,
+					ws,
 					tw,
 					lm);
 
@@ -741,18 +684,7 @@ namespace events {
 
 				const float chance = 1.0f - neg_chance_16;
 
-				static char16_t buffer[16];
-				put_value_in_buffer(buffer, display_type::percent_fp_one_place, chance);
-
-				cursor = ui::text_chunk_to_instances(
-					ws.s.gui_m,
-					ws.w.gui_m,
-					vector_backed_string<char16_t>(buffer),
-					tw,
-					cursor,
-					ui::tooltip_text_format,
-					lm);
-
+				cursor = ui::add_text(cursor, text_data::percent_fp_one_place{ chance }, ui::tooltip_text_format, ws, tw, lm);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				modifiers::make_multiplicative_factor_explanation_in_days(
 					ws.s.modifiers_m.factor_modifiers[chance_tag],

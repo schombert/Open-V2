@@ -472,7 +472,7 @@ namespace ui {
 	template<typename BASE>
 	class piechart : public visible_region, public BASE {
 	private:
-		vector_backed_string<char16_t> labels[piechart_resolution];
+		text_data::text_tag labels[piechart_resolution];
 		float fractions[piechart_resolution];
 		int32_t portion_used = 0;
 		float remainder = 0.0f;
@@ -491,8 +491,8 @@ namespace ui {
 		template<typename window_type>
 		std::enable_if_t<ui::detail::has_windowed_update<BASE, ui::piechart<BASE>&, window_type&, world_state&>, void> windowed_update(window_type&, world_state&);
 		void clear_entries(gui_manager& manager);
-		void add_entry(gui_manager& manager, vector_backed_string<char16_t> label, float fraction, graphics::color_rgb color);
-		void fill_remainder(gui_manager& manager, vector_backed_string<char16_t> label, graphics::color_rgb color);
+		void add_entry(gui_manager& manager, text_data::text_tag label, float fraction, graphics::color_rgb color);
+		void fill_remainder(gui_manager& manager, text_data::text_tag label, graphics::color_rgb color);
 		void update_display(gui_manager& manager) const;
 	};
 
@@ -998,6 +998,8 @@ namespace ui {
 		void finish_current_line();
 		void increase_indent(int32_t n);
 		void decrease_indent(int32_t n);
+
+		~line_manager() { finish_current_line(); }
 	};
 
 	using unlimited_line_manager = line_manager;

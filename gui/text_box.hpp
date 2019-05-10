@@ -254,13 +254,14 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 	new_gobj.object.align = alignment_from_definition(text_def);
 	
 	b.border_x = text_def.border_size.x;
+	b.border_y = text_def.border_size.y;
 
-	graphics::font& this_font = ws.s.gui_m.fonts.at(font_h);
+	//graphics::font& this_font = ws.s.gui_m.fonts.at(font_h);
 
-	auto align_result = align_in_bounds(text_data::alignment::center,
+	/*auto align_result = align_in_bounds(text_data::alignment::center,
 		1, int32_t(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(b.format.font_size)))),
 		int32_t(text_def.max_width), int32_t(text_def.max_height + y_adjust));
-	b.border_y = align_result.second;
+	b.border_y = align_result.second;*/
 
 	ui::add_to_back(ws.w.gui_m, parent, new_gobj);
 
@@ -270,7 +271,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 		ui::clear_children(ws.w.gui_m, new_gobj);
 		text_box_line_manager lm(b.align, text_def.max_width - b.border_x * 2, line_manager::textbox{});
 		b.on_create(new_gobj, lm, b.format, ws);
-		ui::for_each_child(ws.w.gui_m, new_gobj, [off = xy_pair{ int16_t(b.border_x), int16_t(b.border_y) }](tagged_gui_object o) {
+		ui::for_each_child(ws.w.gui_m, new_gobj, [off = text_def.border_size](tagged_gui_object o) {
 			o.object.position += off;
 		});
 	}
@@ -281,7 +282,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag ha
 
 template<typename B>
 ui::tagged_gui_object ui::create_static_element(world_state& ws, ui::text_tag handle, tagged_gui_object parent, fixed_text<B>& b) {
-	const auto new_gobj = ui::detail::create_element_instance(ws.s.gui_m, ws.w.gui_m, handle);
+	const auto new_gobj = ui::detail::create_element_instance(ws, handle);
 
 	new_gobj.object.associated_behavior = &b;
 	b.associated_object = &new_gobj.object;

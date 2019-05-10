@@ -448,8 +448,7 @@ namespace technologies {
 	void invention_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		invention = win.invention;
 		if(is_valid_index(win.invention)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[win.invention].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[win.invention].name, fmt, ws, box, lm);
 		}
 	}
 
@@ -458,10 +457,7 @@ namespace technologies {
 		invention = win.invention;
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(invention)) {
 			auto chance = get_invention_chance(invention, ws, player);
-			char16_t local_buf[16];
-			put_value_in_buffer(local_buf, display_type::percent, chance);
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buf), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ chance }, fmt, ws, box, lm);
 		}
 	}
 
@@ -570,8 +566,7 @@ namespace technologies {
 	void folder_tab_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.category)) {
 			auto cat_name = ws.s.technology_m.technology_categories[win.category].name;
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, cat_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, cat_name, fmt, ws, box, lm);
 		}
 	}
 
@@ -596,8 +591,7 @@ namespace technologies {
 				*e1 = u'/';
 				put_value_in_buffer(e1 + 1, display_type::integer, total_count);
 
-				ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, local_buffer, fmt, ws, box, lm);
 			}
 		}
 	}
@@ -632,8 +626,7 @@ namespace technologies {
 			technologies::technology_category& cat = ws.s.technology_m.technology_categories[ws.w.technologies_w.selected_tech_category];
 			auto subcat = cat.subcategories[win.nth_sub_category];
 			if(is_valid_index(subcat)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technology_subcategories[subcat].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technology_subcategories[subcat].name, fmt, ws, box, lm);
 			}
 		}
 	}
@@ -670,8 +663,7 @@ namespace technologies {
 			auto subcat = ws.s.technology_m.technology_categories[ws.w.technologies_w.selected_tech_category].subcategories[win.nth_sub_category];
 			auto tech = ws.s.technology_m.technology_subcategories[subcat].member_techs[win.nth_member];
 			if(is_valid_index(tech)) {
-				ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[tech].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
-				lm.finish_current_line();
+				ui::add_text(ui::xy_pair{ 0,0 }, ws.s.technology_m.technologies_container[tech].name, fmt, ws, box, lm);
 			}
 		}
 	}

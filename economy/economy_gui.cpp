@@ -509,17 +509,14 @@ namespace economy {
 	}
 	void investment_target_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(ws.w.production_w.foreign_investment_nation)) {
-			ui::add_linear_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(ws.w.production_w.foreign_investment_nation), fmt,
-				ws.s.gui_m, ws.w.gui_m, box, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(ws.w.production_w.foreign_investment_nation), fmt,
+				ws, box, lm);
 		}
 	}
 	void investment_target_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; bool(player) && is_valid_index(ws.w.production_w.foreign_investment_nation)) {
-			char16_t local_buffer[16];
-			put_value_in_buffer(local_buffer, display_type::currency, nations::get_foreign_investment(ws, player, ws.w.production_w.foreign_investment_nation));
-			ui::text_chunk_to_instances(ws.s.gui_m, ws.w.gui_m, vector_backed_string<char16_t>(local_buffer), box, ui::xy_pair{ 0,0 }, fmt, lm);
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ nations::get_foreign_investment(ws, player, ws.w.production_w.foreign_investment_nation) }, fmt,
+				ws, box, lm);
 		}
 	}
 	void investment_target_back_button::button_function(ui::simple_button<investment_target_back_button>& self, world_state & ws) {

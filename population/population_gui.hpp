@@ -764,25 +764,13 @@ namespace population {
 
 	template<typename window_type>
 	void legend_label::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		ui::add_linear_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, win.legend_name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	template<typename window_type>
 	void legend_percentage::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		char16_t formatted_value[64];
-		put_value_in_buffer(formatted_value, display_type::percent, win.percentage);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(formatted_value),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ win.percentage }, fmt, ws, box, lm);
 	}
 
 	// returns: total pop
@@ -1392,25 +1380,14 @@ namespace population {
 	void pop_size::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		tag = w.tag;
 
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::exact_integer, int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)));
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::exact_integer{ int32_t(ws.w.population_s.pop_demographics.get(w.tag, total_population_tag)) }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void pop_culture::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		cultures::culture_tag c = ws.w.population_s.pops.get<pop::culture>(w.tag);
 		if(is_valid_index(c))
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.culture_container[c].name, fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.culture_container[c].name, fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
@@ -1418,84 +1395,32 @@ namespace population {
 	void pop_location::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		provinces::province_tag p = ws.w.population_s.pops.get<pop::location>(w.tag);
 		if(is_valid_index(p))
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws, box, lm);
 		lm.finish_current_line();
 	}
 
 	template<typename window_type>
 	void pop_militancy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		float mil = population::get_militancy_direct(ws, w.tag);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ mil }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void pop_consciousness::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float mil = population::get_consciousness_direct(ws, w.tag);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::fp_two_places, mil);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-
-		lm.finish_current_line();
+		float con = population::get_consciousness_direct(ws, w.tag);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ con }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void pop_literacy::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
-		float mil = population::get_literacy_direct(ws, w.tag);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::percent, mil);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-
-		lm.finish_current_line();
+		float lit = population::get_literacy_direct(ws, w.tag);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ lit }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
 	void pop_cash::windowed_update(window_type& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		float money = ws.w.population_s.pops.get<pop::money>(w.tag);
-
-		char16_t local_buf[32];
-		put_value_in_buffer(local_buf, display_type::fp_two_places, money);
-
-		ui::text_chunk_to_instances(
-			ws.s.gui_m,
-			ws.w.gui_m,
-			vector_backed_string<char16_t>(local_buf),
-			box,
-			ui::xy_pair{ 0,0 },
-			fmt,
-			lm);
-
-		lm.finish_current_line();
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ money }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
@@ -1509,7 +1434,7 @@ namespace population {
 				if(ideologies_values[i] != 0)
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name),
+						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name,
 						float(ideologies_values[i]) / size,
 						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
 			}
@@ -1527,7 +1452,7 @@ namespace population {
 				if(issues_values[i] != 0)
 					pie.add_entry(
 						ws.w.gui_m,
-						text_data::text_tag_to_backing(ws.s.gui_m.text_data_sequences, ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name),
+						ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name,
 						float(issues_values[i]) / size,
 						ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].color);
 			}
@@ -1695,7 +1620,7 @@ namespace population {
 	template<typename window_type>
 	void pop_country_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.nations.get<nation::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.nations.get<nation::name>(win.tag), fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1703,7 +1628,7 @@ namespace population {
 	template<typename window_type>
 	void pop_state_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.states.get<state::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.w.nation_s.states.get<state::name>(win.tag), fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1711,7 +1636,7 @@ namespace population {
 	template<typename window_type>
 	void pop_province_name::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			ui::add_linear_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(win.tag), fmt, ws.s.gui_m, ws.w.gui_m, box, lm);
+			ui::add_text(ui::xy_pair{ 0, 0 }, ws.w.province_s.province_state_container.get<province_state::name>(win.tag), fmt, ws, box, lm);
 			lm.finish_current_line();
 		}
 	}
@@ -1719,19 +1644,7 @@ namespace population {
 	template<typename window_type>
 	void pop_country_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(ws.w.nation_s.nations.is_valid_index(win.tag)) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.nation_demographics.get(win.tag, total_population_tag));
-
-			ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				box,
-				ui::xy_pair{ 0,0 },
-				fmt,
-				lm);
-
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ ws.w.nation_s.nation_demographics.get(win.tag, total_population_tag) }, fmt, ws, box, lm);
 		}
 	}
 
@@ -1764,19 +1677,7 @@ namespace population {
 	template<typename window_type>
 	void pop_state_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(ws.w.nation_s.states.is_valid_index(win.tag)) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.nation_s.state_demographics.get(win.tag, total_population_tag));
-
-			ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				box,
-				ui::xy_pair{ 0,0 },
-				fmt,
-				lm);
-
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ ws.w.nation_s.state_demographics.get(win.tag, total_population_tag) }, fmt, ws, box, lm);
 		}
 	}
 
@@ -1822,19 +1723,7 @@ namespace population {
 	template<typename window_type>
 	void pop_province_size::windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
 		if(is_valid_index(win.tag)) {
-			char16_t local_buf[32];
-			put_value_in_buffer(local_buf, display_type::integer, ws.w.province_s.province_demographics.get(win.tag, total_population_tag));
-
-			ui::text_chunk_to_instances(
-				ws.s.gui_m,
-				ws.w.gui_m,
-				vector_backed_string<char16_t>(local_buf),
-				box,
-				ui::xy_pair{ 0,0 },
-				fmt,
-				lm);
-
-			lm.finish_current_line();
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ ws.w.province_s.province_demographics.get(win.tag, total_population_tag) }, fmt, ws, box, lm);
 		}
 	}
 

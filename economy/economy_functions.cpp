@@ -1910,12 +1910,12 @@ namespace economy {
 			pop_sizes(state_pops.size.data()), pop_types(state_pops.pop_types.data()), pop_money(state_pops.money.data()),
 			satisfaction(state_pops.satisfaction.data()), ln_spending(state_pops.ln_spending.data()), en_spending(state_pops.en_spending.data()),
 			lx_spending(state_pops.lx_spending.data()),
-			ln_money_div_qnty_by_type(state_pops.ln_money_div_qnty_by_type.data(), uint32_t(state_pops.ln_money_div_qnty_by_type.size())),
-			en_money_div_qnty_by_type(state_pops.en_money_div_qnty_by_type.data(), uint32_t(state_pops.en_money_div_qnty_by_type.size())),
-			lx_money_div_qnty_by_type(state_pops.lx_money_div_qnty_by_type.data(), uint32_t(state_pops.lx_money_div_qnty_by_type.size())),
-			ln_costs_by_type(state_pops.ln_costs_by_type.data(), uint32_t(state_pops.ln_costs_by_type.size())),
-			en_costs_by_type(state_pops.en_costs_by_type.data(), uint32_t(state_pops.en_costs_by_type.size())),
-			lx_costs_by_type(state_pops.lx_costs_by_type.data(), uint32_t(state_pops.lx_costs_by_type.size()))
+			ln_money_div_qnty_by_type(state_pops.ln_money_div_qnty_by_type.data() + 1, uint32_t(state_pops.ln_money_div_qnty_by_type.size())),
+			en_money_div_qnty_by_type(state_pops.en_money_div_qnty_by_type.data() + 1, uint32_t(state_pops.en_money_div_qnty_by_type.size())),
+			lx_money_div_qnty_by_type(state_pops.lx_money_div_qnty_by_type.data() + 1, uint32_t(state_pops.lx_money_div_qnty_by_type.size())),
+			ln_costs_by_type(state_pops.ln_costs_by_type.data() + 1, uint32_t(state_pops.ln_costs_by_type.size())),
+			en_costs_by_type(state_pops.en_costs_by_type.data() + 1, uint32_t(state_pops.en_costs_by_type.size())),
+			lx_costs_by_type(state_pops.lx_costs_by_type.data() + 1, uint32_t(state_pops.lx_costs_by_type.size()))
 		{}
 
 		template<typename T>
