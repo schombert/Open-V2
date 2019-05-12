@@ -1,9 +1,10 @@
 \contentsline {chapter}{\numberline {1}Events}{1}% 
-\contentsline {section}{\numberline {1.1}Types of Events}{2}% 
+\contentsline {section}{\numberline {1.1}Types of Events}{1}% 
+\contentsline {subsection}{\numberline {1.1.1}On Action Events}{1}% 
 \contentsline {section}{\numberline {1.2}Anatomy of an Event}{2}% 
-\contentsline {subsection}{\numberline {1.2.1}Trigger Icon}{3}% 
-\contentsline {subsection}{\numberline {1.2.2}Odds Icon}{3}% 
-\contentsline {subsection}{\numberline {1.2.3}Event Title and Text}{4}% 
-\contentsline {subsection}{\numberline {1.2.4}Event Choices}{4}% 
-\contentsline {subsection}{\numberline {1.2.5}Event Automation}{4}% 
-\contentsline {section}{\numberline {1.3}Event Probabilities}{5}% 
+\contentsline {subsection}{\numberline {1.2.1}Trigger Icon}{2}% 
+\contentsline {subsection}{\numberline {1.2.2}Odds Icon}{2}% 
+\contentsline {subsection}{\numberline {1.2.3}Event Title and Text}{5}% 
+\contentsline {subsection}{\numberline {1.2.4}Event Choices}{5}% 
+\contentsline {subsection}{\numberline {1.2.5}Event Automation}{5}% 
+\contentsline {section}{\numberline {1.3}Event Probabilities}{6}% 

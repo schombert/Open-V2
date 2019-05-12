@@ -9,6 +9,168 @@
 #include "governments\governments_functions.h"
 
 namespace population {
+	class pop_details_window_base : public ui::draggable_region {
+	public:
+		pop_tag pop_id;
+
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class close_pop_details_button {
+	public:
+		void button_function(ui::simple_button<close_pop_details_button>&, world_state& ws);
+	};
+
+	class pop_details_type_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_details_type_icon>& self, W& w, world_state& ws);
+	};
+
+	class pop_details_type_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_production_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_details_production_icon>& self, W& w, world_state& ws);
+	};
+	class pop_details_growth_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_details_growth_icon>& self, W& w, world_state& ws);
+	};
+	class pop_details_size {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_culture_name {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_location_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_internal_migration_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_external_migration_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_colonial_migration_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_promotion_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_demotion_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_militancy_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_consciousness_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_literacy_value {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_religion_name {
+	public:
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_unemployment_bar {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::progress_bar<pop_details_unemployment_bar>& bar, window_type&, world_state& ws);
+	};
+	class pop_details_unemployment_overlay {
+	public:
+		float value = 0.0f;
+
+		template<typename W>
+		void windowed_update(ui::dynamic_icon<pop_details_unemployment_overlay>&, W& w, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+	};
+	class pop_details_money_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_income_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_expenses_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	class pop_details_bank_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+	};
+	using pop_details_window = ui::gui_window <
+		CT_STRING("close_button"), ui::simple_button<close_pop_details_button>,
+		CT_STRING("pop_type_icon"), ui::dynamic_icon<pop_details_type_icon>,
+		CT_STRING("pop_type"), ui::display_text<pop_details_type_name>,
+		CT_STRING("pop_producing_icon"), ui::dynamic_icon<pop_details_production_icon>,
+		CT_STRING("growth_indicator"), ui::dynamic_icon<pop_details_growth_icon>,
+		CT_STRING("pop_size"), ui::display_text<pop_details_size>,
+		CT_STRING("pop_culture"), ui::display_text<pop_details_culture_name>,
+		CT_STRING("pop_location"), ui::display_text<pop_details_location_name>,
+		CT_STRING("internal_migration_val"), ui::display_text<pop_details_internal_migration_value>,
+		CT_STRING("external_migration_val"), ui::display_text<pop_details_external_migration_value>,
+		CT_STRING("colonial_migration_val"), ui::display_text<pop_details_colonial_migration_value>,
+		CT_STRING("promotions_val"), ui::display_text<pop_details_promotion_value>,
+		CT_STRING("demotions_val"), ui::display_text<pop_details_demotion_value>,
+		CT_STRING("mil_value"), ui::display_text<pop_details_militancy_value>,
+		CT_STRING("con_value"), ui::display_text<pop_details_consciousness_value>,
+		CT_STRING("literacy_value"), ui::display_text<pop_details_literacy_value>,
+		CT_STRING("religion"), ui::display_text<pop_details_religion_name>,
+		CT_STRING("pop_unemployment_bar"), ui::progress_bar<pop_details_unemployment_bar>,
+		CT_STRING("pops_unempl_overlay"), ui::dynamic_icon<pop_details_unemployment_overlay>,
+		CT_STRING("money_value"), ui::display_text<pop_details_money_value>,
+		CT_STRING("income_value"), ui::display_text<pop_details_income_value>,
+		CT_STRING("expenses_value"), ui::display_text<pop_details_expenses_value>,
+		CT_STRING("bank_value"), ui::display_text<pop_details_bank_value>,
+		pop_details_window_base
+		>;
+
 	class pop_country_base : public ui::visible_region {
 	public:
 		nations::country_tag tag;
@@ -205,10 +367,21 @@ namespace population {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class pop_bg_button {
+	public:
+		pop_tag pop_id;
+
+		void button_function(ui::simple_button<pop_bg_button>&, world_state& ws);
+		template<typename W>
+		void windowed_update(ui::simple_button<pop_bg_button>&, W& w, world_state& ws);
+	}
+
 	class pop_type_button {
 	public:
 		pop_type_tag type;
+		pop_tag pop_id;
 
+		void button_function(ui::simple_button<pop_type_button>&, world_state& ws);
 		template<typename W>
 		void windowed_update(ui::simple_button<pop_type_button>&, W& w, world_state& ws);
 		bool has_tooltip(world_state&) { return true; }
@@ -392,6 +565,7 @@ namespace population {
 	};
 
 	using pop_list_item = ui::gui_window <
+		CT_STRING("pops_pop_entry_bg"), ui::simple_button<pop_bg_button>,
 		CT_STRING("pop_size"), ui::display_text<pop_size>,
 		CT_STRING("pop_type"), ui::simple_button<pop_type_button>,
 		CT_STRING("pop_producing_icon"), ui::dynamic_icon<pop_producing_icon>,
@@ -628,6 +802,8 @@ namespace population {
 		issues_details_window issues_w;
 		religion_details_window religions_w;
 		electorate_details_window electorate_w;
+
+		pop_details_window details_w;
 
 		std::vector<ui::simple_button<pop_filter_button>> filter_buttons;
 
@@ -867,7 +1043,13 @@ namespace population {
 			obj.object.position += ui::xy_pair{ -3i16, 3i16 };
 		});
 
-
+		{
+			ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["pop_details_win"]),
+				ui::tagged_gui_object{ ws.w.gui_m.gui_objects.at(associated_object->parent), associated_object->parent },
+				details_w);
+		}
 		{
 			auto wwin = ui::create_static_element(
 				ws,
@@ -1461,6 +1643,7 @@ namespace population {
 
 	template<typename W>
 	void pop_type_button::windowed_update(ui::simple_button<pop_type_button>& b, W& w, world_state& ws) {
+		pop_id = w.tag;
 		type = ws.w.population_s.pops.get<pop::type>(w.tag);
 		if(is_valid_index(type)) 
 			b.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[type].sprite - 1ui32);
@@ -1773,5 +1956,14 @@ namespace population {
 	template<typename W>
 	void pop_province_base::on_create(W& w, world_state&) {
 		w.associated_object->size.x = 220i16;
+	}
+	template<typename W>
+	void pop_details_window_base::on_create(W & w, world_state &) {
+		associated_object->size = ui::xy_pair{684i16, 464i16};
+		ui::hide(*associated_object);
+	}
+	template<typename W>
+	void pop_bg_button::windowed_update(ui::simple_button<pop_bg_button>&, W & w, world_state & ws) {
+		pop_id = w.tag;
 	}
 }

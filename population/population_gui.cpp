@@ -425,6 +425,12 @@ namespace population {
 		lm.finish_current_line();
 	}
 
+	void pop_type_button::button_function(ui::simple_button<pop_type_button>&, world_state & ws) {
+		ws.w.population_w.win->details_w.pop_id = pop_id;
+		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ *(ws.w.population_w.win->details_w.associated_object), ws.w.population_w.win->details_w.window_object });
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.population_w.win->details_w.associated_object));
+	}
+
 	void pop_type_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
 		ui::unlimited_line_manager lm;
 		if(is_valid_index(type))
@@ -576,5 +582,13 @@ namespace population {
 	void population_window::population_window_set_state_expanded(ui::gui_manager& gui_m, nations::state_tag t, bool expand) {
 		auto& poptree = win->template get<CT_STRING("pop_province_list")>();
 		poptree.set_open(t, expand, gui_m);
+	}
+	void close_pop_details_button::button_function(ui::simple_button<close_pop_details_button>&, world_state & ws) {
+		ui::hide(*(ws.w.population_w.win->details_w.associated_object));
+	}
+	void pop_bg_button::button_function(ui::simple_button<pop_bg_button>&, world_state & ws) {
+		ws.w.population_w.win->details_w.pop_id = pop_id;
+		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ *(ws.w.population_w.win->details_w.associated_object), ws.w.population_w.win->details_w.window_object });
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.population_w.win->details_w.associated_object));
 	}
 }

@@ -3,7 +3,7 @@
 
 %----------------------------------------------------------
 %
-\documentclass{book}%
+\documentclass[letterpaper]{book}%
 %
 %----------------------------------------------------------
 % This is a sample document for the standard LaTeX Book Class
@@ -36,6 +36,9 @@
 \usepackage{amsfonts}%
 \usepackage{amssymb}%
 \usepackage{graphicx}
+\usepackage{longtable}
+\usepackage{afterpage}
+\usepackage[pass]{geometry}
 %----------------------------------------------------------
 \begin{document}
 
@@ -45,5 +48,5 @@
 \maketitle
 \tableofcontents
 \mainmatter
-\input{events}
+\include{events}
 \end{document}
