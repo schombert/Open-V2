@@ -374,6 +374,13 @@ namespace ui {
 
 			return cursor;
 		}
+
+		xy_pair impl_add_text(xy_pair cursor, uint32_t v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
+			behavior_manager& b_manager) {
+
+			return impl_add_text(cursor, ws.s.fixed_ui_text[v], fmt, ws, parent_object, lm, candidates, count, b_manager);
+		}
 	}
 }
 
@@ -602,6 +609,11 @@ ui::xy_pair ui::advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manage
 		int16_t(cursor.y + static_cast<int32_t>(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f)) };
 }
 
+xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, ui::line_manager& lm) {
+	lm.finish_current_line();
+	return advance_cursor_to_newline(cursor, manager, fmt);
+}
+
 ui::xy_pair ui::advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count) {
 	graphics::font& this_font = manager.fonts.at(fmt.font_handle);
 
@@ -611,6 +623,31 @@ ui::xy_pair ui::advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager,
 		&space, 1, ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size)), is_outlined_color(fmt.color)));
 	return ui::xy_pair{ int16_t(cursor.x + new_size), cursor.y };
 }
+
+ui::xy_pair ui::display_colored_percentage(ui::xy_pair cursor_in, float v, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
+	if(value < 1.0f) {
+		return ui::add_text(cursor_in, text_data::percent{ value },
+			ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
+			ws, container, lm);
+	} else {
+		return ui::add_text(cursor_in, text_data::percent{ value },
+			ui::text_format{ ui::text_color::green, fmt.font_handle, fmt.font_size },
+			ws, container, lm);
+	}
+}
+
+ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float v, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
+	if(value < 1.0f) {
+		return ui::add_text(cursor_in, text_data::fp_two_places{ value },
+			ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
+			ws, container, lm);
+	} else {
+		return ui::add_text(cursor_in, text_data::fp_two_places{ value },
+			ui::text_format{ ui::text_color::green, fmt.font_handle, fmt.font_size },
+			ws, container, lm);
+	}
+}
+
 
 void ui::detail::create_linear_text(world_state& ws, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::text_replacement* candidates, uint32_t count) {
 	graphics::font& this_font = ws.s.gui_m.fonts.at(fmt.font_handle);

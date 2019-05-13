@@ -793,5 +793,38 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::upper_house_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "UPPER_HOUSE_SUPPORT");
 		s.fixed_ui_text[fixed_ui::no_more_reform] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_MORE_REFORM");
 		s.fixed_ui_text[fixed_ui::reform_next_step] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "REFORM_NEXT_STEP");
+		s.fixed_ui_text[fixed_ui::no_assimilation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_ASSIM_NOW");
+		s.fixed_ui_text[fixed_ui::assimilation_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_ASSM_FACTORS");
+		s.fixed_ui_text[fixed_ui::projected_assimilation] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_ASSIMILATION");
+		s.fixed_ui_text[fixed_ui::assimilation_scale] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "ASSIMILATION_SCALE");
+		s.fixed_ui_text[fixed_ui::factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTOR");
+		s.fixed_ui_text[fixed_ui::no_conversion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_CONVERSION");
+		s.fixed_ui_text[fixed_ui::conversion_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_CONVERSION_FACTORS");
+		s.fixed_ui_text[fixed_ui::projected_conversion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_CONVERSION");
+		s.fixed_ui_text[fixed_ui::conversion_scale] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CONVERSION_SCALE");
+		s.fixed_ui_text[fixed_ui::no_promotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_PROMOTION");
+		s.fixed_ui_text[fixed_ui::no_demotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_DEMOTION");
+		s.fixed_ui_text[fixed_ui::no_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_MIGRATION");
+		s.fixed_ui_text[fixed_ui::no_emmigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_EMIGRATION");
+		s.fixed_ui_text[fixed_ui::no_colonial_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_CMIGRATION");
+		s.fixed_ui_text[fixed_ui::projected_promotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_PROMOTION");
+		s.fixed_ui_text[fixed_ui::projected_demotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_DEMOTION");
+		s.fixed_ui_text[fixed_ui::projected_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_MIGRATION");
+		s.fixed_ui_text[fixed_ui::projected_emigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_EMIGRATION");
+		s.fixed_ui_text[fixed_ui::promotion_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_PROMOTION_FACTORS");
+		s.fixed_ui_text[fixed_ui::demotion_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_DEMOTION_FACTORS");
+		s.fixed_ui_text[fixed_ui::migration_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_INTERNAL_MIGRATION_FACTORS");
+		s.fixed_ui_text[fixed_ui::emigration_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POP_EXTERNAL_MIGRATION_FACTORS");
+		s.fixed_ui_text[fixed_ui::national_focus] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OL_VIEW_NATFOCUS_HEADER");
+		s.fixed_ui_text[fixed_ui::promotion_scale] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROMOTION_SCALE");
+		s.fixed_ui_text[fixed_ui::admin_efficiency] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MODIFIER_ADMINISTRATIVE_EFFICIENCY");
+		s.fixed_ui_text[fixed_ui::emigration_scale] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EMIGRATION_SCALE");
+		s.fixed_ui_text[fixed_ui::parenthetical_squared] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_SQUARED");
+
+		s.fixed_ui_text[fixed_ui::tech_edu_efficiency] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECH_EDU_EFFICIENCY");
+		s.fixed_ui_text[fixed_ui::literacy_change_speed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_CHANGE_SPEED");
+		s.fixed_ui_text[fixed_ui::clergy_amount] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CLERGY_AMOUNT");
+		s.fixed_ui_text[fixed_ui::projected_literacy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_LIT");
+		s.fixed_ui_text[fixed_ui::lit_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_FACTORS");
 	}
 }

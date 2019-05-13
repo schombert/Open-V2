@@ -73,4 +73,10 @@ namespace population {
 	auto get_literacy_direct(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>
 	auto get_consciousness_direct(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
+
+	float project_assimilation_amount(world_state const& ws, pop_tag pop_v);
+	float project_promotion_amount(world_state const& ws, pop_tag pop_v);
+	float project_emigration_amount(world_state const& ws, pop_tag pop_v);
+	float project_migration_amount(world_state const& ws, pop_tag pop_v);
+	float project_literacy_change(world_state const& ws, nations::state_tag state_v);
 }

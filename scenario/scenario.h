@@ -711,8 +711,41 @@ namespace scenario {
 		constexpr uint32_t upper_house_support = 688ui32;
 		constexpr uint32_t no_more_reform = 689ui32;
 		constexpr uint32_t reform_next_step = 690ui32;
+		constexpr uint32_t no_assimilation = 691ui32;
+		constexpr uint32_t assimilation_factors = 692ui32;
+		constexpr uint32_t projected_assimilation = 693ui32;
+		constexpr uint32_t assimilation_scale = 694ui32;
+		constexpr uint32_t factor = 695ui32;
+		constexpr uint32_t no_conversion = 696ui32;
+		constexpr uint32_t conversion_factors = 697ui32;
+		constexpr uint32_t projected_conversion = 698ui32;
+		constexpr uint32_t conversion_scale = 699ui32;
 
-		constexpr uint32_t count = 691ui32;
+		constexpr uint32_t no_promotion = 700ui32;
+		constexpr uint32_t no_demotion = 701ui32;
+		constexpr uint32_t no_migration = 702ui32;
+		constexpr uint32_t no_emmigration = 703ui32;
+		constexpr uint32_t no_colonial_migration = 704ui32;
+		constexpr uint32_t projected_promotion = 705ui32;
+		constexpr uint32_t projected_demotion = 706ui32;
+		constexpr uint32_t projected_migration = 707ui32;
+		constexpr uint32_t projected_emigration = 708ui32;
+		constexpr uint32_t promotion_factors = 709ui32;
+		constexpr uint32_t demotion_factors = 710ui32;
+		constexpr uint32_t migration_factors = 711ui32;
+		constexpr uint32_t emigration_factors = 712ui32;
+		constexpr uint32_t national_focus = 713ui32;
+		constexpr uint32_t promotion_scale = 714ui32;
+		constexpr uint32_t admin_efficiency = 715ui32;
+		constexpr uint32_t emigration_scale = 716ui32;
+		constexpr uint32_t parenthetical_squared = 717ui32;
+		constexpr uint32_t tech_edu_efficiency = 718ui32;
+		constexpr uint32_t literacy_change_speed = 719ui32;
+		constexpr uint32_t clergy_amount = 720ui32;
+		constexpr uint32_t projected_literacy = 721ui32;
+		constexpr uint32_t lit_factors = 722ui32;
+
+		constexpr uint32_t count = 723ui32;
 	}
 
 

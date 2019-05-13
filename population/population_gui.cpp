@@ -3,6 +3,79 @@
 #include "world_state\\world_state.h"
 
 namespace population {
+	ui::xy_pair display_assimilation(ui::xy_pair cursor, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object tw, ui::line_manager &lm, pop_tag pop_id) {
+		if(ws.w.population_s.pops.get<pop::is_accepted>(pop_id)) {
+			return ui::add_text(cursor, scenario::fixed_ui::no_assimilation, fmt, ws, tw);
+		} else {
+			float const projected_amount = project_assimilation_amount(ws, pop_id);
+
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_assimilation, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(projected_amount) }, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::assimilation_factors, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+
+			cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.assimilation_scale, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::assimilation_scale, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+
+			cursor = ui::display_colored_factor(cursor,
+				ws.w.province_s.modifier_values.get(modifiers::provincial_offsets::assimilation_rate, ws.w.population_s.pops.get<pop::location>(pop_id)) + 1.0f,
+				fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.province_offset_names[modifiers::provincial_offsets::assimilation_rate], fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_province_modifier(ws, tw, cursor, lm, fmt, ws.w.population_s.pops.get<pop::location>(pop_id), modifiers::provincial_offsets::assimilation_rate);
+			lm.decrease_indent(1);
+
+			cursor = ui::display_colored_factor(cursor,
+				ws.w.province_s.modifier_values.get(modifiers::national_offsets::global_assimilation_rate, get_pop_owner(ws, pop_id)) + 1.0f,
+				fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::global_assimilation_rate], fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, fmt, get_pop_owner(ws, pop_id), modifiers::national_offsets::global_assimilation_rate);
+			lm.decrease_indent(1);
+
+			cursor = modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.assimilation_chance],
+				ws, tw, cursor, lm, fmt, pop_id, pop_id, scenario::fixed_ui::factor);
+			return cursor;
+		}
+	}
+
+
+	ui::xy_pair display_conversion(ui::xy_pair cursor, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object tw, ui::line_manager &lm, pop_tag pop_id) {
+		if(!ws.w.population_s.pops.get<pop::is_accepted>(pop_id)) {
+			return ui::add_text(cursor, scenario::fixed_ui::no_conversion, fmt, ws, tw);
+		} else if(ws.w.population_s.pops.get<pop::religion>(pop_id) == ws.w.nation_s.nations.get<nation::national_religion>(get_pop_owner(ws, pop_id))) {
+			return ui::add_text(cursor, scenario::fixed_ui::no_conversion, fmt, ws, tw);
+		} else {
+			float const projected_amount = project_assimilation_amount(ws, pop_id);
+
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_conversion, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(projected_amount) }, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::conversion_factors, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+
+			cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.conversion_scale, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::conversion_scale, fmt, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+
+			cursor = modifiers::make_multiplicative_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.conversion_chance],
+				ws, tw, cursor, lm, fmt, pop_id, pop_id, scenario::fixed_ui::factor);
+			return cursor;
+		}
+	}
+
 	bool population_window_base::on_keydown(ui::gui_object_tag, world_state& ws, const ui::key_down & k) {
 		if(k.keycode == virtual_key::ESCAPE) {
 			ws.w.population_w.hide_population_window(ws.w.gui_m);
@@ -439,9 +512,15 @@ namespace population {
 	}
 
 	void pop_religion::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
-		ui::unlimited_line_manager lm;
-		if(is_valid_index(religion))
-			ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.culture_m.religions[religion].name, ui::tooltip_text_format, ws, tw, lm);
+		ui::line_manager lm;
+		auto cursor = ui::xy_pair{ 0,0 };
+		if(is_valid_index(religion)) {
+			cursor = ui::add_text(cursor, ws.s.culture_m.religions[religion].name, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			display_conversion(cursor, ui::tooltip_text_format, ws, tw, lm, pop_id);
+		}
+
 		lm.finish_current_line();
 	}
 
@@ -590,5 +669,252 @@ namespace population {
 		ws.w.population_w.win->details_w.pop_id = pop_id;
 		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ *(ws.w.population_w.win->details_w.associated_object), ws.w.population_w.win->details_w.window_object });
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.population_w.win->details_w.associated_object));
+	}
+	void pop_details_growth_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		create_pop_size_change_description(ws, pop_id, tw);
+	}
+	void pop_details_culture_name::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		display_assimilation(ui::xy_pair{0,0}, ui::tooltip_text_format, ws, tw, lm, pop_id);
+	}
+	void pop_culture::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		display_assimilation(ui::xy_pair{ 0,0 }, ui::tooltip_text_format, ws, tw, lm, pop_id);
+	}
+	void pop_details_religion_name::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		display_conversion(ui::xy_pair{ 0,0 }, ui::tooltip_text_format, ws, tw, lm, pop_id);
+	}
+	void pop_details_demotion_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		float const projected_amount = project_promotion_amount(ws, pop_id);
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+
+		if(projected_amount > -1.0f) {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::no_demotion, ui::tooltip_text_format, ws, tw, lm);
+		} else {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_demotion, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(-projected_amount) }, ui::tooltip_text_format, ws, tw, lm);
+		}
+		
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::demotion_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.promotion_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::promotion_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, 
+			w.w.nation_s.nations.get_row<nation::national_administrative_efficiency>(get_pop_owner(ws, pop_id)),
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::admin_efficiency, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto state_focus = ws.w.nation_s.states.get<state::owner_national_focus>(
+			w.w.province_s.province_state_container.get<province_state::state_instance>(
+				ws.w.population_s.pops.get<pop::location>(pop_id)));
+
+		auto focus_target = w.s.modifiers_m.focus_to_pop_types[state_focus] == w.w.population_s.pops.get<pop::type>(pop_id);
+		if(focus_target) {
+			cursor = ui::display_colored_factor(cursor,
+				0.0f,
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::national_focus, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		}
+
+		cursor = modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.demotion_chance],
+			ws, tw, cursor, lm, ui::tooltip_text_format, pop_id, pop_id, scenario::fixed_ui::factor);
+
+	}
+	void pop_details_promotion_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		float const projected_amount = project_promotion_amount(ws, pop_id);
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		if(projected_amount < 1.0f) {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::no_promotion, ui::tooltip_text_format, ws, tw, lm);
+		} else {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_demotion, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(projected_amount) }, ui::tooltip_text_format, ws, tw, lm);
+		}
+		
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::promotion_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.promotion_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::promotion_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor,
+			w.w.nation_s.nations.get_row<nation::national_administrative_efficiency>(get_pop_owner(ws, pop_id)),
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::admin_efficiency, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto state_focus = ws.w.nation_s.states.get<state::owner_national_focus>(
+			w.w.province_s.province_state_container.get<province_state::state_instance>(
+				ws.w.population_s.pops.get<pop::location>(pop_id)));
+
+		auto focus_target = w.s.modifiers_m.focus_to_pop_types[state_focus] == w.w.population_s.pops.get<pop::type>(pop_id);
+		if(focus_target) {
+			cursor = ui::display_colored_factor(cursor,
+				0.0f,
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::national_focus, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		}
+
+		cursor = modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.promotion_chance],
+			ws, tw, cursor, lm, ui::tooltip_text_format, pop_id, pop_id, scenario::fixed_ui::factor);
+	}
+	void pop_details_colonial_migration_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::no_colonial_migration, fmt, ws, box, lm);
+	}
+	void pop_details_internal_migration_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto const projected_amount = project_migration_amount(ws, pop_id);
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		if(projected_amount < 1.0f) {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::no_migration, ui::tooltip_text_format, ws, tw, lm);
+		} else {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_migration, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(projected_amount) }, ui::tooltip_text_format, ws, tw, lm);
+		}
+
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::migration_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.immigration_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::emigration_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor,
+			ws.w.province_s.modifier_values.get(modifiers::provincial_offsets::immigrant_push, ws.w.population_s.pops.get<pop::location>(pop_id)) + 1.0f,
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.province_offset_names[modifiers::provincial_offsets::immigrant_push], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.population_s.pops.get<pop::location>(pop_id), modifiers::provincial_offsets::immigrant_push);
+		lm.decrease_indent(1);
+
+		cursor = modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.migration_chance],
+			ws, tw, cursor, lm, ui::tooltip_text_format, pop_id, pop_id, scenario::fixed_ui::factor);
+	}
+	void pop_details_external_migration_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto const projected_amount = project_emigration_amount(ws, pop_id);
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		if(projected_amount < 1.0f) {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::no_emigration, ui::tooltip_text_format, ws, tw, lm);
+		} else {
+			cursor = ui::add_text(cursor, scenario::fixed_ui::projected_emigration, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui:add_text(cursor, text_data::exact_integer{ int32_t(projected_amount) }, ui::tooltip_text_format, ws, tw, lm);
+		}
+
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::emigration_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.immigration_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::emigration_scale, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto const mod = ws.w.province_s.modifier_values.get(modifiers::provincial_offsets::immigrant_push, ws.w.population_s.pops.get<pop::location>(pop_id)) + 1.0f;
+		cursor = ui::display_colored_factor(cursor,
+			mod * mod,
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.province_offset_names[modifiers::provincial_offsets::immigrant_push], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::parenthetical_squared, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.population_s.pops.get<pop::location>(pop_id), modifiers::provincial_offsets::immigrant_push);
+		lm.decrease_indent(1);
+
+		cursor = modifiers::make_additive_factor_explanation(ws.s.modifiers_m.factor_modifiers[ws.s.population_m.emigration_chance],
+			ws, tw, cursor, lm, ui::tooltip_text_format, pop_id, pop_id, scenario::fixed_ui::factor);
+	}
+	void pop_details_literacy_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto pop_loc = ws.w.population_s.pops.get<pop::location>(pop_id);
+		auto pop_state = ws.w.province_s.province_state_container.get<province_state::state_instance>(pop_loc);
+
+		auto change_amount = project_literacy_change(ws, pop_state);
+		ui::text_format cfmt = ui::text_format{ 
+			change_amount >= 0 ? ui::text_color::green :ui::text_color::red,
+			ui::tooltip_text_format.font_handle,
+			ui::tooltip_text_format.font_size};
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		cursor = ui::add_text(cursor, scenario::fixed_ui::projected_literacy, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui:add_text(cursor, text_data::percent_fp_one_place{ change_amount }, cfmt, ws, tw, lm);
+
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::lit_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor, ws.s.modifiers_m.global_defines.literacy_change_speed * 0.01f, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::literacy_change_speed, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto clergy_amount = ws.w.nation_s.state_demographics.get(pop_state, population::to_demo_tag(ws, ws.s.population_m.clergy));
+		auto cfactor = std::min(1.0f, ((clergy_amount / total_pop) - ws.s.modifiers_m.global_defines.base_clergy_for_literacy)
+			* (1.0f / (ws.s.modifiers_m.global_defines.max_clergy_for_literacy - ws.s.modifiers_m.global_defines.base_clergy_for_literacy)));
+
+		cursor = ui::display_colored_factor(cursor, cfactor, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::clergy_amount, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto pop_owner = get_pop_owner(ws, pop_id);
+		cursor = ui::display_colored_factor(cursor, w.w.nation_s.nations.get<nation::f_education_spending>(pop_owner), ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::edu_spending, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor,
+			1.0f + w.w.nation_s.tech_attributes.get<technologies::tech_offset::education_efficiency>(pop_owner),
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::tech_edu_efficiency, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor,
+			ws.w.province_s.modifier_values.get(modifiers::national_offsets::education_efficiency_modifier, pop_owner) + 1.0f,
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::education_efficiency_modifier], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner, modifiers::national_offsets::education_efficiency_modifier);
+		lm.decrease_indent(1);
 	}
 }

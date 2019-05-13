@@ -1040,7 +1040,10 @@ namespace ui {
 	};
 
 	xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt);
+	xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, ui::line_manager& lm);
 	xy_pair advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count = 1);
+	ui::xy_pair display_colored_percentage(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm);
+	ui::xy_pair display_colored_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm);
 
 	namespace detail {
 		xy_pair impl_add_text(xy_pair cursor, std::monostate, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
@@ -1078,6 +1081,9 @@ namespace ui {
 			behavior_manager& b_manager);
 		xy_pair impl_add_text(xy_pair cursor, date_tag, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
 			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count ,
+			behavior_manager& b_manager);
+		xy_pair impl_add_text(xy_pair cursor, uint32_t v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+			line_manager& lm, const text_data::text_replacement* candidates, uint32_t count,
 			behavior_manager& b_manager);
 	}
 
@@ -1149,6 +1155,12 @@ namespace ui {
 	}
 	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
 	xy_pair add_text(xy_pair cursor, date_tag v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
+		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
+		BM_TYPE&& b_manager = behavior_manager{}) {
+		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);
+	}
+	template<typename LM_TYPE = line_manager, typename BM_TYPE = behavior_manager>
+	xy_pair add_text(xy_pair cursor, uint32_t v, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,
 		LM_TYPE&& lm = line_manager{}, const text_data::text_replacement* candidates = nullptr, uint32_t count = 0,
 		BM_TYPE&& b_manager = behavior_manager{}) {
 		return detail::impl_add_text(cursor, v, fmt, ws, parent_object, lm, candidates, count, b_manager);

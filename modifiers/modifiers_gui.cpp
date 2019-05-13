@@ -264,7 +264,7 @@ namespace modifiers {
 		lm.decrease_indent(1);
 		return cursor_in;
 	}
-	
+
 	inline ui::xy_pair display_single_provincial_modifier_value(world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt, provincial_modifier_tag mod, uint32_t offset, value_type multiplier) {
 		char16_t local_buf[64];
 
@@ -503,13 +503,13 @@ namespace modifiers {
 	}
 
 	ui::xy_pair make_additive_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, uint32_t base_text) {
 
 		auto chance = std::max(0.0f, test_additive_factor(f, ws, primary_slot, from_slot));
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[base_text], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 		lm.increase_indent(1);
@@ -525,13 +525,13 @@ namespace modifiers {
 		return cursor_in;
 	}
 	ui::xy_pair make_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
-		triggers::const_parameter primary_slot, triggers::const_parameter from_slot) {
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, uint32_t base_text) {
 
 		auto chance = std::max(0.0f, test_multiplicative_factor(f, ws, primary_slot, from_slot));
 
 		cursor_in = display_value(chance, ws, container, cursor_in, lm, fmt);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
-		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::chance], fmt, ws, container, lm);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[base_text], fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 		lm.increase_indent(1);
