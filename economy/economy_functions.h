@@ -80,6 +80,7 @@ namespace economy {
 
 	range_information global_price_range(world_state const& ws, economy::goods_tag t);
 	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_tag si, population::pop_type_tag ptype);
+	money_qnty_type get_all_needs_cost(world_state const& ws, nations::state_tag si, population::pop_type_tag ptype);
 	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_tag ps);
 
 	void init_artisan_producation(world_state& ws);

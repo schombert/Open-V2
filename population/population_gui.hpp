@@ -577,7 +577,7 @@ namespace population {
 		void button_function(ui::simple_button<pop_bg_button>&, world_state& ws);
 		template<typename W>
 		void windowed_update(ui::simple_button<pop_bg_button>&, W& w, world_state& ws);
-	}
+	};
 
 	class pop_type_button {
 	public:
@@ -2306,5 +2306,71 @@ namespace population {
 	void pop_details_literacy_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		pop_id = win.pop_id;
 		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent_fp_one_place{ get_literacy_direct(ws, win.pop_id)}, fmt, box, lm);
+	}
+	template<typename window_type>
+	void pop_details_unemployment_bar::windowed_update(ui::progress_bar<pop_details_unemployment_bar>& bar, window_type & w, world_state & ws) {
+		float size = float(ws.w.population_s.pop_demographics.get(w.pop_id, total_population_tag));
+		float employed = float(ws.w.population_s.pop_demographics.get(w.pop_id, total_employment_tag));
+
+		if(size != 0.0f)
+			bar.set_fraction(1.0f - employed / size);
+		else
+			bar.set_fraction(0.0f);
+	}
+	template<typename W>
+	void pop_details_unemployment_overlay::windowed_update(ui::dynamic_icon<pop_details_unemployment_overlay>&, W & w, world_state & ws) {
+		float size = float(ws.w.population_s.pop_demographics.get(w.pop_id, total_population_tag));
+		float employed = float(ws.w.population_s.pop_demographics.get(w.pop_id, total_employment_tag));
+
+		if(size != 0.0f)
+			value = 1.0f - employed / size;
+		else
+			value = 0.0f;
+	}
+	template<typename window_type>
+	void pop_details_bank_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, u"--", fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void pop_details_income_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, u"--", fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void pop_details_money_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ ws.w.population_s.pops.get<pop::money>(win.pop_id)}, fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void pop_details_expenses_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto ptype = ws.w.population_s.pops.get<pop::type>(win.pop_id);
+		auto prov = ws.w.population_s.pops.get<pop::location>(win.pop_id);
+		auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(prov);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ economy::get_all_needs_cost(ws, state, ptype) }, fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void details_lifeneed_progress::windowed_update(ui::progress_bar<details_lifeneed_progress>& bar, window_type &, world_state & ws) {
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
+		bar.set_fraction(std::clamp(needs - 0.0f, 0.0f, 1.0f));
+	}
+	template<typename window_type>
+	void details_eveneed_progress::windowed_update(ui::progress_bar<details_eveneed_progress>& bar, window_type &, world_state & ws) {
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
+		bar.set_fraction(std::clamp(needs - 1.0f, 0.0f, 1.0f));
+	}
+	template<typename window_type>
+	void details_luxneed_progress::windowed_update(ui::progress_bar<details_luxneed_progress>& bar, window_type &, world_state & ws) {
+		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
+		bar.set_fraction(std::clamp(needs - 2.0f, 0.0f, 1.0f));
+	}
+	template<typename W>
+	void details_lifeneed_progress_overlay::windowed_update(ui::dynamic_icon<details_lifeneed_progress_overlay>&, W & w, world_state & ws) {
+		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id) - 0.0f, 0.0f, 1.0f);
+	}
+	template<typename W>
+	void details_eveneed_progress_overlay::windowed_update(ui::dynamic_icon<details_eveneed_progress_overlay>&, W & w, world_state & ws) {
+		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id) - 1.0f, 0.0f, 1.0f);
+	}
+	template<typename W>
+	void details_luxneed_progress_overlay::windowed_update(ui::dynamic_icon<details_luxneed_progress_overlay>&, W & w, world_state & ws) {
+		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id) - 2.0f, 0.0f, 1.0f);
 	}
 }

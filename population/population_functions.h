@@ -79,4 +79,6 @@ namespace population {
 	float project_emigration_amount(world_state const& ws, pop_tag pop_v);
 	float project_migration_amount(world_state const& ws, pop_tag pop_v);
 	float project_literacy_change(world_state const& ws, nations::state_tag state_v);
+	float project_militancy_change(world_state const& ws, pop_tag pop_v);
+	float project_consciousness_change(world_state const& ws, pop_tag pop_v);
 }

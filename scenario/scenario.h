@@ -720,7 +720,6 @@ namespace scenario {
 		constexpr uint32_t conversion_factors = 697ui32;
 		constexpr uint32_t projected_conversion = 698ui32;
 		constexpr uint32_t conversion_scale = 699ui32;
-
 		constexpr uint32_t no_promotion = 700ui32;
 		constexpr uint32_t no_demotion = 701ui32;
 		constexpr uint32_t no_migration = 702ui32;
@@ -744,8 +743,23 @@ namespace scenario {
 		constexpr uint32_t clergy_amount = 720ui32;
 		constexpr uint32_t projected_literacy = 721ui32;
 		constexpr uint32_t lit_factors = 722ui32;
+		constexpr uint32_t projected_militancy = 723ui32;
+		constexpr uint32_t militancy_factors = 724ui32;
+		constexpr uint32_t needs_satisfaction = 725ui32;
+		constexpr uint32_t non_accepted_factors = 726ui32;
+		constexpr uint32_t owner_seperatism = 727ui32;
+		constexpr uint32_t base_non_accepted_mil = 728ui32;
+		constexpr uint32_t conservative_support = 729ui32;
+		constexpr uint32_t ruling_party_support = 730ui32;
+		constexpr uint32_t projected_consciouness = 731ui32;
+		constexpr uint32_t consciousness_factors = 732ui32;
+		constexpr uint32_t literacy_factor = 733ui32;
+		constexpr uint32_t colonial_factor = 734ui32;
+		constexpr uint32_t poor_clergy = 735ui32;
+		constexpr uint32_t mid_rich_clergy = 736ui32;
+		constexpr uint32_t lux_satisfaction_factor = 737ui32;
 
-		constexpr uint32_t count = 723ui32;
+		constexpr uint32_t count = 738ui32;
 	}
 
 

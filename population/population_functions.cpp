@@ -736,20 +736,13 @@ namespace population {
 		auto owner_separatism = ve::load(owner_indices, w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(0));
 		auto owner_core_pop_mil = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(0));
 
-		//is_colonial_or_protectorate
 		bool core_mask = nations::is_colonial_or_protectorate(ws, state_indices);
-
-		auto base_prov_modifier =
-			owner_war_ex * ws.s.modifiers_m.global_defines.mil_war_exhaustion
-			+ owner_mil_mod
-			+ prov_mil_mod +
-			ve::select(core_mask, owner_core_pop_mil, 0.0f);
+			
 		auto prov_non_accepted_modifier =
-			(owner_separatism + 1.0f) * ws.s.modifiers_m.global_defines.mil_non_accepted,
+			(owner_separatism + 1.0f) * ws.s.modifiers_m.global_defines.mil_non_accepted
 			+ owner_non_accepted;
 
-
-		auto satisfaction = ve::load(pop_v, w.w.population_s.pops.get_row<pop::militancy>());
+		auto satisfaction = ve::load(pop_v, w.w.population_s.pops.get_row<pop::needs_satisfaction>());
 
 		auto satisfaction_factor =
 			ve::select(satisfaction < 0.5f,
@@ -758,28 +751,28 @@ namespace population {
 					satisfaction,
 					ws.s.modifiers_m.global_defines.mil_no_life_need * 0.5f
 				),
-				ve::fp_vector())
+				0.0f)
 			+ ve::select(satisfaction < 1.5f,
 				ve::negate_multiply_and_add(
 					ws.s.modifiers_m.global_defines.mil_lack_everyday_need,
 					satisfaction,
 					ws.s.modifiers_m.global_defines.mil_lack_everyday_need * 1.5f
 				),
-				ve::fp_vector())
+				0.0f)
 			+ ve::select(satisfaction > 1.5f,
 				ve::multiply_and_subtract(
 					ws.s.modifiers_m.global_defines.mil_has_everyday_need,
 					satisfaction,
 					ws.s.modifiers_m.global_defines.mil_has_everyday_need * 1.5f
 				),
-				ve::fp_vector())
+				0.0f)
 			+ ve::select(satisfaction > 2.5f,
 				ve::multiply_and_subtract(
 					ws.s.modifiers_m.global_defines.mil_has_luxury_need,
 					satisfaction,
 					ws.s.modifiers_m.global_defines.mil_has_luxury_need * 2.5f
 				),
-				ve::fp_vector());
+				0.0f);
 
 		auto non_accepted_factor = ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_accepted>()),
 			0.0f,
@@ -787,17 +780,21 @@ namespace population {
 
 		auto ruling_ideology = ve::load(owner_indices, ws.w.nation_s.nations.get_row<nation::ruling_ideology>());
 
-		auto const pop_c_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ws.s.ideologies_m.conservative_ideology));
-		auto const pop_rp_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ruling_ideology));
+		auto const psize = ws.w.population_s.pops.get<pop::size>(pop_v) != 0 ? ws.w.population_s.pops.get<pop::size>(pop_v) : 1.0f;
+		auto const pop_c_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ws.s.ideologies_m.conservative_ideology)) / psize;
+		auto const pop_rp_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ruling_ideology)) / psize;
 
 		return 
 			(satisfaction_factor
 			+ non_accepted_factor
-			+ pop_c_support * ws.s.modifiers_m.global_defines.mil_ideology / ws.w.population_s.pops.get<pop::size>(pop_v)
-			+ pop_rp_support * ws.s.modifiers_m.global_defines.mil_ruling_party / ws.w.population_s.pops.get<pop::size>(pop_v)
+			+ pop_c_support * ws.s.modifiers_m.global_defines.mil_ideology
+			+ pop_rp_support * ws.s.modifiers_m.global_defines.mil_ruling_party
 			+ ve::load(pop_v, w.w.population_s.pops.get_row<pop::political_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
-			+ ve::load(pop_v, w.w.population_s.pops.get_row<pop::social_interest_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
-			+ base_prov_modifier)
+			+ ve::load(pop_v, w.w.population_s.pops.get_row<pop::social_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
+			+ owner_war_ex * ws.s.modifiers_m.global_defines.mil_war_exhaustion
+			+ owner_mil_mod
+			+ prov_mil_mod
+			+ ve::select(core_mask, owner_core_pop_mil, 0.0f))
 			* 0.1f;
 	}
 
@@ -942,6 +939,45 @@ namespace population {
 			ve::store(pop_v, pop_consciousness, ve::max(ve::fp_vector(), ve::min(new_con, 1.0f)));
 		}
 	};
+
+	float project_consciousness_change(world_state const& ws, pop_tag pop_v) {
+		auto owners = get_pop_owner(ws, pop_v);
+		auto province_v = ws.w.population_s.pops.get<pop::location>(pop_v);
+		auto states = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
+		auto core_mask = nations::is_colonial_or_protectorate(ws, states);
+
+		auto colonial_multiplier = ve::select(core_mask, 1.0f, ws.s.modifiers_m.global_defines.con_colonial_factor);
+
+		auto const literacy_factor = 
+			colonial_multiplier
+			* (1.0f + ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(0)))
+			* ve::load(owners, w.w.nation_s.nations.get_row<nation::plurality>())
+			* ws.s.modifiers_m.global_defines.con_literacy;
+
+		auto clergy_populations = ws.w.province_s.province_demographics.get(province_v, to_demo_tag(ws, ws.s.population_m.clergy));
+		auto const prov_pop = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::total_population>());
+		auto const clergy_factor = colonial_multiplier * clergy_populations / (prov_pop > 0.0f ? prov_pop : 1.0f);
+
+		auto lux_satisfaction = ve::load(pop_v, pop_satisfaction) - 2.0f;
+		auto base_sum =
+			clergy_factor *
+				ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_poor>()), ws.s.modifiers_m.global_defines.con_poor_clergy, ws.s.modifiers_m.global_defines.con_midrich_clergy),
+			+ ve::load(province_v, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_consciousness_modifier>(0))
+			+ ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_consciousness_modifier>(0))
+			+ ve::select(core_mask,
+				ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_consciousness_modifier>(0)),
+				0.0f)
+			+ literacy_factor * ve::load(pop_v, w.w.population_s.pops.get_row<pop::literacy>())
+			+ ve::select(lux_satisfaction > 0.0f,
+					lux_satisfaction * ws.s.modifiers_m.global_defines.con_luxury_goods,
+					0.0f)
+			+ ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_accepted>()),
+				0.0f,
+				ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_consciousness_modifier>(0)))
+			;
+
+		return base_sum * 0.1f;
+	}
 
 	void update_consciousness(world_state& ws) {
 		concurrent_cache_aligned_buffer<float, provinces::province_tag, true> fixed_factor(ws.w.province_s.province_state_container.size());

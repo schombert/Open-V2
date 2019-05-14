@@ -624,7 +624,7 @@ ui::xy_pair ui::advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager,
 	return ui::xy_pair{ int16_t(cursor.x + new_size), cursor.y };
 }
 
-ui::xy_pair ui::display_colored_percentage(ui::xy_pair cursor_in, float v, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
+ui::xy_pair ui::display_colored_percentage(ui::xy_pair cursor_in, float value, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
 	if(value < 1.0f) {
 		return ui::add_text(cursor_in, text_data::percent{ value },
 			ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
@@ -636,7 +636,7 @@ ui::xy_pair ui::display_colored_percentage(ui::xy_pair cursor_in, float v, ui::t
 	}
 }
 
-ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float v, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
+ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float value, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
 	if(value < 1.0f) {
 		return ui::add_text(cursor_in, text_data::fp_two_places{ value },
 			ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
@@ -648,6 +648,18 @@ ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float v, ui::text_
 	}
 }
 
+ui::xy_pair display_colored_additive_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm, bool invert_color) {
+	auto const new_fmt = ui::text_format{ (v < 0) == (invert_color == false) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
+	if(v >= 0) {
+		char16_t local_buffer[16] = { u'+', 0 };
+		put_pos_value_in_buffer(local_buffer + 1, display_type::fp_two_places, v);
+		return ui::add_text(cursor_in, local_buffer,
+			new_fmt, ws, container, lm);
+	} else {
+		return ui::add_text(cursor_in, text_data::fp_two_places{ v },
+			new_fmt, ws, container, lm);
+	}
+}
 
 void ui::detail::create_linear_text(world_state& ws, tagged_gui_object container, text_data::text_tag text_handle, text_data::alignment align, const text_format& fmt, const text_data::text_replacement* candidates, uint32_t count) {
 	graphics::font& this_font = ws.s.gui_m.fonts.at(fmt.font_handle);

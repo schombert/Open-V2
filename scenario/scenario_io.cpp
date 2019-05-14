@@ -820,11 +820,26 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::admin_efficiency] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MODIFIER_ADMINISTRATIVE_EFFICIENCY");
 		s.fixed_ui_text[fixed_ui::emigration_scale] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "EMIGRATION_SCALE");
 		s.fixed_ui_text[fixed_ui::parenthetical_squared] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_SQUARED");
-
 		s.fixed_ui_text[fixed_ui::tech_edu_efficiency] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECH_EDU_EFFICIENCY");
 		s.fixed_ui_text[fixed_ui::literacy_change_speed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_CHANGE_SPEED");
 		s.fixed_ui_text[fixed_ui::clergy_amount] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CLERGY_AMOUNT");
 		s.fixed_ui_text[fixed_ui::projected_literacy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_LIT");
 		s.fixed_ui_text[fixed_ui::lit_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_FACTORS");
+		s.fixed_ui_text[fixed_ui::projected_militancy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_MIL");
+		s.fixed_ui_text[fixed_ui::militancy_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MIL_FACTORS");
+		s.fixed_ui_text[fixed_ui::needs_satisfaction] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NEEDS_SATISFACTION");
+		s.fixed_ui_text[fixed_ui::non_accepted_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NON_ACCEPTED_MOD");
+		s.fixed_ui_text[fixed_ui::owner_seperatism] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TECH_OWNER_SEPERATISM");
+		s.fixed_ui_text[fixed_ui::base_non_accepted_mil] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NON_ACCEPTED_MIL_MOD");
+		s.fixed_ui_text[fixed_ui::conservative_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "C_SUPPORT");
+		s.fixed_ui_text[fixed_ui::ruling_party_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RP_SUPPORT");
+
+		s.fixed_ui_text[fixed_ui::projected_consciouness] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_CON");
+		s.fixed_ui_text[fixed_ui::consciousness_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CON_FACTORS");
+		s.fixed_ui_text[fixed_ui::literacy_factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_FACTOR");
+		s.fixed_ui_text[fixed_ui::colonial_factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "COL_FACTOR");
+		s.fixed_ui_text[fixed_ui::poor_clergy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POOR_CLERGY");
+		s.fixed_ui_text[fixed_ui::mid_rich_clergy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MID_RICH_CLERGY");
+		s.fixed_ui_text[fixed_ui::lux_satisfaction_factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LUX_SATISFACTION_FACTOR");
 	}
 }

@@ -908,7 +908,7 @@ namespace population {
 		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
 
 		cursor = ui::display_colored_factor(cursor,
-			ws.w.province_s.modifier_values.get(modifiers::national_offsets::education_efficiency_modifier, pop_owner) + 1.0f,
+			ws.w.nation_s.modifier_values.get(modifiers::national_offsets::education_efficiency_modifier, pop_owner) + 1.0f,
 			ui::tooltip_text_format, ws, tw, lm);
 		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
 		cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::education_efficiency_modifier], ui::tooltip_text_format, ws, tw, lm);
@@ -916,5 +916,361 @@ namespace population {
 		lm.increase_indent(1);
 		cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner, modifiers::national_offsets::education_efficiency_modifier);
 		lm.decrease_indent(1);
+	}
+
+	void pop_details_militancy_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto province_v = ws.w.population_s.pops.get<pop::location>(pop_id);
+		auto state_indices = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
+
+		auto prov_mil_mod = ve::load(province_v, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(0));
+
+		auto owner_indices = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto pop_owner = owner_indices;
+		auto owner_mil_mod = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(0));
+		auto owner_war_ex = ve::load(owner_indices, w.w.nation_s.nations.get_row<nation::war_exhaustion>());
+		auto owner_non_accepted = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(0));
+		auto owner_separatism = ve::load(owner_indices, w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(0));
+		auto owner_core_pop_mil = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(0));
+
+		auto change_amount = project_militancy_change(ws, pop_id) * 10.0f;
+		ui::text_format cfmt = ui::text_format{
+			change_amount >= 0 ? ui::text_color::red : ui::text_color::green,
+			ui::tooltip_text_format.font_handle,
+			ui::tooltip_text_format.font_size };
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		cursor = ui::add_text(cursor, scenario::fixed_ui::projected_militancy, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui:add_text(cursor, text_data::fp_two_places{ change_amount }, cfmt, ws, tw, lm);
+
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::militancy_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		bool core_mask = nations::is_colonial_or_protectorate(ws, state_indices);
+
+		if(!ws.w.population_s.pops.get<pop::is_accepted>(pop_id)) {
+			auto prov_non_accepted_modifier =
+				(owner_separatism + 1.0f) * ws.s.modifiers_m.global_defines.mil_non_accepted,
+				+owner_non_accepted;
+
+			cursor = ui::display_colored_additive_factor(cursor, prov_non_accepted_modifier * 10.0f, ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::literacy_change_speed, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			lm.increase_indent(1);
+
+			cursor = ui::display_colored_additive_factor(cursor,
+				(owner_separatism + 1.0f) * ws.s.modifiers_m.global_defines.mil_non_accepted * 10.0f,
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::owner_seperatism, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+			cursor = ui::display_colored_additive_factor(cursor,
+				ws.w.nation_s.modifier_values.get(modifiers::national_offsets::non_accepted_pop_militancy_modifier, pop_owner),
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::non_accepted_pop_militancy_modifier],
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+				modifiers::national_offsets::non_accepted_pop_militancy_modifier);
+			lm.decrease_indent(1);
+
+			lm.decrease_indent(1);
+		}
+
+		auto satisfaction_factor =
+			ve::select(satisfaction < 0.5f,
+				ve::negate_multiply_and_add(
+					ws.s.modifiers_m.global_defines.mil_no_life_need,
+					satisfaction,
+					ws.s.modifiers_m.global_defines.mil_no_life_need * 0.5f
+				),
+				0.0f)
+			+ ve::select(satisfaction < 1.5f,
+				ve::negate_multiply_and_add(
+					ws.s.modifiers_m.global_defines.mil_lack_everyday_need,
+					satisfaction,
+					ws.s.modifiers_m.global_defines.mil_lack_everyday_need * 1.5f
+				),
+				0.0f)
+			+ ve::select(satisfaction > 1.5f,
+				ve::multiply_and_subtract(
+					ws.s.modifiers_m.global_defines.mil_has_everyday_need,
+					satisfaction,
+					ws.s.modifiers_m.global_defines.mil_has_everyday_need * 1.5f
+				),
+				0.0f)
+			+ ve::select(satisfaction > 2.5f,
+				ve::multiply_and_subtract(
+					ws.s.modifiers_m.global_defines.mil_has_luxury_need,
+					satisfaction,
+					ws.s.modifiers_m.global_defines.mil_has_luxury_need * 2.5f
+				),
+				0.0f);
+
+		cursor = ui::display_colored_additive_factor(cursor, satisfaction_factor, ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::needs_satisfaction, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto ruling_ideology = ve::load(owner_indices, ws.w.nation_s.nations.get_row<nation::ruling_ideology>());
+
+		auto const psize = ws.w.population_s.pops.get<pop::size>(pop_v) != 0 ? ws.w.population_s.pops.get<pop::size>(pop_v) : 1.0f;
+		auto const pop_c_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ws.s.ideologies_m.conservative_ideology)) / psize;
+		auto const pop_rp_support = ws.w.population_s.pop_demographics.get(pop_v, to_demo_tag(ws, ruling_ideology)) / psize;
+
+		cursor = ui::display_colored_additive_factor(cursor, pop_c_support * ws.s.modifiers_m.global_defines.mil_ideology,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::conservative_support, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor, pop_rp_support * ws.s.modifiers_m.global_defines.mil_ruling_party,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::ruling_party_support, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ve::load(pop_v, w.w.population_s.pops.get_row<pop::political_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::political_reform_desire, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ve::load(pop_v, w.w.population_s.pops.get_row<pop::social_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::social_reform_desire, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			owner_war_ex * ws.s.modifiers_m.global_defines.mil_war_exhaustion,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::war_exhaustion, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ws.w.nation_s.modifier_values.get(modifiers::national_offsets::global_pop_militancy_modifier, pop_owner),
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::global_pop_militancy_modifier],
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+			modifiers::national_offsets::global_pop_militancy_modifier);
+		lm.decrease_indent(1);
+
+		if(core_mask) {
+			cursor = ui::display_colored_additive_factor(cursor,
+				ws.w.nation_s.modifier_values.get(modifiers::national_offsets::core_pop_militancy_modifier, pop_owner),
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::core_pop_militancy_modifier],
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+				modifiers::national_offsets::core_pop_militancy_modifier);
+			lm.decrease_indent(1);
+		}
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ws.w.province_s.modifier_values.get(modifiers::provincial_offsets::pop_militancy_modifier, ws.w.population_s.pops.get<pop::location>(pop_id)),
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.province_offset_names[modifiers::provincial_offsets::pop_militancy_modifier],
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.population_s.pops.get<pop::location>(pop_id),
+			modifiers::provincial_offsets::pop_militancy_modifier);
+		lm.decrease_indent(1);
+	}
+	void pop_details_consciousness_value::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto pop_v = pop_id;
+		auto owners = get_pop_owner(ws, pop_v);
+		auto pop_owner = owners;
+		auto province_v = ws.w.population_s.pops.get<pop::location>(pop_v);
+		auto states = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
+
+		auto change_amount = project_consciousness_change(ws, pop_id) * 10.0f;
+		ui::text_format cfmt = ui::text_format{
+			change_amount >= 0 ? ui::text_color::red : ui::text_color::green,
+			ui::tooltip_text_format.font_handle,
+			ui::tooltip_text_format.font_size };
+
+		ui::xy_pair cursor{ 0,0 };
+		ui::line_manager lm;
+		cursor = ui::add_text(cursor, scenario::fixed_ui::projected_consciouness, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui:add_text(cursor, text_data::fp_two_places{ change_amount }, cfmt, ws, tw, lm);
+
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::consciousness_factors, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		auto colonial_multiplier = ve::select(core_mask, 1.0f, ws.s.modifiers_m.global_defines.con_colonial_factor);
+
+		auto const literacy_factor =
+			colonial_multiplier
+			* (1.0f + ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(0)))
+			* ve::load(owners, w.w.nation_s.nations.get_row<nation::plurality>())
+			* ws.s.modifiers_m.global_defines.con_literacy
+			* ws.w.population_s.pops.get<pop::literacy>(pop_v);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			literacy_factor,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::literacy_factor, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		lm.increase_indent(1);
+
+		cursor = ui::display_colored_factor(cursor,
+			ve::load(owners, w.w.nation_s.nations.get_row<nation::plurality>()),
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::plurality, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_factor(cursor,
+			ws.w.population_s.pops.get<pop::literacy>() * ws.s.modifiers_m.global_defines.con_literacy,
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, scenario::fixed_ui::literacy, ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ws.w.nation_s.modifier_values.get(modifiers::national_offsets::literacy_con_impact, pop_owner) + 1.0f,
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::literacy_con_impact],
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+			modifiers::national_offsets::literacy_con_impact);
+		lm.decrease_indent(1);
+
+		lm.decrease_indent(1);
+
+		auto province_pop = ws.w.province_s.province_state_container.get<province_state::total_population>();
+		auto clergy_populations = ws.w.province_s.province_demographics.get(province_v, to_demo_tag(ws, ws.s.population_m.clergy));
+		auto const clergy_percentage = clergy_populations / (province_pop ? 0.0f ? province_pop : 1.0f);
+
+		if(ws.w.population_s.pops.get<pop::is_poor>(pop_v)) {
+			cursor = ui::display_colored_additive_factor(cursor,
+				clergy_percentage * colonial_multiplier *  ws.s.modifiers_m.global_defines.con_poor_clergy,
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::poor_clergy, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		} else {
+			cursor = ui::display_colored_additive_factor(cursor,
+				clergy_percentage * colonial_multiplier *  ws.s.modifiers_m.global_defines.con_midrich_clergy,
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::mid_rich_clergy, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		}
+
+		auto lux_satisfaction = ve::load(pop_v, pop_satisfaction) - 2.0f;
+		if(lux_satisfaction > 0.0f) {
+			cursor = ui::display_colored_additive_factor(cursor,
+				lux_satisfaction * ws.s.modifiers_m.global_defines.con_luxury_goods,
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::luxury_needs_satisfaction, ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		}
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ws.w.province_s.modifier_values.get(modifiers::provincial_offsets::pop_consciousness_modifier, ws.w.population_s.pops.get<pop::location>(pop_id)),
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.province_offset_names[modifiers::provincial_offsets::pop_consciousness_modifier],
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_province_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, ws.w.population_s.pops.get<pop::location>(pop_id),
+			modifiers::provincial_offsets::pop_consciousness_modifier);
+		lm.decrease_indent(1);
+
+		cursor = ui::display_colored_additive_factor(cursor,
+			ws.w.nation_s.modifier_values.get(modifiers::national_offsets::global_pop_consciousness_modifier, pop_owner),
+			ui::tooltip_text_format, ws, tw, lm, true);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::global_pop_consciousness_modifier],
+			ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+		lm.increase_indent(1);
+		cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+			modifiers::national_offsets::global_pop_consciousness_modifier);
+		lm.decrease_indent(1);
+
+		auto core_mask = nations::is_colonial_or_protectorate(ws, states);
+		if(core_mask) {
+			cursor = ui::display_colored_additive_factor(cursor,
+				ws.w.nation_s.modifier_values.get(modifiers::national_offsets::core_pop_consciousness_modifier, pop_owner),
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::core_pop_consciousness_modifier],
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+				modifiers::national_offsets::core_pop_consciousness_modifier);
+			lm.decrease_indent(1);
+		}
+
+		if(!ws.w.population_s.pops.get<pop::is_accepted>(pop_id)) {
+			cursor = ui::display_colored_additive_factor(cursor,
+				ws.w.nation_s.modifier_values.get(modifiers::national_offsets::non_accepted_pop_consciousness_modifier, pop_owner),
+				ui::tooltip_text_format, ws, tw, lm, true);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+			cursor = ui::add_text(cursor, ws.s.modifiers_m.national_offset_names[modifiers::national_offsets::non_accepted_pop_consciousness_modifier],
+				ui::tooltip_text_format, ws, tw, lm);
+			cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format, lm);
+			lm.increase_indent(1);
+			cursor = modifiers::explain_national_modifier(ws, tw, cursor, lm, ui::tooltip_text_format, pop_owner,
+				modifiers::national_offsets::non_accepted_pop_consciousness_modifier);
+			lm.decrease_indent(1);
+		}
+	}
+	void pop_details_unemployment_overlay::create_tooltip(world_state &, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::unemployment], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
+	}
+	void details_lifeneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::life_needs], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
+	}
+	void details_eveneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::everyday_needs], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
+	}
+	void details_luxneed_progress_overlay::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::unlimited_line_manager lm;
+		auto cursor = ui::add_text(ui::xy_pair{ 0, 0 }, ws.s.fixed_ui_text[scenario::fixed_ui::luxury_needs], ui::tooltip_text_format, ws, tw, lm);
+		cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, ui::tooltip_text_format);
+		cursor = ui::add_text(cursor, text_data::percent{ value }, ui::tooltip_text_format, ws, tw, lm);
 	}
 }

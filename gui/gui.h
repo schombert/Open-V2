@@ -1044,6 +1044,7 @@ namespace ui {
 	xy_pair advance_cursor_by_space(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, int32_t count = 1);
 	ui::xy_pair display_colored_percentage(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm);
 	ui::xy_pair display_colored_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm);
+	ui::xy_pair display_colored_additive_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm, bool invert_color = false);
 
 	namespace detail {
 		xy_pair impl_add_text(xy_pair cursor, std::monostate, text_format const& fmt, world_state& ws, tagged_gui_object parent_object,

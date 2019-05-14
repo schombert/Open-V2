@@ -724,6 +724,55 @@ namespace economy {
 		return sum;
 	}
 
+	money_qnty_type get_all_needs_cost(world_state const& ws, nations::state_tag si, population::pop_type_tag ptype) {
+		auto state_capital = nations::get_state_capital(ws, si);
+		auto state_owner = ws.w.nation_s.states.get<state::owner>(si);
+
+		if(!state_owner || !is_valid_index(state_capital))
+			return money_qnty_type(0);
+
+		if(!ws.w.nation_s.nations.is_valid_index(state_owner) || !ws.w.nation_s.states.is_valid_index(si))
+			return money_qnty_type(0);
+
+
+		auto this_strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
+		economy::money_qnty_type ln_factor;
+		economy::money_qnty_type ev_factor;
+		economy::money_qnty_type lx_factor;
+
+		if(this_strata == population::pop_type::strata_poor) {
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::poor_life_needs>(state_capital);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_everyday_needs>(state_capital);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_luxury_needs>(state_capital);
+		} else if(this_strata == population::pop_type::strata_middle) {
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_life_needs>(state_capital);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_everyday_needs>(state_capital);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_luxury_needs>(state_capital);
+		} else { //if(this_strata == population::pop_type::strata_rich) {
+			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_life_needs>(state_capital);
+			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_everyday_needs>(state_capital);
+			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_luxury_needs>(state_capital);
+		}
+
+		money_qnty_type sum = 0;
+		auto enabled_goods = ws.w.nation_s.active_goods.get_row(state_owner);
+		auto ln_goods = ws.s.population_m.life_needs.get_row(ptype);
+		auto en_goods = ws.s.population_m.everyday_needs.get_row(ptype);
+		auto lx_goods = ws.s.population_m.luxury_needs.get_row(ptype);
+		auto state_prices = state_current_prices(ws, si);
+
+		for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
+			auto gt = goods_tag(goods_tag::value_base_t(i));
+			if(bit_vector_test(enabled_goods, gt)) {
+				sum += ln_factor * state_prices[gt] * ln_goods[gt];
+				sum += en_factor * state_prices[gt] * en_goods[gt];
+				sum += lx_factor * state_prices[gt] * lx_goods[gt];
+			}
+		}
+
+		return sum;
+	}
+
 	money_qnty_type get_life_needs_cost(world_state const& ws, population::pop_type_tag type, nations::country_tag n) {
 		auto ncap = ws.w.nation_s.nations.get<nation::current_capital>(n);
 		if(!is_valid_index(ncap))
