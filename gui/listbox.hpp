@@ -41,21 +41,21 @@ template<typename BASE, typename ELEMENT, typename value_type, int32_t left_expa
 void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_data(gui_object_tag, world_state& ws) {
 	if constexpr(ui::detail::has_populate_list<BASE, discrete_listbox<BASE, ELEMENT, value_type, left_expand>&, world_state&>) {
 		BASE::populate_list(*this, ws);
-
-		update_scroll_position(ws.w.gui_m);
-
-		for(uint32_t i = 0; i < display_list.size(); ++i) {
-			if(i + offset < values_list.size() && bool(values_list[i + offset])) {
-				display_list[i].set_value(*(values_list[i + offset]));
-				ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
-			} else {
-				ui::hide(*(display_list[i].associated_object));
-			}
-		}
-
-		ws.w.gui_m.tooltip = gui_object_tag();
-		ws.w.gui_m.on_mouse_move(ws, ui::mouse_move{ ws.w.gui_m.last_mouse_move.x, ws.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
 	}
+
+	update_scroll_position(ws.w.gui_m);
+
+	for(uint32_t i = 0; i < display_list.size(); ++i) {
+		if(i + offset < values_list.size() && bool(values_list[i + offset])) {
+			display_list[i].set_value(*(values_list[i + offset]));
+			ui::make_visible_and_update(ws.w.gui_m, *(display_list[i].associated_object));
+		} else {
+			ui::hide(*(display_list[i].associated_object));
+		}
+	}
+
+	ws.w.gui_m.tooltip = gui_object_tag();
+	ws.w.gui_m.on_mouse_move(ws, ui::mouse_move{ ws.w.gui_m.last_mouse_move.x, ws.w.gui_m.last_mouse_move.y, key_modifiers::modifiers_none });
 }
 
 namespace ui {
@@ -242,7 +242,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::update_scroll
 	if(!element_def || !sb.associated_object)
 		return;
 
-	const int32_t extra = std::max(0, static_cast<int32_t>(int32_t(values_list.size()) - associated_object->size.y / element_def->size.y));
+	const int32_t extra = std::max(0, int32_t(values_list.size()) - int32_t(display_list.size()));
 	sb.set_range(manager, 0, extra);
 
 	if(extra > 0)
@@ -339,7 +339,7 @@ void ui::discrete_listbox<BASE, ELEMENT, value_type, left_expand>::create_sub_el
 		ws.s.gui_m.ui_definitions.standardlistbox_slider,
 		self,
 		ui::xy_pair{ static_cast<int16_t>(associated_object->size.x - 16), 0i16 },
-		associated_object->size.y,
+		element_def->size.y * element_count,
 		sb);
 
 	for(uint32_t i = 0; i < element_count; ++i) {

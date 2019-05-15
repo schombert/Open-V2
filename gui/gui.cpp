@@ -609,7 +609,7 @@ ui::xy_pair ui::advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manage
 		int16_t(cursor.y + static_cast<int32_t>(this_font.line_height(ui::detail::font_size_to_render_size(this_font, static_cast<int32_t>(fmt.font_size))) + 0.5f)) };
 }
 
-xy_pair advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, ui::line_manager& lm) {
+ui::xy_pair ui::advance_cursor_to_newline(ui::xy_pair cursor, gui_static& manager, text_format const& fmt, ui::line_manager& lm) {
 	lm.finish_current_line();
 	return advance_cursor_to_newline(cursor, manager, fmt);
 }
@@ -638,9 +638,14 @@ ui::xy_pair ui::display_colored_percentage(ui::xy_pair cursor_in, float value, u
 
 ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float value, ui::text_format const & fmt, world_state & ws, ui::tagged_gui_object container, ui::unlimited_line_manager & lm) {
 	if(value < 1.0f) {
-		return ui::add_text(cursor_in, text_data::fp_two_places{ value },
-			ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
-			ws, container, lm);
+		if(value < 0.01)
+			return ui::add_text(cursor_in, text_data::fp_three_places{ value },
+				ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
+				ws, container, lm);
+		else
+			return ui::add_text(cursor_in, text_data::fp_two_places{ value },
+				ui::text_format{ ui::text_color::red, fmt.font_handle, fmt.font_size },
+				ws, container, lm);
 	} else {
 		return ui::add_text(cursor_in, text_data::fp_two_places{ value },
 			ui::text_format{ ui::text_color::green, fmt.font_handle, fmt.font_size },
@@ -648,7 +653,7 @@ ui::xy_pair ui::display_colored_factor(ui::xy_pair cursor_in, float value, ui::t
 	}
 }
 
-ui::xy_pair display_colored_additive_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm, bool invert_color) {
+ui::xy_pair ui::display_colored_additive_factor(ui::xy_pair cursor_in, float v, ui::text_format const& fmt, world_state& ws, ui::tagged_gui_object container, ui::unlimited_line_manager& lm, bool invert_color) {
 	auto const new_fmt = ui::text_format{ (v < 0) == (invert_color == false) ? ui::text_color::red : ui::text_color::green, fmt.font_handle, fmt.font_size };
 	if(v >= 0) {
 		char16_t local_buffer[16] = { u'+', 0 };
@@ -1457,6 +1462,19 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 
 				obj.object.associated_behavior->create_tooltip(obj.id, static_manager, m, temp_holder);
 				
+				ui::shrink_to_children(static_manager.w.gui_m, temp_holder, 16);
+
+				if(temp_holder.object.size.y > static_manager.w.gui_m.root.size.y) {
+					auto const new_y_size = temp_holder.object.size.y / 2;
+					auto const new_x_column = temp_holder.object.size.x;
+					ui::for_each_child(static_manager.w.gui_m, temp_holder, [new_y_size, new_x_column](tagged_gui_object o) {
+						if(o.object.position.y > new_y_size) {
+							o.object.position.y -= int16_t(new_y_size);
+							o.object.position.x += int16_t(new_x_column);
+						}
+					});
+				}
+
 				ui::replace_children(static_manager.w.gui_m, ui::tagged_gui_object{ static_manager.w.gui_m.tooltip_window, gui_object_tag(3) }, temp_holder);
 				static_manager.w.gui_m.destroy(temp_holder);
 				

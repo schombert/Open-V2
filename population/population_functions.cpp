@@ -491,7 +491,7 @@ namespace population {
 			});
 
 			ve::store(state_v, change_out,
-				ver::min(1.0f, (((clergy_amount / total_pop) - ws.s.modifiers_m.global_defines.base_clergy_for_literacy)
+				ve::min(1.0f, (((clergy_amount / total_pop) - ws.s.modifiers_m.global_defines.base_clergy_for_literacy)
 					* (1.0f / (ws.s.modifiers_m.global_defines.max_clergy_for_literacy - ws.s.modifiers_m.global_defines.base_clergy_for_literacy))))
 				* ((gath_education_efficiency_modifier + 1.0f)
 					* (gath_tech_education_efficiency_modifier + 1.0f))
@@ -502,13 +502,13 @@ namespace population {
 	};
 
 	float project_literacy_change(world_state const& ws, nations::state_tag state_v) {
-		auto owners = ve::load(state_v, w.w.nation_s.states.get_row<state::owner>());
+		auto owners = ve::load(state_v, ws.w.nation_s.states.get_row<state::owner>());
 
-		auto gath_education_efficiency_modifier = ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::education_efficiency_modifier>(0));
-		auto gath_tech_education_efficiency_modifier = ve::load(owners, w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::education_efficiency>(0));
-		auto gath_education_spending = ve::load(owners, w.w.nation_s.nations.get_row<nation::f_education_spending>());
+		auto gath_education_efficiency_modifier = ve::load(owners, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::education_efficiency_modifier>(0));
+		auto gath_tech_education_efficiency_modifier = ve::load(owners, ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::education_efficiency>(0));
+		auto gath_education_spending = ve::load(owners, ws.w.nation_s.nations.get_row<nation::f_education_spending>());
 
-		auto total_pop = ve::load(state_v, w.w.nation_s.states.get_row<state::total_population>());
+		auto total_pop = ve::load(state_v, ws.w.nation_s.states.get_row<state::total_population>());
 
 		auto clergy_amount = ws.w.nation_s.state_demographics.get(state_v, population::to_demo_tag(ws, ws.s.population_m.clergy));
 
@@ -725,16 +725,16 @@ namespace population {
 	float project_militancy_change(world_state const& ws, pop_tag pop_v) {
 		auto const province_v = ws.w.population_s.pops.get<pop::location>(pop_v);
 
-		auto owner_indices = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::owner>());
-		auto state_indices = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
+		auto owner_indices = ve::load(province_v, ws.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto state_indices = ve::load(province_v, ws.w.province_s.province_state_container.get_row<province_state::state_instance>());
 
-		auto prov_mil_mod = ve::load(province_v, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(0));
+		auto prov_mil_mod = ve::load(province_v, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_militancy_modifier>(0));
 
-		auto owner_mil_mod = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(0));
-		auto owner_war_ex = ve::load(owner_indices, w.w.nation_s.nations.get_row<nation::war_exhaustion>());
-		auto owner_non_accepted = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(0));
-		auto owner_separatism = ve::load(owner_indices, w.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(0));
-		auto owner_core_pop_mil = ve::load(owner_indices, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(0));
+		auto owner_mil_mod = ve::load(owner_indices, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_militancy_modifier>(0));
+		auto owner_war_ex = ve::load(owner_indices, ws.w.nation_s.nations.get_row<nation::war_exhaustion>());
+		auto owner_non_accepted = ve::load(owner_indices, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_militancy_modifier>(0));
+		auto owner_separatism = ve::load(owner_indices, ws.w.nation_s.tech_attributes.get_row<technologies::tech_offset::seperatism>(0));
+		auto owner_core_pop_mil = ve::load(owner_indices, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_militancy_modifier>(0));
 
 		bool core_mask = nations::is_colonial_or_protectorate(ws, state_indices);
 			
@@ -742,7 +742,7 @@ namespace population {
 			(owner_separatism + 1.0f) * ws.s.modifiers_m.global_defines.mil_non_accepted
 			+ owner_non_accepted;
 
-		auto satisfaction = ve::load(pop_v, w.w.population_s.pops.get_row<pop::needs_satisfaction>());
+		auto satisfaction = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::needs_satisfaction>());
 
 		auto satisfaction_factor =
 			ve::select(satisfaction < 0.5f,
@@ -774,7 +774,7 @@ namespace population {
 				),
 				0.0f);
 
-		auto non_accepted_factor = ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_accepted>()),
+		auto non_accepted_factor = ve::select(ve::load(pop_v, ws.w.population_s.pops.get_row<pop::is_accepted>()),
 			0.0f,
 			prov_non_accepted_modifier);
 
@@ -789,8 +789,8 @@ namespace population {
 			+ non_accepted_factor
 			+ pop_c_support * ws.s.modifiers_m.global_defines.mil_ideology
 			+ pop_rp_support * ws.s.modifiers_m.global_defines.mil_ruling_party
-			+ ve::load(pop_v, w.w.population_s.pops.get_row<pop::political_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
-			+ ve::load(pop_v, w.w.population_s.pops.get_row<pop::social_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
+			+ ve::load(pop_v, ws.w.population_s.pops.get_row<pop::political_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
+			+ ve::load(pop_v, ws.w.population_s.pops.get_row<pop::social_interest>()) * ws.s.modifiers_m.global_defines.mil_require_reform
 			+ owner_war_ex * ws.s.modifiers_m.global_defines.mil_war_exhaustion
 			+ owner_mil_mod
 			+ prov_mil_mod
@@ -943,37 +943,37 @@ namespace population {
 	float project_consciousness_change(world_state const& ws, pop_tag pop_v) {
 		auto owners = get_pop_owner(ws, pop_v);
 		auto province_v = ws.w.population_s.pops.get<pop::location>(pop_v);
-		auto states = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
+		auto states = ve::load(province_v, ws.w.province_s.province_state_container.get_row<province_state::state_instance>());
 		auto core_mask = nations::is_colonial_or_protectorate(ws, states);
 
 		auto colonial_multiplier = ve::select(core_mask, 1.0f, ws.s.modifiers_m.global_defines.con_colonial_factor);
 
 		auto const literacy_factor = 
 			colonial_multiplier
-			* (1.0f + ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(0)))
-			* ve::load(owners, w.w.nation_s.nations.get_row<nation::plurality>())
+			* (1.0f + ve::load(owners, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::literacy_con_impact>(0)))
+			* ve::load(owners, ws.w.nation_s.nations.get_row<nation::plurality>())
 			* ws.s.modifiers_m.global_defines.con_literacy;
 
 		auto clergy_populations = ws.w.province_s.province_demographics.get(province_v, to_demo_tag(ws, ws.s.population_m.clergy));
-		auto const prov_pop = ve::load(province_v, w.w.province_s.province_state_container.get_row<province_state::total_population>());
+		auto const prov_pop = ve::load(province_v, ws.w.province_s.province_state_container.get_row<province_state::total_population>());
 		auto const clergy_factor = colonial_multiplier * clergy_populations / (prov_pop > 0.0f ? prov_pop : 1.0f);
 
-		auto lux_satisfaction = ve::load(pop_v, pop_satisfaction) - 2.0f;
+		auto lux_satisfaction = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::needs_satisfaction>()) - 2.0f;
 		auto base_sum =
 			clergy_factor *
-				ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_poor>()), ws.s.modifiers_m.global_defines.con_poor_clergy, ws.s.modifiers_m.global_defines.con_midrich_clergy),
-			+ ve::load(province_v, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_consciousness_modifier>(0))
-			+ ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_consciousness_modifier>(0))
+				ve::select(ve::load(pop_v, ws.w.population_s.pops.get_row<pop::is_poor>()), ws.s.modifiers_m.global_defines.con_poor_clergy, ws.s.modifiers_m.global_defines.con_midrich_clergy)
+			+ ve::load(province_v, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::pop_consciousness_modifier>(0))
+			+ ve::load(owners, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_pop_consciousness_modifier>(0))
 			+ ve::select(core_mask,
-				ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_consciousness_modifier>(0)),
+				ve::load(owners, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::core_pop_consciousness_modifier>(0)),
 				0.0f)
-			+ literacy_factor * ve::load(pop_v, w.w.population_s.pops.get_row<pop::literacy>())
+			+ literacy_factor * ve::load(pop_v, ws.w.population_s.pops.get_row<pop::literacy>())
 			+ ve::select(lux_satisfaction > 0.0f,
 					lux_satisfaction * ws.s.modifiers_m.global_defines.con_luxury_goods,
 					0.0f)
-			+ ve::select(ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_accepted>()),
+			+ ve::select(ve::load(pop_v, ws.w.population_s.pops.get_row<pop::is_accepted>()),
 				0.0f,
-				ve::load(owners, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_consciousness_modifier>(0)))
+				ve::load(owners, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::non_accepted_pop_consciousness_modifier>(0)))
 			;
 
 		return base_sum * 0.1f;
@@ -1061,20 +1061,20 @@ namespace population {
 	};
 
 	float project_promotion_amount(world_state const& ws, pop_tag pop_v) {
-		auto loc = ve::load(pop_v, w.w.population_s.pops.get_row<pop::location>());
-		auto sz = ve::load(pop_v, w.w.population_s.pops.get_row<pop::size>());
+		auto loc = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::location>());
+		auto sz = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::size>());
 
-		auto prov_states = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::state_instance>());
-		auto prov_nations = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto prov_states = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::state_instance>());
+		auto prov_nations = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::owner>());
 
-		auto state_focus = ve::load(prov_states, w.w.nation_s.states.get_row<state::owner_national_focus>());
-		auto focus_target = (ve::load(state_focus, w.s.modifiers_m.focus_to_pop_types.view()) == ve::load(pop_v, w.w.population_s.pops.get_row<pop::type>()));
+		auto state_focus = ve::load(prov_states, ws.w.nation_s.states.get_row<state::owner_national_focus>());
+		auto focus_target = (ve::load(state_focus, ws.s.modifiers_m.focus_to_pop_types.view()) == ve::load(pop_v, ws.w.population_s.pops.get_row<pop::type>()));
 
 		auto p_trigger_amount = modifiers::test_additive_factor(ws.s.population_m.promotion_chance, ws, pop_v, pop_v);
 		auto d_trigger_amount = modifiers::test_additive_factor(ws.s.population_m.demotion_chance, ws, pop_v, pop_v);
 
 		auto p_result =
-			ve::max((ve::load(prov_nations, w.w.nation_s.nations.get_row<nation::national_administrative_efficiency>()) * sz)
+			ve::max((ve::load(prov_nations, ws.w.nation_s.nations.get_row<nation::national_administrative_efficiency>()) * sz)
 				* (p_trigger_amount * ws.s.modifiers_m.global_defines.promotion_scale), 0.0f);
 
 		auto d_result =
@@ -1165,33 +1165,33 @@ namespace population {
 	};
 
 	float project_emigration_amount(world_state const& ws, pop_tag pop_v) {
-		auto loc = ve::load(pop_v, w.w.population_s.pops.get_row<pop::location>());
-		auto sz = ve::load(pop_v, w.w.population_s.pops.get_row<pop::size>());
+		auto loc = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::location>());
+		auto sz = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::size>());
 
-		auto mod = ve::load(loc, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_push>(0));
-		auto owner = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto mod = ve::load(loc, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_push>(0));
+		auto owner = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::owner>());
 
 		auto trigger_amount_emigration = modifiers::test_additive_factor(
 			ws.s.population_m.emigration_chance, ws, pop_v, pop_v);
 
 		auto owner_civilization = ve::load(owner, ws.w.nation_s.nations.get_row<nation::is_civilized>());
-		auto province_colonial = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::is_non_state>());
+		auto province_colonial = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::is_non_state>());
 		auto mod_sq = ve::multiply_and_add(mod, mod + 2.0f, 1.0f);
 
-		return ve::select(owner_civilization & ~province_colonial, (sz * mod_sq) * (trigger_amount_emigration * immigration_scale), 0.0f);
+		return ve::select(owner_civilization && !province_colonial, (sz * mod_sq) * (trigger_amount_emigration * ws.s.modifiers_m.global_defines.immigration_scale), 0.0f);
 	}
 	float project_migration_amount(world_state const& ws, pop_tag pop_v) {
-		auto loc = ve::load(pop_v, w.w.population_s.pops.get_row<pop::location>());
-		auto sz = ve::load(pop_v, w.w.population_s.pops.get_row<pop::size>());
+		auto loc = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::location>());
+		auto sz = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::size>());
 
-		auto mod = ve::load(loc, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_push>(0));
-		auto owner = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto mod = ve::load(loc, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::immigrant_push>(0));
+		auto owner = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::owner>());
 
 		auto trigger_amount_local = modifiers::test_additive_factor(
 			ws.s.population_m.migration_chance, ws, pop_v, pop_v);
 
-		auto province_colonial = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::is_non_state>());
-		return ve::select(province_colonial, 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale));
+		auto province_colonial = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::is_non_state>());
+		return ve::select(province_colonial, 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * ws.s.modifiers_m.global_defines.immigration_scale));
 	}
 
 	void calculate_migration_qnty(world_state& ws) {
@@ -1263,26 +1263,24 @@ namespace population {
 	};
 
 	float project_assimilation_amount(world_state const& ws, pop_tag pop_v) {
-		auto loc = ve::load(pop_v, w.w.population_s.pops.get_row<pop::location>());
-		auto sz = ve::load(pop_v, w.w.population_s.pops.get_row<pop::size>());
-		auto accepted_culture = ve::load(pop_v, w.w.population_s.pops.get_row<pop::is_accepted>());
+		auto loc = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::location>());
+		auto sz = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::size>());
+		auto accepted_culture = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::is_accepted>());
 
-		auto prov_mod = ve::load(loc, w.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::assimilation_rate>(0));
-		auto owner = ve::load(loc, w.w.province_s.province_state_container.get_row<province_state::owner>());
-		auto national_mod = ve::load(owner, w.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_assimilation_rate>(0));
-		auto is_nat_religion = ve::load(pop_v, w.w.population_s.pops.get_row<pop::religion>()) == ve::load(owner, ws.w.nation_s.nations.get_row<nation::national_religion>());
+		auto prov_mod = ve::load(loc, ws.w.province_s.modifier_values.get_row<modifiers::provincial_offsets::assimilation_rate>(0));
+		auto owner = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::owner>());
+		auto national_mod = ve::load(owner, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_assimilation_rate>(0));
+		auto is_nat_religion = ve::load(pop_v, ws.w.population_s.pops.get_row<pop::religion>()) == ve::load(owner, ws.w.nation_s.nations.get_row<nation::national_religion>());
 
 		auto trigger_amount_religious = modifiers::test_additive_factor(
 			ws.s.population_m.conversion_chance, ws, pop_v, pop_v);
 		auto trigger_amount_cultural = modifiers::test_additive_factor(
 			ws.s.population_m.assimilation_chance, ws, pop_v, pop_v);
 
-		auto result = ve::max(sz * ve::select(accepted_culture,
-			ve::select(is_nat_religion, 0.0f, w.s.modifiers_m.global_defines.conversion_scale * trigger_amount_religious),
-			ve::multiply_and_add(prov_mod, w.s.modifiers_m.global_defines.assimilation_scale, w.s.modifiers_m.global_defines.assimilation_scale) *
+		return ve::max(sz * ve::select(accepted_culture,
+			ve::select(is_nat_religion, 0.0f, ws.s.modifiers_m.global_defines.conversion_scale * trigger_amount_religious),
+			ve::multiply_and_add(prov_mod, ws.s.modifiers_m.global_defines.assimilation_scale, ws.s.modifiers_m.global_defines.assimilation_scale) *
 			ve::multiply_and_add(national_mod, trigger_amount_cultural, trigger_amount_cultural)), 0.0f);
-
-		return assimilation_amount;
 	}
 
 	void calculate_assimilation_qnty(world_state& ws) {

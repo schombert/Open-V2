@@ -549,6 +549,10 @@ namespace economy {
 
 	constexpr float pop_needs_divisor = 200'000.0f;
 	constexpr money_qnty_type savings_rate = money_qnty_type(0.25);
+	
+	float size_to_goods_multiplier(float sz) {
+		return sz / pop_needs_divisor;
+	}
 
 	class state_pops_summary {
 	public:
@@ -737,20 +741,20 @@ namespace economy {
 
 		auto this_strata = ws.s.population_m.pop_types[ptype].flags & population::pop_type::strata_mask;
 		economy::money_qnty_type ln_factor;
-		economy::money_qnty_type ev_factor;
+		economy::money_qnty_type en_factor;
 		economy::money_qnty_type lx_factor;
 
 		if(this_strata == population::pop_type::strata_poor) {
 			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_life_needs>(state_owner) + ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::poor_life_needs>(state_capital);
-			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_everyday_needs>(state_capital);
+			en_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_everyday_needs>(state_capital);
 			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::poor_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::poor_luxury_needs>(state_capital);
 		} else if(this_strata == population::pop_type::strata_middle) {
 			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_life_needs>(state_capital);
-			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_everyday_needs>(state_capital);
+			en_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_everyday_needs>(state_capital);
 			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::middle_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::middle_luxury_needs>(state_capital);
 		} else { //if(this_strata == population::pop_type::strata_rich) {
 			ln_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_life_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_life_needs>(state_capital);
-			ev_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_everyday_needs>(state_capital);
+			en_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_everyday_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_everyday_needs>(state_capital);
 			lx_factor = economy::money_qnty_type(1) + ws.w.nation_s.modifier_values.get<modifiers::national_offsets::rich_luxury_needs>(state_owner) + ws.w.province_s.modifier_values.get <modifiers::provincial_offsets::rich_luxury_needs>(state_capital);
 		}
 

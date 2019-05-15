@@ -80,7 +80,7 @@ void serialization::serializer<population::population_state>::deserialize_object
 		if(strata == population::pop_type::strata_poor) {
 			obj.pops.set<pop::is_poor>(p, true);
 			obj.pops.set<pop::is_middle>(p, false);
-		} else if(strata == population::pop_type::strata_poor) {
+		} else if(strata == population::pop_type::strata_middle) {
 			obj.pops.set<pop::is_poor>(p, false);
 			obj.pops.set<pop::is_middle>(p, true);
 		} else {

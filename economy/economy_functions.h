@@ -82,6 +82,7 @@ namespace economy {
 	money_qnty_type get_life_needs_cost(world_state const& ws, nations::state_tag si, population::pop_type_tag ptype);
 	money_qnty_type get_all_needs_cost(world_state const& ws, nations::state_tag si, population::pop_type_tag ptype);
 	artisan_type_tag get_profitable_artisan(world_state const& ws, provinces::province_tag ps);
+	float size_to_goods_multiplier(float sz);
 
 	void init_artisan_producation(world_state& ws);
 	void set_initial_money(world_state& ws);

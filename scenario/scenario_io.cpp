@@ -805,7 +805,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::no_promotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_PROMOTION");
 		s.fixed_ui_text[fixed_ui::no_demotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_DEMOTION");
 		s.fixed_ui_text[fixed_ui::no_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_MIGRATION");
-		s.fixed_ui_text[fixed_ui::no_emmigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_EMIGRATION");
+		s.fixed_ui_text[fixed_ui::no_emigration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_EMIGRATION");
 		s.fixed_ui_text[fixed_ui::no_colonial_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_CMIGRATION");
 		s.fixed_ui_text[fixed_ui::projected_promotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_PROMOTION");
 		s.fixed_ui_text[fixed_ui::projected_demotion] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_DEMOTION");

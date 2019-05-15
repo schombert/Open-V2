@@ -559,7 +559,7 @@ namespace triggers {
 	struct life_needs_trigger {
 		static std::optional<uint16_t> produce_code(const trigger_scope_state& scope, association_type a, const token_and_type&) {
 			if (scope.main_slot == trigger_slot_contents::pop)
-				return uint16_t(trigger_codes::war_score | association_to_trigger_code(a));
+				return uint16_t(trigger_codes::life_needs | association_to_trigger_code(a));
 			else
 				return std::optional<uint16_t>();
 		}

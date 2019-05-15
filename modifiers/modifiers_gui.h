@@ -24,10 +24,14 @@ namespace modifiers {
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, uint32_t base_text = scenario::fixed_ui::chance);
 	ui::xy_pair make_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, uint32_t base_text = scenario::fixed_ui::chance);
+	ui::xy_pair make_abs_value_additive_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, bool final_value_is_additive = true, uint32_t base_text = scenario::fixed_ui::factor);
 	ui::xy_pair make_multiplicative_factor_explanation_in_days(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	ui::xy_pair make_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 	ui::xy_pair make_multiplicative_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, bool invert_colors);
+	ui::xy_pair make_abs_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
 }

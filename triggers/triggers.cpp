@@ -1359,16 +1359,16 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_culture_this_state) {
 		auto owner = to_value<state::owner>(ws.w.nation_s.states, to_state(this_slot));
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter());
 	}
 	TRIGGER_FUNCTION(tf_culture_this_pop) {
 		auto loc = to_value<pop::location>(ws.w.population_s.pops, to_pop(this_slot));
 		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, loc);
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter());
 	}
 	TRIGGER_FUNCTION(tf_culture_this_province) {
 		auto owner = to_value<province_state::owner>(ws.w.province_s.province_state_container, to_prov(this_slot));
-		return compare_to_true(tval[0], is_valid_index(owner) & tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter()));
+		return tf_culture_this_nation<primary_type, value_to_type<decltype(owner)>, single_type>(tval, ws, primary_slot, owner, const_parameter());
 	}
 	TRIGGER_FUNCTION(tf_culture_group_nation) {
 		return compare_values_eq(tval[0], nations::national_culture_group(ws, to_nation(primary_slot)), trigger_payload(tval[2]).culture_group);

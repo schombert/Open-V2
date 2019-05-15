@@ -7,6 +7,7 @@
 #include "simple_mpl\\simple_mpl.hpp"
 #include "gui\\gui.hpp"
 #include "governments\governments_functions.h"
+#include "economy\economy_functions.h"
 
 namespace population {
 	class pop_details_window_base : public ui::draggable_region {
@@ -307,19 +308,19 @@ namespace population {
 	class pop_details_rebel_faction_icon {
 	public:
 		template<typename W>
-		void windowed_update(ui::dynamic_icon<pop_details_rebel_faction_icon>&, W& w, world_state& ws);
+		void windowed_update(ui::dynamic_icon<pop_details_rebel_faction_icon>& self, W& w, world_state& ws);
 	};
 
 	class pop_details_social_movement_icon {
 	public:
 		template<typename W>
-		void windowed_update(ui::dynamic_icon<pop_details_social_movement_icon>&, W& w, world_state& ws);
+		void windowed_update(ui::dynamic_icon<pop_details_social_movement_icon>& self, W& w, world_state& ws);
 	};
 
 	class pop_details_political_movement_icon {
 	public:
 		template<typename W>
-		void windowed_update(ui::dynamic_icon<pop_details_political_movement_icon>&, W& w, world_state& ws);
+		void windowed_update(ui::dynamic_icon<pop_details_political_movement_icon>& self, W& w, world_state& ws);
 	};
 
 	class pop_details_political_seperatist_flag {
@@ -1256,7 +1257,7 @@ namespace population {
 			ui::create_static_element(
 				ws,
 				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["pop_details_win"]),
-				ui::tagged_gui_object{ ws.w.gui_m.gui_objects.at(associated_object->parent), associated_object->parent },
+				ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) },
 				details_w);
 		}
 		{
@@ -2172,6 +2173,25 @@ namespace population {
 	template<typename W>
 	void pop_details_window_base::on_create(W & w, world_state &) {
 		associated_object->size = ui::xy_pair{684i16, 464i16};
+
+		{
+			auto& bar = w.template get<CT_STRING("lifeneed_progress")>();
+			bar.associated_object->position += ui::xy_pair{ -16i16, -7i16 };
+		}
+		{
+			auto& bar = w.template get<CT_STRING("eveneed_progress")>();
+			bar.associated_object->position += ui::xy_pair{ -18i16, -7i16 };
+			bar.associated_object->flags |= ui::gui_object::rotation_upright_vertical_flipped;
+		}
+		{
+			auto& bar = w.template get<CT_STRING("luxneed_progress")>();
+			bar.associated_object->position += ui::xy_pair{ -15i16, -4i16 };
+		}
+		{
+			auto& bar = w.template get<CT_STRING("pop_unemployment_bar")>();
+			bar.associated_object->position += ui::xy_pair{ -15i16, -13i16 };
+		}
+
 		ui::hide(*associated_object);
 	}
 	template<typename W>
@@ -2192,7 +2212,7 @@ namespace population {
 	}
 	template<typename W>
 	void pop_details_production_icon::windowed_update(ui::dynamic_icon<pop_details_production_icon>& self, W & w, world_state & ws) {
-		if(provinces::province_tag loc = ws.w.population_s.pops.get<pop::location>(w.tag); is_valid_index(loc)) {
+		if(provinces::province_tag loc = ws.w.population_s.pops.get<pop::location>(w.pop_id); is_valid_index(loc)) {
 			auto type = ws.w.population_s.pops.get<pop::type>(w.pop_id);
 			if(type == ws.s.population_m.artisan) {
 				if(auto p = ws.w.province_s.province_state_container.get<province_state::artisan_production>(loc); is_valid_index(p)) {
@@ -2225,14 +2245,14 @@ namespace population {
 	template<typename W>
 	void pop_details_growth_icon::windowed_update(ui::dynamic_icon<pop_details_growth_icon>& self, W & w, world_state & ws) {
 		pop_id = w.pop_id;
-		auto total_growth = int32_t(total_size_change(ws, w.tag));
+		auto total_growth = int32_t(total_size_change(ws, pop_id));
 
 		if(total_growth > 0)
-			ico.set_frame(ws.w.gui_m, 0ui32);
+			self.set_frame(ws.w.gui_m, 0ui32);
 		else if(total_growth == 0)
-			ico.set_frame(ws.w.gui_m, 1ui32);
+			self.set_frame(ws.w.gui_m, 1ui32);
 		else
-			ico.set_frame(ws.w.gui_m, 2ui32);
+			self.set_frame(ws.w.gui_m, 2ui32);
 	}
 	template<typename window_type>
 	void pop_details_size::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -2241,7 +2261,7 @@ namespace population {
 	template<typename window_type>
 	void pop_details_culture_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		pop_id = win.pop_id;
-		if(auto const c = ws.w.population_s.pops.get<pop_culture>(pop_id); c)
+		if(auto const c = ws.w.population_s.pops.get<pop::culture>(pop_id); c)
 			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.culture_container[c].name, fmt, ws, box, lm);
 	}
 	template<typename window_type>
@@ -2254,14 +2274,14 @@ namespace population {
 	void pop_details_religion_icon::windowed_update(ui::dynamic_icon<pop_details_religion_icon>& self, W & w, world_state & ws) {
 		auto const religion = ws.w.population_s.pops.get<pop::religion>(w.pop_id);
 		if(is_valid_index(religion))
-			ico.set_frame(ws.w.gui_m, uint32_t(ws.s.culture_m.religions[religion].icon) - 1ui32);
+			self.set_frame(ws.w.gui_m, uint32_t(ws.s.culture_m.religions[religion].icon) - 1ui32);
 	}
 	template<typename window_type>
 	void pop_details_religion_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		pop_id = w.pop_id;
-		auto const religion = ws.w.population_s.pops.get<pop::religion>(w.pop_id);
+		pop_id = win.pop_id;
+		auto const religion = ws.w.population_s.pops.get<pop::religion>(win.pop_id);
 		if(is_valid_index(religion))
-			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.religions[religion].name, fmt, ws, box, lm));
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.culture_m.religions[religion].name, fmt, ws, box, lm);
 	}
 	template<typename window_type>
 	void pop_details_promotion_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -2283,13 +2303,13 @@ namespace population {
 	void pop_details_internal_migration_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		pop_id = win.pop_id;
 		auto proj_value = project_migration_amount(ws, pop_id);
-		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ proj_value }, fmt, ws, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ int32_t(proj_value) }, fmt, ws, box, lm);
 	}
 	template<typename window_type>
 	void pop_details_external_migration_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		pop_id = win.pop_id;
 		auto proj_value = project_emigration_amount(ws, pop_id);
-		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ proj_value }, fmt, ws, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ int32_t(proj_value) }, fmt, ws, box, lm);
 	}
 
 	template<typename window_type>
@@ -2305,7 +2325,7 @@ namespace population {
 	template<typename window_type>
 	void pop_details_literacy_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		pop_id = win.pop_id;
-		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent_fp_one_place{ get_literacy_direct(ws, win.pop_id)}, fmt, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent_fp_one_place{ get_literacy_direct(ws, win.pop_id)}, fmt, ws, box, lm);
 	}
 	template<typename window_type>
 	void pop_details_unemployment_bar::windowed_update(ui::progress_bar<pop_details_unemployment_bar>& bar, window_type & w, world_state & ws) {
@@ -2344,20 +2364,23 @@ namespace population {
 		auto ptype = ws.w.population_s.pops.get<pop::type>(win.pop_id);
 		auto prov = ws.w.population_s.pops.get<pop::location>(win.pop_id);
 		auto state = ws.w.province_s.province_state_container.get<province_state::state_instance>(prov);
-		ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ economy::get_all_needs_cost(ws, state, ptype) }, fmt, ws, box, lm);
+		ui::add_text(ui::xy_pair{ 0,0 },
+			text_data::currency{ economy::get_all_needs_cost(ws, state, ptype)
+			* economy::size_to_goods_multiplier(ws.w.population_s.pops.get<pop::size>(win.pop_id))},
+			fmt, ws, box, lm);
 	}
 	template<typename window_type>
-	void details_lifeneed_progress::windowed_update(ui::progress_bar<details_lifeneed_progress>& bar, window_type &, world_state & ws) {
+	void details_lifeneed_progress::windowed_update(ui::progress_bar<details_lifeneed_progress>& bar, window_type &w, world_state & ws) {
 		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
 		bar.set_fraction(std::clamp(needs - 0.0f, 0.0f, 1.0f));
 	}
 	template<typename window_type>
-	void details_eveneed_progress::windowed_update(ui::progress_bar<details_eveneed_progress>& bar, window_type &, world_state & ws) {
+	void details_eveneed_progress::windowed_update(ui::progress_bar<details_eveneed_progress>& bar, window_type &w, world_state & ws) {
 		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
 		bar.set_fraction(std::clamp(needs - 1.0f, 0.0f, 1.0f));
 	}
 	template<typename window_type>
-	void details_luxneed_progress::windowed_update(ui::progress_bar<details_luxneed_progress>& bar, window_type &, world_state & ws) {
+	void details_luxneed_progress::windowed_update(ui::progress_bar<details_luxneed_progress>& bar, window_type &w, world_state & ws) {
 		float needs = ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id);
 		bar.set_fraction(std::clamp(needs - 2.0f, 0.0f, 1.0f));
 	}
@@ -2372,5 +2395,88 @@ namespace population {
 	template<typename W>
 	void details_luxneed_progress_overlay::windowed_update(ui::dynamic_icon<details_luxneed_progress_overlay>&, W & w, world_state & ws) {
 		value = std::clamp(ws.w.population_s.pops.get<pop::needs_satisfaction>(w.pop_id) - 2.0f, 0.0f, 1.0f);
+	}
+	template<typename W>
+	void need_item_good::windowed_update(ui::dynamic_icon<need_item_good>& self, W & w, world_state & ws) {
+		tag = w.value.tag;
+		self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[tag].icon);
+	}
+	template<typename window_type>
+	void need_item_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ win.value.amount }, fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void pop_details_rebel_window_base::windowed_update(window_type & win, world_state & ws) {
+		pop_id = win.pop_id;
+	}
+	template<typename lb_type, typename window_type>
+	void pop_details_life_need_lb::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<need_amount_pair, 32> data;
+
+		auto const poptype = ws.w.population_s.pops.get<pop::type>(win.pop_id);
+		auto const popsize = ws.w.population_s.pops.get<pop::size>(win.pop_id);
+		auto const popnation = get_pop_owner(ws, win.pop_id);
+
+		ws.s.economy_m.for_each_good([&data, poptype, popsize, popnation, &ws](economy::goods_tag g) {
+			auto amount = ws.s.population_m.life_needs.get(poptype, g);
+			if(amount > 0 && bit_vector_test(ws.w.nation_s.active_goods.get_row(popnation), g)) {
+				data.push_back(need_amount_pair{ amount * economy::size_to_goods_multiplier(popsize), g });
+			}
+		});
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type, typename window_type>
+	void pop_details_everyday_need_lb::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<need_amount_pair, 32> data;
+
+		auto const poptype = ws.w.population_s.pops.get<pop::type>(win.pop_id);
+		auto const popsize = ws.w.population_s.pops.get<pop::size>(win.pop_id);
+		auto const popnation = get_pop_owner(ws, win.pop_id);
+
+		ws.s.economy_m.for_each_good([&data, poptype, popsize, popnation, &ws](economy::goods_tag g) {
+			auto amount = ws.s.population_m.everyday_needs.get(poptype, g);
+			if(amount > 0 && bit_vector_test(ws.w.nation_s.active_goods.get_row(popnation), g)) {
+				data.push_back(need_amount_pair{ amount * economy::size_to_goods_multiplier(popsize), g });
+			}
+		});
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+	template<typename lb_type, typename window_type>
+	void pop_details_luxury_need_lb::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<need_amount_pair, 32> data;
+
+		auto const poptype = ws.w.population_s.pops.get<pop::type>(win.pop_id);
+		auto const popsize = ws.w.population_s.pops.get<pop::size>(win.pop_id);
+		auto const popnation = get_pop_owner(ws, win.pop_id);
+
+		ws.s.economy_m.for_each_good([&data, poptype, popsize, popnation, &ws](economy::goods_tag g) {
+			auto amount = ws.s.population_m.luxury_needs.get(poptype, g);
+			if(amount > 0 && bit_vector_test(ws.w.nation_s.active_goods.get_row(popnation), g)) {
+				data.push_back(need_amount_pair{ amount * economy::size_to_goods_multiplier(popsize), g });
+			}
+		});
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+	template<typename window_type>
+	void pop_details_rebel_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	template<typename W>
+	void pop_details_rebel_faction_icon::windowed_update(ui::dynamic_icon<pop_details_rebel_faction_icon>& self, W & w, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+	template<typename W>
+	void pop_details_social_movement_icon::windowed_update(ui::dynamic_icon<pop_details_social_movement_icon>& self, W & w, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+	template<typename W>
+	void pop_details_political_movement_icon::windowed_update(ui::dynamic_icon<pop_details_political_movement_icon>& self, W & w, world_state & ws) {
+		ui::hide(*self.associated_object);
+	}
+	template<typename W>
+	void pop_details_political_seperatist_flag::windowed_update(ui::masked_flag<pop_details_political_seperatist_flag>& self, W & w, world_state & ws) {
+		ui::hide(*self.associated_object);
 	}
 }

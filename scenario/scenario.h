@@ -723,7 +723,7 @@ namespace scenario {
 		constexpr uint32_t no_promotion = 700ui32;
 		constexpr uint32_t no_demotion = 701ui32;
 		constexpr uint32_t no_migration = 702ui32;
-		constexpr uint32_t no_emmigration = 703ui32;
+		constexpr uint32_t no_emigration = 703ui32;
 		constexpr uint32_t no_colonial_migration = 704ui32;
 		constexpr uint32_t projected_promotion = 705ui32;
 		constexpr uint32_t projected_demotion = 706ui32;
