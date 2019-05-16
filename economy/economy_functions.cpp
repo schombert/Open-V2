@@ -217,6 +217,14 @@ namespace economy {
 		return std::max(0, int32_t(total_workforce));
 	}
 
+	population::pop_type_tag correct_worker_type(world_state const& ws, provinces::province_tag ps) {
+		auto production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps);
+		if((ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0)
+			return ws.s.population_m.laborer;
+		else
+			return ws.s.population_m.farmer;
+	}
+
 	void match_rgo_worker_type(world_state& ws, provinces::province_tag ps) {
 		auto production = ws.w.province_s.province_state_container.get<province_state::rgo_production>(ps);
 		bool is_mined = (ws.s.economy_m.goods[production].flags & economy::good_definition::mined) != 0;

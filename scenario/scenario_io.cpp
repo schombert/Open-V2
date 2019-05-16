@@ -82,7 +82,6 @@ namespace scenario {
 		population::read_main_poptype_file(s, root);
 		population::read_poptypes(s, root);
 		population::read_rebel_types(pop_state, s, ecm);
-		population::populate_demote_to(s.population_m);
 
 		events::read_on_actions_file(s, ecm, root);
 		events::read_event_files(s, ecm, root);
@@ -833,7 +832,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::base_non_accepted_mil] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NON_ACCEPTED_MIL_MOD");
 		s.fixed_ui_text[fixed_ui::conservative_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "C_SUPPORT");
 		s.fixed_ui_text[fixed_ui::ruling_party_support] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "RP_SUPPORT");
-
 		s.fixed_ui_text[fixed_ui::projected_consciouness] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROJECTED_CON");
 		s.fixed_ui_text[fixed_ui::consciousness_factors] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "CON_FACTORS");
 		s.fixed_ui_text[fixed_ui::literacy_factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LIT_FACTOR");
@@ -841,5 +839,10 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::poor_clergy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "POOR_CLERGY");
 		s.fixed_ui_text[fixed_ui::mid_rich_clergy] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "MID_RICH_CLERGY");
 		s.fixed_ui_text[fixed_ui::lux_satisfaction_factor] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "LUX_SATISFACTION_FACTOR");
+		s.fixed_ui_text[fixed_ui::weight] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "WEIGHT");
+		s.fixed_ui_text[fixed_ui::national_political_reform_desire] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OWNER_PR_DESIRE");
+		s.fixed_ui_text[fixed_ui::national_social_reform_desire] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OWNER_SR_DESIRE");
+		s.fixed_ui_text[fixed_ui::parenthetical_national_modifier] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_NAT_MOD");
+		s.fixed_ui_text[fixed_ui::parenthetical_provincial_modifier] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_PROV_MOD");
 	}
 }

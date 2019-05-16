@@ -136,9 +136,9 @@ void ui::gui_window<INDEX, TYPE, REST...>::update_data(gui_object_tag, world_sta
 template<typename INDEX, typename TYPE, typename ...REST>
 template<typename window_type>
 void ui::gui_window<INDEX, TYPE, REST...>::member_update_in_window(window_type& w, world_state& s) {
+	gui_window<REST...>::member_update_in_window(w, s);
 	if constexpr(ui::detail::has_windowed_update<TYPE, window_type&, world_state&>)
 		m_object.windowed_update(w, s);
-	gui_window<REST...>::member_update_in_window(w, s);
 }
 
 template<typename INDEX, typename TYPE, typename ...REST>

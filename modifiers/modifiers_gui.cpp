@@ -569,7 +569,30 @@ namespace modifiers {
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 		lm.finish_current_line();
 
-		cursor_in = make_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot);
+		cursor_in = make_multiplicative_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot, false);
+
+		lm.decrease_indent(1);
+		return cursor_in;
+	}
+	ui::xy_pair make_abs_value_multiplicative_factor_explanation(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
+		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, uint32_t base_text) {
+
+		auto chance = std::max(0.0f, test_multiplicative_factor(f, ws, primary_slot, from_slot));
+
+		cursor_in = ui::display_colored_additive_factor(cursor_in, chance, fmt, ws, container, lm, false);
+		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[base_text], fmt, ws, container, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		lm.finish_current_line();
+		lm.increase_indent(1);
+
+		cursor_in = ui::display_colored_additive_factor(cursor_in, f.factor, fmt, ws, container, lm, false);
+		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
+		cursor_in = ui::add_text(cursor_in, ws.s.fixed_ui_text[scenario::fixed_ui::base_times], fmt, ws, container, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
+		lm.finish_current_line();
+
+		cursor_in = make_multiplicative_factor_text_body(f, ws, container, cursor_in, lm, fmt, primary_slot, from_slot, false);
 
 		lm.decrease_indent(1);
 		return cursor_in;

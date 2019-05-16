@@ -4792,7 +4792,7 @@ namespace triggers {
 					TRIGGER_ERROR(no_code_value_found_for_scope_and_argument, env);
 				env.data.push_back(4ui16);
 				env.data.push_back(trigger_payload(ptype).value);
-				add_float_to_payload(env.data, token_to<float>(trigger_value) / 100.0f);
+				add_float_to_payload(env.data, token_to<float>(trigger_value));
 			} else if (const auto good = tag_from_text(env.s.economy_m.named_goods_index, left_handle); is_valid_index(good)) {
 				if (env.current_scope.main_slot == trigger_slot_contents::nation)
 					env.data.push_back(uint16_t(trigger_codes::variable_good_name | association_to_trigger_code(a)));

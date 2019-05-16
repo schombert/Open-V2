@@ -3744,7 +3744,7 @@ namespace triggers {
 			ws.s.fixed_ui_text[scenario::fixed_ui::colonial], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_has_factories(TRIGGER_DISPLAY_PARAMS) {
-		return display_with_comparison(tval[0],
+		return display_with_has_comparison(tval[0],
 			ws.s.fixed_ui_text[scenario::fixed_ui::a_factory], ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_in_default_tag(TRIGGER_DISPLAY_PARAMS) {
@@ -5747,9 +5747,7 @@ namespace triggers {
 	ui::xy_pair tf_work_available_nation(TRIGGER_DISPLAY_PARAMS) {
 		cursor_in = display_with_comparison(tval[0],
 			scenario::fixed_ui::work, ws.s.fixed_ui_text[scenario::fixed_ui::available_for], ws, container, cursor_in, lm, fmt);
-		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-		lm.finish_current_line();
-
+		
 		lm.increase_indent(1);
 		auto count_workers = tval[1] - 1;
 		for(int32_t i = 0; i < count_workers; ++i) {
@@ -5764,8 +5762,6 @@ namespace triggers {
 	ui::xy_pair tf_work_available_state(TRIGGER_DISPLAY_PARAMS) {
 		cursor_in = display_with_comparison(tval[0],
 			scenario::fixed_ui::work, ws.s.fixed_ui_text[scenario::fixed_ui::available_for], ws, container, cursor_in, lm, fmt);
-		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-		lm.finish_current_line();
 
 		lm.increase_indent(1);
 		auto count_workers = tval[1] - 1;
@@ -5781,9 +5777,7 @@ namespace triggers {
 	ui::xy_pair tf_work_available_province(TRIGGER_DISPLAY_PARAMS) {
 		cursor_in = display_with_comparison(tval[0],
 			scenario::fixed_ui::work, ws.s.fixed_ui_text[scenario::fixed_ui::available_for], ws, container, cursor_in, lm, fmt);
-		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
-		lm.finish_current_line();
-
+		
 		lm.increase_indent(1);
 		auto count_workers = tval[1] - 1;
 		for(int32_t i = 0; i < count_workers; ++i) {

@@ -8,10 +8,114 @@
 #include "gui\\gui.hpp"
 #include "governments\governments_functions.h"
 #include "economy\economy_functions.h"
+#include "modifiers\modifier_functions.h"
 
 namespace population {
+	class details_subwindow_base : public ui::visible_region {
+	public:
+		pop_tag pop_id;
+
+		void update(world_state& ws);
+	};
+
+	struct details_legend_entry {
+		std::variant<ideologies::ideology_tag, issues::option_tag> data;
+		pop_tag pop_id;
+	};
+
+	class details_legend_item_base : public ui::visible_region {
+	public:
+		details_legend_entry value;
+
+		void set_value(details_legend_entry const& v) {
+			value = v;
+		}
+	};
+
+	class details_legend_icon {
+	public:
+		template<typename W>
+		void windowed_update(ui::tinted_icon<details_legend_icon>&, W& w, world_state& ws);
+	};
+
+	class details_legend_label {
+	public:
+		details_legend_entry value;
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_legend_value {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using details_legend_item = ui::gui_window<
+		CT_STRING("legend_color"), ui::tinted_icon<details_legend_icon>,
+		CT_STRING("legend_title"), ui::display_text<details_legend_label>,
+		CT_STRING("legend_value"), ui::display_text<details_legend_value, -20>,
+		details_legend_item_base
+	>;
+
+	class details_ideologies_title {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_ideologies_chart {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::piechart<details_ideologies_chart>& pie, window_type& win, world_state& ws);
+	};
+
+	class details_ideologies_lb {
+	public:
+		template<typename lb_type, typename window_type>
+		void populate_list(lb_type& lb, window_type& win, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using details_ideologies_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<details_ideologies_title, -22>,
+		CT_STRING("chart"), ui::piechart<details_ideologies_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<details_ideologies_lb, details_legend_item, details_legend_entry, 7>,
+		details_subwindow_base
+	>;
+
+	class details_issues_title {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class details_issues_chart {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::piechart<details_issues_chart>& pie, window_type& win, world_state& ws);
+	};
+
+	class details_issues_lb {
+	public:
+		template<typename lb_type, typename window_type>
+		void populate_list(lb_type& lb, window_type& win, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using details_issues_window = ui::gui_window <
+		CT_STRING("item_name"), ui::display_text<details_issues_title, -22>,
+		CT_STRING("chart"), ui::piechart<details_issues_chart>,
+		CT_STRING("member_names"), ui::discrete_listbox<details_issues_lb, details_legend_item, details_legend_entry, 7>,
+		details_subwindow_base
+	>;
+
 	class pop_details_window_base : public ui::draggable_region {
 	public:
+		details_ideologies_window ideologies_w;
+		details_issues_window issues_w;
+
 		pop_tag pop_id;
 
 		template<typename W>
@@ -338,6 +442,57 @@ namespace population {
 		pop_details_rebel_window_base
 	>;
 
+	struct promotion_entry {
+		float chance = 0.0f;
+		pop_tag pop_id;
+		pop_type_tag to_type;
+		bool is_promotion = true;
+		bool is_national_focus = false;
+	};
+
+	class poromotion_item_base : public ui::gui_behavior {
+	public:
+		poromotion_item_base(promotion_entry v) {}
+
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class promotion_percentage {
+	public:
+		promotion_entry value;
+
+		promotion_percentage(promotion_entry v) : value(v) {}
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class promotion_pop_type {
+	public:
+		promotion_entry value;
+
+		promotion_pop_type(promotion_entry v) : value(v) {}
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state&, ui::tagged_gui_object tw);
+		void update(ui::dynamic_icon<promotion_pop_type>&, world_state& ws);
+	};
+
+	using promotion_item = ui::gui_window<
+		CT_STRING("pop_type"), ui::dynamic_icon<promotion_pop_type>,
+		CT_STRING("percentage"), ui::display_text<promotion_percentage>,
+		poromotion_item_base
+	>;
+
+	class promotion_type_lb {
+	public:
+		template<typename lb_type, typename window_type>
+		void windowed_update(lb_type& lb, window_type& win, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
 	using pop_details_window = ui::gui_window <
 		CT_STRING("close_button"), ui::simple_button<close_pop_details_button>,
 		CT_STRING("pop_type_icon"), ui::dynamic_icon<pop_details_type_icon>,
@@ -352,6 +507,7 @@ namespace population {
 		CT_STRING("colonial_migration_val"), ui::display_text<pop_details_colonial_migration_value>,
 		CT_STRING("promotions_val"), ui::display_text<pop_details_promotion_value>,
 		CT_STRING("demotions_val"), ui::display_text<pop_details_demotion_value>,
+		CT_STRING("pop_types_list"), ui::overlap_box<promotion_type_lb, ui::window_tag, promotion_item>,
 		CT_STRING("mil_value"), ui::display_text<pop_details_militancy_value>,
 		CT_STRING("con_value"), ui::display_text<pop_details_consciousness_value>,
 		CT_STRING("literacy_value"), ui::display_text<pop_details_literacy_value>,
@@ -2171,7 +2327,7 @@ namespace population {
 		w.associated_object->size.x = 220i16;
 	}
 	template<typename W>
-	void pop_details_window_base::on_create(W & w, world_state &) {
+	void pop_details_window_base::on_create(W & w, world_state & ws) {
 		associated_object->size = ui::xy_pair{684i16, 464i16};
 
 		{
@@ -2190,6 +2346,33 @@ namespace population {
 		{
 			auto& bar = w.template get<CT_STRING("pop_unemployment_bar")>();
 			bar.associated_object->position += ui::xy_pair{ -15i16, -13i16 };
+		}
+
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				ideologies_w);
+			auto& pie = ideologies_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			ideologies_w.associated_object->position = ui::xy_pair{ 412i16, 235i16 };
+			ideologies_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
+		}
+		{
+			auto wwin = ui::create_static_element(
+				ws,
+				std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["distribution_window"]),
+				ui::tagged_gui_object{ *associated_object, w.window_object },
+				issues_w);
+			auto& pie = issues_w.template get<CT_STRING("chart")>();
+			pie.associated_object->size.x *= 2;
+			pie.associated_object->size.y *= 2;
+			issues_w.associated_object->position = ui::xy_pair{ 412i16, 342i16 };
+			issues_w.associated_object->size = ui::xy_pair{ 255i16, 95i16 };
+			ui::move_to_front(ws.w.gui_m, wwin);
 		}
 
 		ui::hide(*associated_object);
@@ -2478,5 +2661,162 @@ namespace population {
 	template<typename W>
 	void pop_details_political_seperatist_flag::windowed_update(ui::masked_flag<pop_details_political_seperatist_flag>& self, W & w, world_state & ws) {
 		ui::hide(*self.associated_object);
+	}
+	template<typename window_type>
+	void details_legend_label::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		value = win.value;
+		if(std::holds_alternative<ideologies::ideology_tag>(value.data)) {
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.ideologies_m.ideology_container[std::get<ideologies::ideology_tag>(value.data)].name,
+				fmt, ws, box, lm);
+		} else {
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.issues_m.options[std::get<issues::option_tag>(value.data)].name,
+				fmt, ws, box, lm);
+		}
+	}
+	template<typename window_type>
+	void details_legend_value::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		float v = 0;
+		float psize = ws.w.population_s.pops.get<pop::size>(win.value.pop_id);
+		if(std::holds_alternative<ideologies::ideology_tag>(win.value.data)) {
+			v = ws.w.population_s.pop_demographics.get(win.value.pop_id, to_demo_tag(ws, std::get<ideologies::ideology_tag>(win.value.data)));
+		} else {
+			v = ws.w.population_s.pop_demographics.get(win.value.pop_id, to_demo_tag(ws, std::get<issues::option_tag>(win.value.data)));
+		}
+
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ psize > 0 ? v / psize : v }, fmt, ws, box, lm);
+	}
+	template<typename W>
+	void details_legend_icon::windowed_update(ui::tinted_icon<details_legend_icon>& self, W & win, world_state & ws) {
+		graphics::color_rgb c;
+		if(std::holds_alternative<ideologies::ideology_tag>(win.value.data)) {
+			c = ws.s.ideologies_m.ideology_container[std::get<ideologies::ideology_tag>(win.value.data)].color;
+		} else {
+			c = ws.s.issues_m.options[std::get<issues::option_tag>(win.value.data)].color;
+		}
+		self.set_color(ws.w.gui_m, float(c.r) / 255.0f, float(c.g) / 255.0f, float(c.b) / 255.0f);
+	}
+	template<typename window_type>
+	void details_ideologies_chart::windowed_update(ui::piechart<details_ideologies_chart>& pie, window_type & win, world_state & ws) {
+		auto demo = ws.w.population_s.pop_demographics.get_row(win.pop_id);
+		float* ideologies_values = &(demo[to_demo_tag(ws, ideologies::ideology_tag(0))]);
+
+		float size = demo[total_population_tag];
+		if(size != 0.0f) {
+			for(uint32_t i = 0; i < ws.s.ideologies_m.ideologies_count; ++i) {
+				if(ideologies_values[i] != 0)
+					pie.add_entry(
+						ws.w.gui_m,
+						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].name,
+						float(ideologies_values[i]) / size,
+						ws.s.ideologies_m.ideology_container[ideologies::ideology_tag(static_cast<ideologies::ideology_tag::value_base_t>(i))].color);
+			}
+		}
+	}
+	template<typename window_type>
+	void details_issues_chart::windowed_update(ui::piechart<details_issues_chart>& pie, window_type & win, world_state & ws) {
+		auto demo = ws.w.population_s.pop_demographics.get_row(win.pop_id);
+		float* issues_values = &(demo[to_demo_tag(ws, issues::option_tag(0))]);
+
+		float size = float(demo[total_population_tag]);
+		if(size != 0.0f) {
+			for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+				if(issues_values[i] != 0)
+					pie.add_entry(
+						ws.w.gui_m,
+						ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].name,
+						float(issues_values[i]) / size,
+						ws.s.issues_m.options[issues::option_tag(static_cast<issues::option_tag::value_base_t>(i))].color);
+			}
+		}
+	}
+	template<typename lb_type, typename window_type>
+	void details_ideologies_lb::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<details_legend_entry, 32> data;
+
+		ws.s.ideologies_m.for_each_ideology([&data, id = win.pop_id](ideologies::ideology_tag t) {
+			data.push_back(details_legend_entry{ t, id });
+		});
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+	template<typename lb_type, typename window_type>
+	void details_issues_lb::populate_list(lb_type & lb, window_type & win, world_state & ws) {
+		boost::container::small_vector<details_legend_entry, 32> data;
+
+		for(uint32_t i = 0; i < ws.s.issues_m.tracked_options_count; ++i) {
+			data.push_back(details_legend_entry{ issues::option_tag(static_cast<issues::option_tag::value_base_t>(i)), win.pop_id });
+		}
+
+		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
+	}
+
+	template<typename lb_type, typename window_type>
+	void promotion_type_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
+		auto proj_value = project_promotion_amount(ws, win.pop_id);
+
+		float* const chances = static_cast<float*>(_alloca(sizeof(float) * (ws.s.population_m.count_poptypes + 1)));
+		std::fill_n(chances, ws.s.population_m.count_poptypes + 1, 0.0f);
+		float total_chances = 0.0f;
+
+		auto const pop_j_type = ws.w.population_s.pops.get<pop::type>(win.pop_id);
+		auto const p_location = ws.w.population_s.pops.get<pop::location>(win.pop_id);
+		auto const state = ws.w.province_s.province_state_container.get<province_state::state_instance>(p_location);
+		auto const state_focus = ws.w.nation_s.states.get<state::owner_national_focus>(state);
+		auto const focused_type = ws.s.modifiers_m.focus_to_pop_types[state_focus];
+
+		if(proj_value >= 0.0f) {
+			// promote
+			for(int32_t k = 0; k < int32_t(ws.s.population_m.count_poptypes); ++k) {
+				pop_type_tag pt = pop_type_tag(pop_type_tag::value_base_t(k));
+				auto const trigger = ws.s.population_m.promote_to.get(pop_j_type, pt);
+				float const chance = trigger ? std::max(
+					0.0f,
+					modifiers::test_additive_factor(
+						trigger,
+						ws,
+						win.pop_id,
+						win.pop_id)) : 0.0f;
+				total_chances += chance;
+				chances[k + 1] = total_chances;
+			}
+		} else {
+			// demote
+			for(int32_t k = 0; k < int32_t(ws.s.population_m.count_poptypes); ++k) {
+				pop_type_tag pt = pop_type_tag(pop_type_tag::value_base_t(k));
+				auto const trigger = ws.s.population_m.demote_to.get(pop_j_type, pt);
+				float const chance = trigger ? std::max(
+					0.0f,
+					modifiers::test_additive_factor(
+						trigger,
+						ws,
+						win.pop_id,
+						win.pop_id)) : 0.0f;
+				total_chances += chance;
+				chances[k + 1] = total_chances;
+			}
+		}
+		total_chances = total_chances <= 0.0f ? 1.0f : total_chances;
+
+		if(focused_type && (chances[to_index(focused_type) + 1] - chances[to_index(focused_type)]) > 0) {
+			lb.add_item(ws, promotion_entry{
+				1.0f,
+				win.pop_id,
+				(focused_type == ws.s.population_m.farmer) ? economy::correct_worker_type(ws, p_location) : focused_type,
+				(proj_value >= 0.0f), true });
+		} else {
+			ws.s.population_m.for_each_pop_type([chances, total_chances, id = win.pop_id, is_promotion = (proj_value >= 0.0f), pop_j_type, p_location, &ws, &lb](pop_type_tag t) {
+				if(is_valid_index(is_promotion ? ws.s.population_m.promote_to.get(pop_j_type, t) : ws.s.population_m.demote_to.get(pop_j_type, t))) {
+					lb.add_item(ws, promotion_entry{
+						(chances[to_index(t) + 1] - chances[to_index(t)]) / total_chances,
+						id,
+						(t == ws.s.population_m.farmer) ? economy::correct_worker_type(ws, p_location) : t,
+						is_promotion, false});
+				}
+			});
+		}
+	}
+	template<typename W>
+	void poromotion_item_base::on_create(W & w, world_state &) {
+		associated_object->size.y = 69i16;
 	}
 }

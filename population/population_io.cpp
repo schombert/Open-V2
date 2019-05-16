@@ -634,6 +634,8 @@ namespace population {
 					},
 					1.0f, start, end);
 			env.s.population_m.promote_to.get(env.pt.id, ptype_tag) = ftag;
+		} else {
+			std::abort();
 		}
 		return 0;
 	}
@@ -1243,6 +1245,7 @@ namespace population {
 
 			for(uint32_t j = 0; j < poptype_count; ++j) {
 				const auto inner_strata = m.pop_types[pop_type_tag(static_cast<pop_type_tag::value_base_t>(j))].flags & pop_type::strata_mask;
+
 				if(inner_strata <= outer_strata) {
 					m.demote_to.get(
 						pop_type_tag(static_cast<pop_type_tag::value_base_t>(i)),

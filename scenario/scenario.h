@@ -758,8 +758,13 @@ namespace scenario {
 		constexpr uint32_t poor_clergy = 735ui32;
 		constexpr uint32_t mid_rich_clergy = 736ui32;
 		constexpr uint32_t lux_satisfaction_factor = 737ui32;
+		constexpr uint32_t weight = 738ui32;
+		constexpr uint32_t national_political_reform_desire = 739ui32;
+		constexpr uint32_t national_social_reform_desire = 740ui32;
+		constexpr uint32_t parenthetical_national_modifier = 741ui32;
+		constexpr uint32_t parenthetical_provincial_modifier = 742ui32;
 
-		constexpr uint32_t count = 738ui32;
+		constexpr uint32_t count = 743ui32;
 	}
 
 

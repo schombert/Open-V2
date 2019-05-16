@@ -37,6 +37,7 @@ namespace economy {
 		float mobilization_effect);
 
 	void match_rgo_worker_type(world_state& ws, provinces::province_tag ps);
+	population::pop_type_tag correct_worker_type(world_state const& ws, provinces::province_tag ps);
 
 	void update_rgo_employment(world_state& ws, provinces::province_tag ps);
 	void update_factories_employment(world_state& ws, nations::state_tag si);

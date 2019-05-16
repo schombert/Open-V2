@@ -11,6 +11,7 @@
 #include "provinces\\province_functions.hpp"
 #include "concurrency_tools/ve_avx2.h"
 #include <random>
+#include "economy/economy_functions.h"
 
 #undef min
 #undef max
@@ -1710,7 +1711,7 @@ namespace population {
 				}
 			}
 
-			pop_type_tag const result_target = [&ws, t, focused_type, chances, total_chances]() {
+			pop_type_tag const result_target_base = [&ws, t, focused_type, chances, total_chances]() {
 				if(total_chances == 0) {
 					return pop_type_tag();
 				} else if(focused_type && (chances[to_index(focused_type) + 1] - chances[to_index(focused_type)]) > 0) {
@@ -1726,6 +1727,8 @@ namespace population {
 						return pop_type_tag(pop_type_tag::value_base_t(ws.s.population_m.count_poptypes - 1));
 				}
 			}();
+
+			pop_type_tag const result_target = (result_target_base == ws.s.population_m.farmer) ? economy::correct_worker_type(ws, t) : result_target_base;
 
 			if(result_target) {
 				auto const target_pop = find_in_province(ws, t, result_target, pop_j_culture, pop_j_religion);

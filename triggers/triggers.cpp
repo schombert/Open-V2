@@ -5202,13 +5202,18 @@ namespace triggers {
 				return 0.0f;
 		});
 		return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 3));
-
-		auto id = to_prov(primary_slot);
 	}
 	TRIGGER_FUNCTION(tf_variable_pop_type_name_pop) {
-		return compare_values(tval[0],
-			ve::select(to_value<pop::type>(ws.w.population_s.pops, to_pop(primary_slot)) == trigger_payload(tval[2]).small.values.pop_type, 1.0f, 0.0f),
-			read_float_from_payload(tval + 3));
+		auto pop_locations = to_value<pop::location>(ws.w.population_s.pops, to_pop(primary_slot));
+		auto total_pop = to_value<province_state::total_population>(ws.w.province_s.province_state_container, pop_locations);
+		auto type = population::to_demo_tag(ws, trigger_payload(tval[2]).small.values.pop_type);
+		auto size = ve::apply(pop_locations, [&ws, type](provinces::province_tag t) {
+			if(ws.w.province_s.province_state_container.is_valid_index(t))
+				return ws.w.province_s.province_demographics.get(t, type);
+			else
+				return 0.0f;
+		});
+		return compare_values(tval[0], ve::select(total_pop > 0.0f, size / total_pop, 0.0f), read_float_from_payload(tval + 3));
 	}
 	TRIGGER_FUNCTION(tf_variable_good_name) {
 		auto good = trigger_payload(tval[2]).small.values.good;
