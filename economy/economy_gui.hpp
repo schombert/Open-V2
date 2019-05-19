@@ -1088,6 +1088,281 @@ namespace economy {
 		production_window_base
 	>{};
 
+
+	struct factory_worker_value {
+		float amount;
+		population::pop_type type;
+	};
+
+	class factory_worker_item_base : public ui::gui_behavior {
+	public:
+		factory_worker_value value;
+
+		void set_value(factory_worker_value t) {
+			value = t;
+		}
+	};
+
+	class factory_worker_item_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_worker_item_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_worker_item_amount {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using factory_worker_item = ui::gui_window<
+		CT_STRING("pop_icon"), ui::dynamic_icon<factory_worker_item_icon>,
+		CT_STRING("pop_amount"), ui::display_text<factory_worker_item_amount>,
+		factory_worker_item_base
+	>;
+
+	struct factory_construction_cost_value {
+		float amount;
+		economy::goods_tag type;
+	};
+
+	class factory_construction_cost_item_base : public ui::gui_behavior {
+	public:
+		factory_construction_cost_value value;
+
+		void set_value(factory_construction_cost_value t) {
+			value = t;
+		}
+	};
+
+	class factory_construction_cost_item_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_construction_cost_item_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_construction_cost_item_cost {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_construction_cost_item_stockpile_amount {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using factory_construction_cost_item = ui::gui_window<
+		CT_STRING("goods_icon"), ui::dynamic_icon<factory_construction_cost_item_icon>,
+		CT_STRING("goods_cost"), ui::display_text<factory_construction_cost_item_cost>,
+		CT_STRING("you_have"), ui::display_text<factory_construction_cost_item_stockpile_amount>,
+		factory_construction_cost_item_base
+	>;
+
+	class factory_type_item_base : public ui::gui_behavior {
+	public:
+		economy::goods_tag value;
+
+		void set_value(economy::goods_tag t) {
+			economy::goods_tag = t;
+		}
+	};
+
+	class factory_item_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<factory_item_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class factory_item_name {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_item_cost {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_item_time {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using factory_type_item = ui::gui_window<
+		CT_STRING("output"), ui::dynamic_icon<factory_item_icon>,
+		CT_STRING("name"), ui::display_text<factory_item_name>,
+		CT_STRING("total_build_cost"), ui::display_text<factory_item_cost>,
+		CT_STRING("buildtime"), ui::display_text<factory_item_time>,
+		factory_type_item_base
+	>;
+
+	class build_factory_window_base : public ui::draggable_region {
+	public:
+		template<typename W>
+		void on_create(W& w, world_state&);
+	};
+
+	class bf_state_name {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	template<int32_t number>
+	class bf_input_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_output_icon {
+	public:
+		void update(ui::dynamic_icon<bf_output_icon>& self, world_state& ws);
+	};
+
+	class bf_factory_name {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_types_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class bf_profit_label {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_profit_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	template<int32_t number>
+	class bf_input_icon {
+	public:
+		void update(ui::dynamic_icon<bf_input_icon<number>>& self, world_state& ws);
+	};
+
+	class bf_description {
+	public:
+		void update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_total_workers_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class factory_workers_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class factory_construction_costs_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class bf_base_price_label {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_input_price_label {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_total_label {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_base_price_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_input_price_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_total_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_treasury_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_stockpile_lack_label {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_stockpile_lack_amount {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class bf_cancel {
+	public:
+		void button_function(ui::simple_button<bf_cancel>&, world_state& ws);
+	};
+
+	class bf_build {
+	public:
+		void button_function(ui::simple_button<bf_build>&, world_state& ws);
+	};
+
+	class build_factory_window_t : public ui::gui_window<
+		CT_STRING("state_name"), ui::display_text<bf_state_name>,
+		CT_STRING("input_0_amount"), ui::display_text<bf_input_amount<0>>,
+		CT_STRING("input_1_amount"), ui::display_text<bf_input_amount<1>>,
+		CT_STRING("input_2_amount"), ui::display_text<bf_input_amount<2>>,
+		CT_STRING("input_3_amount"), ui::display_text<bf_input_amount<3>>,
+		CT_STRING("output"), ui::dynamic_icon<bf_output_icon>,
+		CT_STRING("building_name"), ui::display_text<bf_factory_name>,
+		CT_STRING("factory_type"), ui::discrete_listbox<factory_types_lb, factory_type_item, economy::goods_tag>,
+		CT_STRING("output_label"), ui::display_text<bf_profit_label>,
+		CT_STRING("output_amount"), ui::display_text<bf_profit_amount>,
+		CT_STRING("input_0"), ui::dynamic_icon<bf_input_icon<0>>,
+		CT_STRING("input_1"), ui::dynamic_icon<bf_input_icon<1>>,
+		CT_STRING("input_2"), ui::dynamic_icon<bf_input_icon<2>>,
+		CT_STRING("input_3"), ui::dynamic_icon<bf_input_icon<3>>,
+		CT_STRING("description_text"), ui::multiline_text<bf_description>,
+		CT_STRING("needed_workers_count"), ui::display_text<bf_total_workers_amount>,
+		CT_STRING("employment_info"), ui::discrete_listbox<factory_workers_lb, factory_worker_item, factory_worker_value>,
+		CT_STRING("goods_cost_info"), ui::discrete_listbox<factory_construction_costs_lb, factory_construction_cost_item, factory_construction_cost_value>,
+		CT_STRING("base_price_label"), ui::display_text<bf_base_price_label>,
+		CT_STRING("input_price_label"), ui::display_text<bf_input_price_label>,
+		CT_STRING("total_label"), ui::display_text<bf_total_label>,
+		CT_STRING("base_price"), ui::display_text<bf_base_price_amount>,
+		CT_STRING("input_price"), ui::display_text<bf_input_price_amount>,
+		CT_STRING("total_price"), ui::display_text<bf_total_amount>,
+		CT_STRING("you_have"), ui::display_text<bf_treasury_amount>,
+		CT_STRING("prod_label"), ui::display_text<bf_stockpile_lack_label>,
+		CT_STRING("prod_cost"), ui::display_text<bf_stockpile_lack_amount>,
+		CT_STRING("Cancel"), ui::simple_button<bf_cancel>,
+		CT_STRING("Build"), ui::simple_button<bf_build>,
+		build_factory_window_base
+	> {};
+
 	template<typename W>
 	void project_item_base::on_create(W & win, world_state & ws) {
 		associated_object->align = ui::alignment::top_left;

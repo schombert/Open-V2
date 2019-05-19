@@ -93,4 +93,21 @@ namespace economy {
 		void show_particular_foreign_investment(ui::gui_manager& gui_m, nations::country_tag target);
 
 	};
+
+	class build_factory_window_t;
+
+	class build_factory_window {
+		std::unique_ptr<build_factory_window_t> win;
+
+		nations::state_tag in_state;
+		economy::goods_tag factory_type;
+
+		build_factory_window();
+		~build_factory_window();
+
+		void hide(ui::gui_manager& gui_m);
+		void init(world_state& ws);
+		void update(ui::gui_manager& gui_m, , nations::state_tag s, economy::goods_tag g);
+		void show(ui::gui_manager& gui_m, nations::state_tag s);
+	};
 }

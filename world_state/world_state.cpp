@@ -186,6 +186,7 @@ namespace current_state {
 		major_event_w.init_major_event_window(ws);
 		find_w.init_find_window(ws);
 		menu_w.init_menu_window(ws);
+		build_factory_w.init(ws);
 	}
 
 	void state::toggle_pause() {

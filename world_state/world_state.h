@@ -130,6 +130,7 @@ namespace current_state {
 		events::major_event_window major_event_w;
 		find_dialog::find_window find_w;
 		menu::menu_window menu_w;
+		economy::build_factory_window build_factory_w;
 
 		topbar topbar_w;
 		bottombar bottombar_w;
