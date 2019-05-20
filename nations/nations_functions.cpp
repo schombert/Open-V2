@@ -470,6 +470,20 @@ namespace nations {
 		return true;
 	}
 
+	bool is_state_coastal(world_state const& ws, nations::state_tag s) {
+		auto region = ws.w.nation_s.states.get<state::region_id>(s);
+		auto prange = is_valid_index(region)
+			? ws.s.province_m.states_to_province_index.get_row(region)
+			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
+		for(auto p : prange) {
+			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s) {
+				if(ws.w.province_s.province_state_container.get<province_state::is_coastal>(p))
+					return true;
+			}
+		}
+		return false;
+	}
+
 	void partial_destroy_state_instance(world_state& ws, state_tag sid) {
 
 		auto& fp_focuses = ws.w.nation_s.states.get<state::flashpoint_tension_focuses>(sid);

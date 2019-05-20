@@ -97,6 +97,7 @@ namespace economy {
 	class build_factory_window_t;
 
 	class build_factory_window {
+	public:
 		std::unique_ptr<build_factory_window_t> win;
 
 		nations::state_tag in_state;

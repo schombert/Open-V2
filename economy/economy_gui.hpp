@@ -1105,8 +1105,12 @@ namespace economy {
 
 	class factory_worker_item_icon {
 	public:
+		population::pop_type_tag tag;
+
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<factory_worker_item_icon>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class factory_worker_item_amount {
@@ -1137,8 +1141,12 @@ namespace economy {
 
 	class factory_construction_cost_item_icon {
 	public:
+		goods_tag tag;
+
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<factory_construction_cost_item_icon>& self, window_type& win, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class factory_construction_cost_item_cost {
@@ -1165,7 +1173,7 @@ namespace economy {
 		economy::goods_tag value;
 
 		void set_value(economy::goods_tag t) {
-			economy::goods_tag = t;
+			value = t;
 		}
 	};
 
@@ -1221,6 +1229,8 @@ namespace economy {
 	class bf_output_icon {
 	public:
 		void update(ui::dynamic_icon<bf_output_icon>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class bf_factory_name {
@@ -1249,6 +1259,8 @@ namespace economy {
 	class bf_input_icon {
 	public:
 		void update(ui::dynamic_icon<bf_input_icon<number>>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class bf_description {
@@ -2789,5 +2801,115 @@ namespace economy {
 		if(auto player = ws.w.local_player_nation; player) {
 			self.set_enabled((ws.w.nation_s.nations.get<nation::current_rules>(player) & issues::rules::can_invest_in_pop_projects) != 0);
 		}
+	}
+
+	template<typename window_type>
+	void factory_worker_item_icon::windowed_update(ui::dynamic_icon<factory_worker_item_icon>& self, window_type & win, world_state & ws) {
+		tag = win.value.type;
+		if(is_valid_index(tag))
+			self.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[tag].sprite - 1ui32);
+	}
+
+	template<typename W>
+	void factory_worker_item_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ w.value.amount }, fmt, ws, box, lm);
+	}
+
+	template<typename window_type>
+	void factory_construction_cost_item_icon::windowed_update(ui::dynamic_icon<factory_construction_cost_item_icon>& self, window_type & win, world_state & ws) {
+		if(tag = win.value.type; tag)
+			self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[tag].icon);
+	}
+
+	template<typename W>
+	void factory_construction_cost_item_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto const amount = w.value.amount;
+		auto const s = ws.w.build_factory_w.in_state;
+		if(auto const type = w.value.type; type && s) {
+			auto const cost = amount * economy::state_current_prices(ws, s)[type];
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ cost }, fmt, ws, box, lm);
+		}
+	}
+
+	template<typename W>
+	void factory_construction_cost_item_stockpile_amount::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	}
+
+	template<typename window_type>
+	void factory_item_icon::windowed_update(ui::dynamic_icon<factory_item_icon>& self, window_type & win, world_state & ws) {
+		auto const type = win.value;
+		if(is_valid_index(type))
+			self.set_frame(ws.w.gui_m, ws.s.population_m.pop_types[type].sprite - 1ui32);
+	}
+
+	template<typename W>
+	void factory_item_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto const type = win.value;
+		auto const s = ws.w.build_factory_w.in_state;
+		if(auto const f_type = good_to_factory_type(ws, type); f_type && s) {
+			ui::text_format lfmt{ factory_type_valid_in_state(ws, s, f_type) ? ui::text_color::black : ui::text_color::white,
+				fmt.font_handle, fmt.font_size}
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.factory_types[f_type].name, lfmt, ws, box, lm);
+		}
+	}
+
+	template<typename W>
+	void factory_item_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto const type = win.value;
+		auto const s = ws.w.build_factory_w.in_state;
+		if(auto const f_type = good_to_factory_type(ws, type); f_type && s) {
+			auto const cost = total_factory_construction_cost(ws, s, f_type);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ cost }, fmt, ws, box, lm);
+		}
+	}
+	template<typename W>
+	void factory_item_time::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, type); f_type) {
+			ui::xy_pair cursor{ 0,0 };
+			cursor = ui::add_text(cursor, text_data::integer{ ws.s.economy_m.factory_types[f_type].building_time }, fmt, ws, box, lm);
+			cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+			cursor = ui::add_text(cursor, scenario::fixed_ui::tx_day, fmt, ws, box, lm);
+		}
+	}
+
+	template<typename W>
+	void build_factory_window_base::on_create(W & w, world_state &) {
+		associated_object->size = ui::xy_pair{ 940i16, 496i16 };
+		ui::hide(*associated_object);
+	}
+
+	template<int32_t number>
+	void bf_input_amount<number>::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
+			int32_t j = 0;
+			float amount = 0.0f;
+			ws.s.economy_m.for_each_good([&j, &amount, &ws, f_type](goods_tag g) {
+				if(ws.s.economy_m.factory_input_goods.get(f_type, g) > 0.0f) {
+					if(j == number) {
+						amount = ws.s.economy_m.factory_input_goods.get(f_type, g);
+					}
+					++j;
+				}
+			});
+
+			if(amount != 0.0f) {
+				ui::add_text(ui::xy_pair{ 0,0 }, text_data::fp_two_places{ amount }, fmt, ws, box, lm);
+			}
+		}
+		
+	}
+
+	template<typename lb_type>
+	void factory_types_lb::populate_list(lb_type & lb, world_state & ws) {
+		boost::container::small_vector<goods_tag, 32> potential_list;
+
+		auto const state_owner = ws.w.nation_s.states.get<state::owner>(ws.w.build_factory_w.in_state);
+		ws.s.economy_m.for_each_factory_type([&potential_list, &ws, state_owner](factory_type_tag f) {
+			auto good = ws.s.economy_m.factory_types[f].output_good;
+			if(bit_vector_test(ws.w.nation_s.active_goods.get_row(state_owner), good)) {
+				potential_list.push_back(good);
+			}
+		});
+		lb.new_list(potential_list.begin(), potential_list.end());
 	}
 }

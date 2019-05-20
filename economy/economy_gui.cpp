@@ -583,4 +583,37 @@ namespace economy {
 	ui::window_tag projects_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["project_info"]);
 	}
+	void bf_state_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(ws.w.build_factory_w.in_state), fmt, ws, box, lm);
+	}
+	void bf_output_icon::update(ui::dynamic_icon<bf_output_icon>& self, world_state & ws) {
+		if(auto const g = ws.w.build_factory_w.factory_type; g) {
+			self.set_frame(ws.w.gui_m, ws.s.economy_m.goods[g].icon);
+		}
+	}
+	void bf_output_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		if(auto const g = ws.w.build_factory_w.factory_type; g) {
+			ui::add_text(ui::xy_pair{0,0}, ws.s.economy_m.goods[g].name, ui::tooltip_text_format, ws, tw);
+		}
+	}
+	void bf_factory_name::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.factory_types[f_type].name, fmt, ws, box, lm);
+		}
+	}
+	ui::window_tag factory_types_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["new_factory_option"]);
+	}
+	ui::window_tag factory_workers_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["factory_pop"]);
+	}
+	ui::window_tag factory_construction_costs_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["goods_cost_window"]);
+	}
+	void factory_worker_item_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.population_m.pop_types[tag].name, ui::tooltip_text_format, ws, tw);
+	}
+	void factory_construction_cost_item_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws, tw);
+	}
 }

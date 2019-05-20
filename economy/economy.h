@@ -184,5 +184,12 @@ namespace economy {
 				f(goods_tag(goods_tag::value_base_t(i)));
 			}
 		}
+		template<typename F>
+		void for_each_factory_type(F const& f) const {
+			int32_t const cmax = int32_t(factory_types.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(factory_type_tag(factory_type_tag::value_base_t(i)));
+			}
+		}
 	};
 }

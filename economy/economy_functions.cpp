@@ -541,6 +541,15 @@ namespace economy {
 	bool factory_is_upgrading(factory_instance const& fi) {
 		return bool(fi.type) && fi.level != 0 && fi.factory_progress > 0.0f && fi.worker_data.production_scale > 0.0f;
 	}
+	factory_type_tag good_to_factory_type(world_state const & ws, goods_tag g) {
+		int32_t const cmax = int32_t(ws.s.economy_m.factory_types.size());
+		for(int32_t i = 0; i < cmax; ++i) {
+			auto const tag = factory_type_tag(factory_type_tag::value_base_t(i));
+			if(ws.s.economy_m.factory_types[tag].output_good == g)
+				return tag;
+		}
+		return factory_type_tag();
+	}
 	factory_project_type get_factory_project_type(world_state const& ws, nations::state_tag location, factory_type_tag ftype) {
 		auto& factories = ws.w.nation_s.states.get<state::factories>(location);
 		for(auto& fi : factories) {
@@ -2672,4 +2681,22 @@ namespace economy {
 		ws.w.nation_s.nations.get<nation::treasury>(n) -= cost_with_waste;
 	}
 
+
+	bool factory_type_valid_in_state(world_state const& ws, nations::state_tag s, factory_type_tag f_type) {
+		auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+		for(auto& f : factories) {
+			if(f.type == f_type)
+				return false;
+		}
+
+		if(ws.s.economy_m.factory_types[f_type].coastal) {
+			return nations::is_state_coastal(ws, s);
+		} else {
+			return true;
+		}
+	}
+
+	float total_factory_construction_cost(world_state const& ws, nations::state_tag s, factory_type_tag f_type) {
+		return ve::dot_product(ws.s.economy_m.goods_count, state_current_prices(ws, s), ws.s.economy_m.building_costs.get_row(f_type));
+	}
 }

@@ -55,7 +55,10 @@ namespace economy {
 	bool factory_is_closed(factory_instance const& fi); // NOTE: factories under construction will report as neither open nor closed
 	bool factory_is_under_construction(factory_instance const& fi);
 	bool factory_is_upgrading(factory_instance const& fi);
+	bool factory_type_valid_in_state(world_state const& ws, nations::state_tag s, factory_type_tag f_type);
+	float total_factory_construction_cost(world_state const& ws, nations::state_tag s, factory_type_tag f_type);
 
+	factory_type_tag good_to_factory_type(world_state const& ws, goods_tag g);
 	goods_qnty_type province_rgo_production_qnty(world_state const& ws, provinces::province_tag p);
 
 	factory_project_type get_factory_project_type(world_state const& ws, nations::state_tag location, factory_type_tag ftype);

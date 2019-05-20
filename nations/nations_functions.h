@@ -19,6 +19,7 @@ namespace nations {
 	void remove_province_from_state(world_state& ws, provinces::province_tag p);
 	nations::country_tag make_nation_for_tag(world_state& ws, cultures::national_tag nt);
 	bool is_state_empty(world_state const& ws, nations::state_tag s);
+	bool is_state_coastal(world_state const& ws, nations::state_tag s);
 	void recalculate_state_nation_demographics(world_state& ws);
 	void update_state_nation_demographics(world_state& ws); // update last population with current, then recalculates
 	provinces::province_tag find_best_capital(world_state const& ws, nations::country_tag owner);
