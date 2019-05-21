@@ -56,7 +56,13 @@ namespace economy {
 	bool factory_is_under_construction(factory_instance const& fi);
 	bool factory_is_upgrading(factory_instance const& fi);
 	bool factory_type_valid_in_state(world_state const& ws, nations::state_tag s, factory_type_tag f_type);
+	bool can_build_factory_in_state(world_state const& ws, nations::country_tag n, nations::state_tag s);
 	float total_factory_construction_cost(world_state const& ws, nations::state_tag s, factory_type_tag f_type);
+	float project_factory_profit(world_state const& ws, nations::state_tag s, factory_type_tag f_type);
+
+	float minimum_wage(world_state const& ws, nations::state_tag s, population::pop_type_tag type);
+	float minimum_wage(world_state const& ws, nations::state_tag s, population::pop_type_tag type, tagged_array_view<const float, population::pop_type_tag> ln_by_type);
+	float minimum_wage(world_state const& ws, nations::state_tag s, population::pop_type_tag type, tagged_array_view<const float, goods_tag> masked_prices);
 
 	factory_type_tag good_to_factory_type(world_state const& ws, goods_tag g);
 	goods_qnty_type province_rgo_production_qnty(world_state const& ws, provinces::province_tag p);

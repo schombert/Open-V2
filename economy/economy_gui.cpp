@@ -1,5 +1,6 @@
 #include "common\\common.h"
 #include "economy_gui.hpp"
+#include "commands/commands.h"
 
 namespace economy {
 	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
@@ -615,5 +616,84 @@ namespace economy {
 	}
 	void factory_construction_cost_item_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.goods[tag].name, ui::tooltip_text_format, ws, tw);
+	}
+	void bf_profit_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::profit, fmt, ws, box, lm);
+	}
+	void bf_profit_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
+			auto const amount = project_factory_profit(ws, ws.w.build_factory_w.in_state, f_type);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ amount }, fmt, ws, box, lm);
+		}
+	}
+	void bf_description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.economy_m.factory_types[f_type].description, fmt, ws, box, lm);
+		}
+	}
+	void bf_total_workers_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
+			float sum = 0.0f;
+			auto& f_type_obj = ws.s.economy_m.factory_types[f_type];
+
+			for(uint32_t i = 0; i < std::extent_v<decltype(f_type_obj.factory_workers.workers)>; ++i) {
+				if(is_valid_index(f_type_obj.factory_workers.workers[i].type)) {
+					sum += f_type_obj.factory_workers.workers[i].amount;
+				}
+			}
+
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ sum }, fmt, ws, box, lm);
+		}
+	}
+	void bf_base_price_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_input_price_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_base_price_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_input_price_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_stockpile_lack_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_stockpile_lack_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
+	void bf_treasury_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(auto const player = ws.w.local_player_nation; player)
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ ws.w.nation_s.nations.get<nation::treasury>(player) }, fmt, ws, box, lm);
+	}
+	void bf_total_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::total_cost, fmt, ws, box, lm);
+	}
+	void bf_total_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto const s = ws.w.build_factory_w.in_state;
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type && s) {
+			auto const cost = total_factory_construction_cost(ws, s, f_type);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ cost }, fmt, ws, box, lm);
+		}
+	}
+	void bf_cancel::button_function(ui::simple_button<bf_cancel>&, world_state & ws) {
+		ws.w.build_factory_w.hide(ws.w.gui_m);
+	}
+	void factory_item_bg::button_function(ui::simple_button<factory_item_bg>& self, world_state & ws) {
+		if(tag) {
+			ws.w.build_factory_w.update(ws.w.gui_m, ws.w.build_factory_w.in_state, tag);
+		}
+	}
+	void bf_build::update(ui::simple_button<bf_build>& self, world_state & ws) {
+		auto const s = ws.w.build_factory_w.in_state;
+		auto const player = ws.w.local_player_nation;
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type && s && player) {
+			self.set_enabled(commands::is_command_valid(commands::build_factory(player, s, f_type), ws));
+		}
+	}
+	void bf_build::button_function(ui::simple_button<bf_build>&, world_state & ws) {
+		auto const s = ws.w.build_factory_w.in_state;
+		auto const player = ws.w.local_player_nation;
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type && s && player) {
+			ws.w.pending_commands.add<commands::build_factory>(player, s, f_type);
+		}
+		ws.w.build_factory_w.hide(ws.w.gui_m);
+	}
+	void bf_build::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto const s = ws.w.build_factory_w.in_state;
+		auto const player = ws.w.local_player_nation;
+		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type && s && player) {
+			ui::line_manager lm;
+			commands::explain_command_conditions(commands::build_factory(player, s, f_type), ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
+		}
 	}
 }

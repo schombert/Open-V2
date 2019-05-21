@@ -851,6 +851,17 @@ namespace nations {
 			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += value;
 		}
 	}
+	void increase_foreign_investment(world_state& ws, nations::country_tag nation_by, country_tag nation_in, float value) {
+		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
+		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b)); f) {
+			f->investment_amount += value;
+			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += value;
+		} else {
+			add_item(ws.w.nation_s.influence_arrays, a_inf, influence{ value, b, 0.0f, 2i8, 0i8 });
+			add_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::influencers>(b), a);
+			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += value;
+		}
+	}
 	void set_priority_level(world_state& ws, nations::country_tag nation_by, country_tag nation_target, int32_t level) {
 		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(nation_by);
 		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(nation_target)); f) {

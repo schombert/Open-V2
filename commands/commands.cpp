@@ -9,6 +9,7 @@
 #include "triggers\effects.h"
 #include "governments\governments_functions.h"
 #include "issues\issues_functions.h"
+#include "economy\economy_functions.hpp"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -432,6 +433,120 @@ namespace commands {
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 
 		return cursor_in;
+	}
+
+	bool is_command_valid(build_factory const& c, world_state const& ws) {
+		return
+			bit_vector_test(ws.w.nation_s.active_goods.get_row(c.by_nation), ws.s.economy_m.factory_types[c.factory_type].output_good)
+			&& economy::can_build_factory_in_state(ws, c.by_nation, c.in_state)
+			&& economy::factory_type_valid_in_state(ws, c.in_state, c.factory_type);
+	}
+
+	void commands::execute_command(build_factory const & c, world_state & ws) {
+		if(is_command_valid(c, ws)) {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+			for(auto& f : factories) {
+				if(!is_valid_index(f.type)) {
+					f.type = c.factory_type;
+					f.factory_progress = 0.00001f;
+					f.flags = factory_instance::owner_is_upgrading;
+
+					if(auto const owner = nations::state_owner(ws, c.in_state); owner != c.by_nation) {
+						auto const factory_cost = economy::total_factory_construction_cost(ws, c.in_state, c.factory_type);
+
+						ws.w.nation_s.nations.get<nation::treasury>(owner) += factory_cost;
+						ws.w.nation_s.nations.get<nation::treasury>(c.by_nation) -= factory_cost;
+						nations::increase_foreign_investment(ws, c.by_nation, owner, factory_cost);
+					}
+					return;
+				}
+			}
+		}
+	}
+
+	ui::xy_pair explain_command_conditions(build_factory const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		bool unlocked = bit_vector_test(ws.w.nation_s.active_goods.get_row(c.by_nation), ws.s.economy_m.factory_types[c.factory_type].output_good);
+
+		if(unlocked) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+		}
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_unlocked, fmt, ws, container, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		bool state_not_full = economy::count_factories_in_state(ws, c.in_state) < state::factories_count;
+		if(state_not_full) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+		}
+
+		text_data::text_replacement vrep(text_data::value_type::value, text_data::integer{ state::factories_count });
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_limit, fmt, ws, container, lm, &vrep, 1);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		auto const state_owner = ws.w.nation_s.states.get<state::owner>(c.in_state);
+		auto const owner_rules = ws.w.nation_s.nations.get<nation::current_rules>(state_owner);
+
+		if(state_owner == c.by_nation) {
+			bool rule_allowed = (issues::rules::build_factory & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::foreign_investment_allowed, fmt, ws, container, lm);
+		} else {
+			bool rule_allowed = (issues::rules::allow_foreign_investment & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_building_allowed, fmt, ws, container, lm);
+		}
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		bool not_in_state = 
+			[&ws, s = c.in_state, f_type = c.factory_type]() {
+			auto& factories = ws.w.nation_s.states.get<state::factories>(s);
+			for(auto& f : factories) {
+				if(f.type == f_type)
+					return false;
+			}
+			return true;
+		}();
+
+		if(not_in_state) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+		}
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_already_present, fmt, ws, container, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		if(ws.s.economy_m.factory_types[c.factory_type].coastal) {
+			if(nations::is_state_coastal(ws, c.in_state)) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::state_is_coastal, fmt, ws, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+		}
 	}
 
 	void execute_command(change_research const& c, world_state& ws) {

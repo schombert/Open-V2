@@ -40,6 +40,7 @@ namespace nations {
 	bool can_influence(world_state const& ws, nations::country_tag nation_by, country_tag nation_target);
 	float get_foreign_investment(world_state const& ws, nations::country_tag nation_by, country_tag nation_in);
 	void set_foreign_investment(world_state& ws, nations::country_tag nation_by, country_tag nation_in, float value);
+	void increase_foreign_investment(world_state& ws, nations::country_tag nation_by, country_tag nation_in, float value);
 	void set_priority_level(world_state& ws, nations::country_tag nation_by, country_tag nation_target, int32_t level);
 	int32_t get_priority_level(world_state const& ws, nations::country_tag nation_by, country_tag nation_target);
 	void remove_investment_and_influence(world_state& ws, nations::country_tag nation_by, nations::country_tag nation_target);

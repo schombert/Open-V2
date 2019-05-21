@@ -284,6 +284,9 @@ namespace economy {
 				fac.building_time = b.second.time;
 				fac.default_enabled = b.second.default_enabled;
 
+				std::string desc_key = std::string(b.first.start, b.first.end) + "_desc";
+				fac.description = text_data::get_thread_safe_text_handle(env.text_lookup, desc_key.c_str(), desc_key.c_str() + desc_key.length());
+
 				env.production_to_factory.emplace(b.second.production_type, new_ftag);
 				env.manager.named_factory_types_index.emplace(name, new_ftag);
 

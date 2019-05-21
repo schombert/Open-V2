@@ -77,6 +77,7 @@ namespace economy {
 		uint32_t building_time = 730;
 
 		text_data::text_tag name;
+		text_data::text_tag description;
 
 		goods_tag output_good;
 		

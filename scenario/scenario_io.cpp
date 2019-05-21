@@ -844,5 +844,13 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::national_social_reform_desire] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OWNER_SR_DESIRE");
 		s.fixed_ui_text[fixed_ui::parenthetical_national_modifier] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_NAT_MOD");
 		s.fixed_ui_text[fixed_ui::parenthetical_provincial_modifier] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PAREN_PROV_MOD");
+		s.fixed_ui_text[fixed_ui::profit] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "PROFIT");
+		s.fixed_ui_text[fixed_ui::total_cost] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "TOTAL_COST");
+		s.fixed_ui_text[fixed_ui::factory_unlocked] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_UNLOCKED");
+		s.fixed_ui_text[fixed_ui::foreign_investment_allowed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "F_INVESTMENT_ALLOWED");
+		s.fixed_ui_text[fixed_ui::factory_building_allowed] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "G_BUILDING_ALLOWED");
+		s.fixed_ui_text[fixed_ui::factory_limit] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_LIMIT");
+		s.fixed_ui_text[fixed_ui::state_is_coastal] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "STATE_IS_COASTAL");
+		s.fixed_ui_text[fixed_ui::factory_already_present] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_ALREADY_PRESENT");
 	}
 }
