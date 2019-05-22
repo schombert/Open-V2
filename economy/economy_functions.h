@@ -21,7 +21,7 @@ namespace economy {
 	production_modifiers factory_production_modifiers(
 		world_state const& ws,
 		worked_instance const& instance,
-		bonus* bonuses,
+		bonus const* bonuses,
 		workers_information const& workers_info,
 		nations::country_tag in_nation,
 		provinces::province_tag in_province,

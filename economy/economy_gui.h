@@ -108,7 +108,7 @@ namespace economy {
 
 		void hide(ui::gui_manager& gui_m);
 		void init(world_state& ws);
-		void update(ui::gui_manager& gui_m, , nations::state_tag s, economy::goods_tag g);
+		void update(ui::gui_manager& gui_m, nations::state_tag s, economy::goods_tag g);
 		void show(ui::gui_manager& gui_m, nations::state_tag s);
 	};
 }

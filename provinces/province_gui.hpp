@@ -275,6 +275,7 @@ namespace provinces {
 
 	class build_factory_button {
 	public:
+		void update(ui::simple_button<build_factory_button>& self, world_state& ws);
 		void button_function(ui::gui_object_tag t, world_state& ws);
 		bool has_tooltip(world_state&) { return true; }
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
@@ -332,7 +333,6 @@ namespace provinces {
 		CT_STRING("ideology_chart"), ui::piechart<ideology_pie_chart>,
 		CT_STRING("culture_chart"), ui::piechart<culture_pie_chart>,
 		CT_STRING("open_popscreen"), ui::simple_button<open_popscreen_button>,
-		CT_STRING("build_factory_button"), ui::simple_button<build_factory_button>,
 		CT_STRING("party_loyalty"), ui::dynamic_icon<party_loyalty_icon>,
 		CT_STRING("supply_limit"), ui::display_text<supply_limit_text_box>,
 		CT_STRING("core_icons"), ui::overlap_box<cores_lb, ui::window_tag, core_flag>,
@@ -794,6 +794,8 @@ namespace provinces {
 		ui::display_text<expand_text> fort_expand_text;
 		ui::display_text<expand_text> naval_base_expand_text;
 		ui::display_text<expand_text> railroad_expand_text;
+
+		ui::simple_button<build_factory_button> build_factory;
 
 		template<typename ...P>
 		explicit province_buildings_base(P&& ... params) {}
@@ -1311,5 +1313,12 @@ namespace provinces {
 		fort_button.associated_object->position.y = 13i16;
 		naval_base_button.associated_object->position.y = 48i16;
 		railroad_button.associated_object->position.y = 83i16;
+
+		auto fbutton = 
+			ui::create_static_element(ws,
+				std::get<ui::button_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_factory_button"]),
+				ui::tagged_gui_object{ *associated_object, win.window_object }, build_factory);
+		fbutton.object.position.y = 22i16;
+
 	}
 }

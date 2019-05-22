@@ -475,9 +475,10 @@ namespace nations {
 		auto prange = is_valid_index(region)
 			? ws.s.province_m.states_to_province_index.get_row(region)
 			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
+		auto const is_coastal_row = ws.s.province_m.province_container.get_row<province::is_coastal>();
 		for(auto p : prange) {
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s) {
-				if(ws.w.province_s.province_state_container.get<province_state::is_coastal>(p))
+				if(bit_vector_test(is_coastal_row, p))
 					return true;
 			}
 		}
@@ -851,7 +852,7 @@ namespace nations {
 			ws.w.nation_s.nations.get<nation::total_foreign_investment>(b) += value;
 		}
 	}
-	void increase_foreign_investment(world_state& ws, nations::country_tag nation_by, country_tag nation_in, float value) {
+	void increase_foreign_investment(world_state& ws, nations::country_tag a, country_tag b, float value) {
 		auto& a_inf = ws.w.nation_s.nations.get<nation::gp_influence>(a);
 		if(auto f = find(ws.w.nation_s.influence_arrays, a_inf, influence(b)); f) {
 			f->investment_amount += value;

@@ -444,12 +444,12 @@ namespace commands {
 
 	void commands::execute_command(build_factory const & c, world_state & ws) {
 		if(is_command_valid(c, ws)) {
-			auto& factories = ws.w.nation_s.states.get<state::factories>(si);
+			auto& factories = ws.w.nation_s.states.get<state::factories>(c.in_state);
 			for(auto& f : factories) {
 				if(!is_valid_index(f.type)) {
-					f.type = c.factory_type;
+					f.type = &(ws.s.economy_m.factory_types[c.factory_type]);
 					f.factory_progress = 0.00001f;
-					f.flags = factory_instance::owner_is_upgrading;
+					f.flags = economy::factory_instance::owner_is_upgrading;
 
 					if(auto const owner = nations::state_owner(ws, c.in_state); owner != c.by_nation) {
 						auto const factory_cost = economy::total_factory_construction_cost(ws, c.in_state, c.factory_type);
@@ -502,7 +502,7 @@ namespace commands {
 				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
 				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 			}
-			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::foreign_investment_allowed, fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_building_allowed, fmt, ws, container, lm);
 		} else {
 			bool rule_allowed = (issues::rules::allow_foreign_investment & owner_rules) != 0;
 			if(rule_allowed) {
@@ -512,7 +512,7 @@ namespace commands {
 				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
 				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
 			}
-			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_building_allowed, fmt, ws, container, lm);
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::foreign_investment_allowed, fmt, ws, container, lm);
 		}
 		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
 
@@ -520,7 +520,7 @@ namespace commands {
 			[&ws, s = c.in_state, f_type = c.factory_type]() {
 			auto& factories = ws.w.nation_s.states.get<state::factories>(s);
 			for(auto& f : factories) {
-				if(f.type == f_type)
+				if(f.type && f.type->id == f_type)
 					return false;
 			}
 			return true;
@@ -547,6 +547,19 @@ namespace commands {
 			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::state_is_coastal, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
 		}
+
+
+		if(!nations::is_colonial_or_protectorate(ws, c.in_state)) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+		}
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::not_colonial, fmt, ws, container, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		return cursor_in;
 	}
 
 	void execute_command(change_research const& c, world_state& ws) {

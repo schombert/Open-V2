@@ -132,6 +132,11 @@ namespace economy {
 				const auto new_g_tag = env.manager.goods.emplace_back(v.second.def);
 				auto& new_g = env.manager.goods[new_g_tag];
 
+				if(is_fixed_token_ci(v.first, "oil"))
+					new_g.flags |= good_definition::not_available_from_start;
+				else if(is_fixed_token_ci(v.first, "dye"))
+					new_g.flags |= good_definition::not_available_from_start;
+
 				new_g.id = new_g_tag;
 				new_g.name = gname;
 				subgoods.push_back(new_g_tag);
@@ -560,6 +565,7 @@ namespace economy {
 				if(is_valid_index(p.second.template_name)) {
 					const auto base_tag = tag_from_text(factory_mapping, p.second.template_name);
 					const auto old_name = factory.name;
+					const auto old_desc = factory.description;
 					const auto old_building_time = factory.building_time;
 					const auto old_default_enabled = factory.default_enabled;
 
@@ -576,6 +582,7 @@ namespace economy {
 					factory.name = old_name;
 					factory.building_time = old_building_time;
 					factory.default_enabled = old_default_enabled;
+					factory.description = old_desc;
 				}
 
 				factory.id = ftag;

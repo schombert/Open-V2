@@ -552,8 +552,71 @@ namespace provinces {
 		}
 	}
 
-	void build_factory_button::button_function(ui::gui_object_tag, world_state&) {}
-	void build_factory_button::create_tooltip(world_state&, ui::tagged_gui_object) {}
+	void build_factory_button::update(ui::simple_button<build_factory_button>& self, world_state & ws) {
+		self.set_enabled(economy::can_build_factory_in_state(
+			ws,
+			ws.w.local_player_nation,
+			ws.w.province_s.province_state_container.get<province_state::state_instance>(ws.w.province_w.selected_province)));
+	}
+
+	void build_factory_button::button_function(ui::gui_object_tag, world_state& ws) {
+		ws.w.build_factory_w.show(ws.w.gui_m, ws.w.province_s.province_state_container.get<province_state::state_instance>(ws.w.province_w.selected_province));
+	}
+	void build_factory_button::create_tooltip(world_state& ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		auto const fmt = ui::tooltip_text_format;
+		ui::xy_pair cursor_in{ 0,0 };
+		auto const tag = ws.w.province_s.province_state_container.get<province_state::state_instance>(ws.w.province_w.selected_province);
+
+		bool state_not_full = economy::count_factories_in_state(ws, tag) < state::factories_count;
+		if(state_not_full) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+		}
+
+		text_data::text_replacement vrep(text_data::value_type::value, text_data::integer{ state::factories_count });
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_limit, fmt, ws, tw, lm, &vrep, 1);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		auto const state_owner = ws.w.nation_s.states.get<state::owner>(tag);
+		auto const owner_rules = ws.w.nation_s.nations.get<nation::current_rules>(state_owner);
+
+		if(state_owner == ws.w.local_player_nation) {
+			bool rule_allowed = (issues::rules::build_factory & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::foreign_investment_allowed, fmt, ws, tw, lm);
+		} else {
+			bool rule_allowed = (issues::rules::allow_foreign_investment & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_building_allowed, fmt, ws, tw, lm);
+		}
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		if(!nations::is_colonial_or_protectorate(ws, tag)) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+		}
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::not_colonial, fmt, ws, tw, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+	}
 	void party_loyalty_icon::create_tooltip(world_state&, ui::tagged_gui_object) {
 
 	}

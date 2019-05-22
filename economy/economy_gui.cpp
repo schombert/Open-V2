@@ -524,7 +524,63 @@ namespace economy {
 		ws.w.production_w.show_foreign_investment(ws.w.gui_m);
 	}
 	void state_focus_button::button_function(ui::simple_button<state_focus_button>& self, world_state & ws) {}
-	void state_build_factory_button::button_function(ui::simple_button<state_build_factory_button>& self, world_state & ws) {}
+	void state_build_factory_button::button_function(ui::simple_button<state_build_factory_button>& self, world_state & ws) {
+		ws.w.build_factory_w.show(ws.w.gui_m, tag);
+	}
+	void state_build_factory_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		auto const fmt = ui::tooltip_text_format;
+		ui::xy_pair cursor_in{ 0,0 };
+
+		bool state_not_full = economy::count_factories_in_state(ws, tag) < state::factories_count;
+		if(state_not_full) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+		}
+
+		text_data::text_replacement vrep(text_data::value_type::value, text_data::integer{ state::factories_count });
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_limit, fmt, ws, tw, lm, &vrep, 1);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		auto const state_owner = ws.w.nation_s.states.get<state::owner>(tag);
+		auto const owner_rules = ws.w.nation_s.nations.get<nation::current_rules>(state_owner);
+
+		if(state_owner == ws.w.local_player_nation) {
+			bool rule_allowed = (issues::rules::build_factory & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::factory_building_allowed, fmt, ws, tw, lm);
+		} else {
+			bool rule_allowed = (issues::rules::allow_foreign_investment & owner_rules) != 0;
+			if(rule_allowed) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+			}
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::foreign_investment_allowed, fmt, ws, tw, lm);
+		}
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		if(!nations::is_colonial_or_protectorate(ws, tag)) {
+			ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, tw, lm);
+		} else {
+			ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+			cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, tw, lm);
+		}
+		cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::not_colonial, fmt, ws, tw, lm);
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+	}
 	ui::window_tag state_details_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["state_info"]);
 	}
@@ -603,7 +659,7 @@ namespace economy {
 		}
 	}
 	ui::window_tag factory_types_lb::element_tag(ui::gui_static & m) {
-		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["new_factory_option"]);
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_factory_option"]);
 	}
 	ui::window_tag factory_workers_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["factory_pop"]);
@@ -623,7 +679,7 @@ namespace economy {
 	void bf_profit_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
 			auto const amount = project_factory_profit(ws, ws.w.build_factory_w.in_state, f_type);
-			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ amount }, fmt, ws, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::currency{ amount }, ui::text_format{fmt.color, fmt.font_handle, fmt.font_size - 1}, ws, box, lm);
 		}
 	}
 	void bf_description::update(ui::tagged_gui_object box, ui::line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -633,16 +689,8 @@ namespace economy {
 	}
 	void bf_total_workers_amount::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto const f_type = good_to_factory_type(ws, ws.w.build_factory_w.factory_type); f_type) {
-			float sum = 0.0f;
 			auto& f_type_obj = ws.s.economy_m.factory_types[f_type];
-
-			for(uint32_t i = 0; i < std::extent_v<decltype(f_type_obj.factory_workers.workers)>; ++i) {
-				if(is_valid_index(f_type_obj.factory_workers.workers[i].type)) {
-					sum += f_type_obj.factory_workers.workers[i].amount;
-				}
-			}
-
-			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ sum }, fmt, ws, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ f_type_obj.factory_workers.workforce }, fmt, ws, box, lm);
 		}
 	}
 	void bf_base_price_label::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {}
@@ -695,5 +743,22 @@ namespace economy {
 			ui::line_manager lm;
 			commands::explain_command_conditions(commands::build_factory(player, s, f_type), ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
 		}
+	}
+	build_factory_window::build_factory_window() : win(std::make_unique<build_factory_window_t>()) {}
+	build_factory_window::~build_factory_window() {}
+	void build_factory_window::hide(ui::gui_manager & gui_m) {
+		ui::hide(*(win->associated_object));
+	}
+	void build_factory_window::init(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_factory"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+	}
+	void build_factory_window::update(ui::gui_manager & gui_m, nations::state_tag s, economy::goods_tag g) {
+		in_state = s;
+		factory_type = g;
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void build_factory_window::show(ui::gui_manager & gui_m, nations::state_tag s) {
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		update(gui_m, s, goods_tag());
 	}
 }

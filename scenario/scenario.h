@@ -765,15 +765,15 @@ namespace scenario {
 		constexpr uint32_t parenthetical_provincial_modifier = 742ui32;
 		constexpr uint32_t profit = 743ui32;
 		constexpr uint32_t total_cost = 744ui32;
-
 		constexpr uint32_t factory_unlocked = 745ui32;
 		constexpr uint32_t foreign_investment_allowed = 746ui32;
 		constexpr uint32_t factory_building_allowed = 747ui32;
 		constexpr uint32_t factory_limit = 748ui32;
 		constexpr uint32_t state_is_coastal = 749ui32;
 		constexpr uint32_t factory_already_present = 750ui32;
+		constexpr uint32_t not_colonial = 751ui32;
 
-		constexpr uint32_t count = 751ui32;
+		constexpr uint32_t count = 752ui32;
 	}
 
 
