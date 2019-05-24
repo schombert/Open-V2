@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClInclude Include="modifiers.h" />
     <ClInclude Include="modifiers_gui.h" />
+    <ClInclude Include="modifiers_gui.hpp" />
     <ClInclude Include="modifiers_io.h" />
     <ClInclude Include="modifier_functions.h" />
   </ItemGroup>

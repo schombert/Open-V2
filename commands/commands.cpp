@@ -435,6 +435,31 @@ namespace commands {
 		return cursor_in;
 	}
 
+	bool is_command_valid(change_national_focus const& c, world_state const& ws) {
+		if(c.new_focus) {
+			auto max_focuses = modifiers::maximum_national_focuses(ws, ws.w.local_player_nation);
+			auto used_focuses = modifiers::current_focus_count(ws, ws.w.local_player_nation);
+
+			return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
+				&& (used_focuses < max_focuses);
+		} else {
+			return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation;
+		}
+	}
+
+	void execute_command(change_national_focus const& c, world_state& ws) {
+		if(is_command_valid(c, ws)) {
+			auto& nf = ws.w.nation_s.states.get<state::owner_national_focus>(c.in_state);
+
+			if(nf && !(c.new_focus))
+				remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), c.in_state);
+			else if(!nf && c.new_focus)
+				add_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), c.in_state);
+
+			nf = c.new_focus;
+		}
+	}
+
 	bool is_command_valid(build_factory const& c, world_state const& ws) {
 		return
 			bit_vector_test(ws.w.nation_s.active_goods.get_row(c.by_nation), ws.s.economy_m.factory_types[c.factory_type].output_good)

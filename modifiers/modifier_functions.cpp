@@ -681,6 +681,10 @@ namespace modifiers {
 		return std::max(int32_t(limited_amount), 1);
 	}
 
+	int32_t current_focus_count(world_state const& ws, nations::country_tag n) {
+		return int32_t(get_size(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n)));
+	}
+
 	float extract_value_from_definition(int32_t offset, modifier_definition const& def) {
 		for(uint32_t i = 0; i < modifier_definition_size; ++i) {
 			if(def.offsets[i] == offset)

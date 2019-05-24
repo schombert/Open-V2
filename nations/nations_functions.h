@@ -62,6 +62,8 @@ namespace nations {
 	void partial_destroy_state_instance(world_state& ws, nations::state_tag si);
 	void destroy_nation(world_state& ws, nations::country_tag new_nation);
 	float tarrif_multiplier(world_state const& ws, nations::country_tag source, nations::country_tag target);
+	
+
 
 	float monthly_growth(world_state const& ws, nations::country_tag n);
 	float monthly_growth(world_state const& ws, nations::state_tag s);

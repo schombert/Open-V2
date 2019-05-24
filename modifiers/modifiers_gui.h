@@ -36,4 +36,27 @@ namespace modifiers {
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot, bool invert_colors);
 	ui::xy_pair make_abs_factor_text_body(factor_modifier const& f, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt,
 		triggers::const_parameter primary_slot, triggers::const_parameter from_slot);
+
+
+	class national_focus_window_t;
+
+	class national_focus_window {
+	public:
+		std::unique_ptr<national_focus_window_t> win;
+
+		nations::state_tag in_state;
+
+		national_focus_window();
+		~national_focus_window();
+
+		void hide(ui::gui_manager& gui_m);
+		void init(world_state& ws);
+		void update(ui::gui_manager& gui_m, nations::state_tag s);
+		void show(ui::gui_manager& gui_m, nations::state_tag s, int32_t x, int32_t y);
+	};
+
+	uint32_t nf_tag_to_frame(world_state const& ws, national_focus_tag t);
+	bool nf_button_clickable(world_state const& ws, nations::state_tag s);
+	ui::xy_pair nf_modifier_text(national_focus_tag nf, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
+	ui::xy_pair nf_tooltip_text(nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 }

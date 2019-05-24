@@ -853,5 +853,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::state_is_coastal] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "STATE_IS_COASTAL");
 		s.fixed_ui_text[fixed_ui::factory_already_present] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FACTORY_ALREADY_PRESENT");
 		s.fixed_ui_text[fixed_ui::not_colonial] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NOT_COLONIAL");
+		s.fixed_ui_text[fixed_ui::no_focus] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_FOCUS");
+		s.fixed_ui_text[fixed_ui::focus_limit] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FOCUS_LIMIT");
 	}
 }

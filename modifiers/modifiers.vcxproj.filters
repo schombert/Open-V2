@@ -27,6 +27,9 @@
     <ClInclude Include="modifier_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="modifiers_gui.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="modifiers.cpp">

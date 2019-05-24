@@ -384,7 +384,7 @@ namespace current_state {
 	void topbar_national_focus_count::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(auto player = ws.w.local_player_nation; player) {
 			auto max_focuses = modifiers::maximum_national_focuses(ws, player);
-			auto used_focuses = int32_t(get_size(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(player)));
+			auto used_focuses = modifiers::current_focus_count(ws, player);
 
 			char16_t local_buf[32];
 			auto posa = put_value_in_buffer(local_buf, display_type::integer, max_focuses - used_focuses);

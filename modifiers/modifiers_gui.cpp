@@ -1,7 +1,6 @@
 #include "common\\common.h"
-#include "modifiers_gui.h"
+#include "modifiers_gui.hpp"
 #include "world_state\\world_state.h"
-#include "gui\\gui.hpp"
 #include "nations\\nations_functions.h"
 #include "modifier_functions.h"
 #include "triggers\\trigger_gui.h"
@@ -657,6 +656,121 @@ namespace modifiers {
 			cursor_in = triggers::make_trigger_description(ws, container, cursor_in, lm, fmt, ws.s.trigger_m.trigger_data.data() + to_index(segment.condition), primary_slot, primary_slot, from_slot);
 		}
 
+		return cursor_in;
+	}
+	void focus_choice_button::update(ui::simple_button<focus_choice_button>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, modifiers::nf_tag_to_frame(ws, tag));
+		if(auto const player = ws.w.local_player_nation; player && tag) {
+			auto max_focuses = modifiers::maximum_national_focuses(ws, player);
+			auto used_focuses = modifiers::current_focus_count(ws, player);
+
+			if(used_focuses >= max_focuses) {
+				self.set_enabled(false);
+				return;
+			}
+			if(auto const lim = ws.s.modifiers_m.national_focuses[tag].limit; lim) {
+				if(!triggers::test_trigger(
+					ws.s.trigger_m.trigger_data.data() + to_index(lim),
+					ws, ws.w.nation_s.nations.get<state::state_capital>(ws.w.national_focus_w.in_state),
+					ws.w.nation_s.nations.get<state::owner>(ws.w.national_focus_w.in_state),
+					triggers::const_parameter())) {
+
+					self.set_enabled(false);
+					return;
+				}
+			}
+		}
+		self.set_enabled(true);
+	}
+	void focus_choice_button::button_function(ui::simple_button<focus_choice_button>& self, world_state & ws) {
+		ws.w.pending_commands.add<commands::change_national_focus>(ws.w.local_player_nation, ws.w.national_focus_w.in_state, tag);
+	}
+	void focus_choice_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		nf_modifier_text(tag, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
+	}
+	void nf_window_header::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::national_focus, fmt, ws, box, lm);
+	}
+	void close_nf_window::button_function(ui::simple_button<close_nf_window>& self, world_state & ws) {
+		ws.w.national_focus_w.hide(ws.w.gui_m);
+	}
+
+	uint32_t nf_tag_to_frame(world_state const& ws, national_focus_tag t) {
+		if(t) 
+			return uint32_t(ws.s.modifiers_m.national_focuses[t].icon - 1);
+		else
+			return 0;
+	}
+	bool nf_button_clickable(world_state const& ws, nations::state_tag s) {
+		return ws.w.nation_s.states.get<state::owner>(s) == ws.w.local_player_nation;
+	}
+	ui::xy_pair nf_modifier_text(national_focus_tag nf, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		if(!nf) {
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::no_focus, fmt, ws, container, lm);
+		} else {
+			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_focuses[nf].name, fmt, ws, container, lm);
+		}
+		cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+		if(nf) {
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+			auto max_focuses = modifiers::maximum_national_focuses(ws, ws.w.local_player_nation);
+			auto used_focuses = modifiers::current_focus_count(ws, ws.w.local_player_nation);
+
+			if(used_focuses < max_focuses) {
+				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
+			} else {
+				ui::text_format local_fmt{ ui::text_color::red, fmt.font_handle, fmt.font_size };
+				cursor_in = ui::add_text(cursor_in, u"\u274C ", local_fmt, ws, container, lm);
+			}
+			text_data::text_replacement repl(text_data::value_type::value, text_data::integer{ max_focuses });
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::focus_limit, fmt, ws, container, lm, &repl, 1);
+
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+			if(auto const lim = ws.s.modifiers_m.national_focuses[nf].limit; lim) {
+				cursor_in = triggers::make_trigger_description(
+					ws,
+					container,
+					cursor_in,
+					lm,
+					fmt,
+					ws.s.trigger_m.trigger_data.data() + to_index(lim),
+					ws.w.nation_s.nations.get<state::state_capital>(s),
+					ws.w.nation_s.nations.get<state::owner>(s),
+					triggers::const_parameter()
+				);
+			}
+
+			if(ws.s.modifiers_m.national_focuses[nf].modifier) {
+				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+				cursor_in = make_province_modifier_text_body(
+					ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.national_focuses[nf].modifier]);
+			}
+		}
+
+		return cursor_in;
+	}
+	ui::xy_pair nf_tooltip_text(nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+		auto const nf = ws.w.nation_s.states.get<state::owner_national_focus>(s);
+
+		if(!nf) {
+			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::no_focus, fmt, ws, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+		} else {
+			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_focuses[nf].name, fmt, ws, container, lm);
+			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+			if(ws.s.modifiers_m.national_focuses[nf].modifier) {
+				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+				cursor_in = make_province_modifier_text_body(
+					ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.national_focuses[nf].modifier]);
+			}
+		}
+		
 		return cursor_in;
 	}
 }

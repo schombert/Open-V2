@@ -772,8 +772,10 @@ namespace scenario {
 		constexpr uint32_t state_is_coastal = 749ui32;
 		constexpr uint32_t factory_already_present = 750ui32;
 		constexpr uint32_t not_colonial = 751ui32;
+		constexpr uint32_t no_focus = 752ui32;
+		constexpr uint32_t focus_limit = 753ui32;
 
-		constexpr uint32_t count = 752ui32;
+		constexpr uint32_t count = 754ui32;
 	}
 
 

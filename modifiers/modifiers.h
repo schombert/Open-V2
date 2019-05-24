@@ -781,5 +781,13 @@ namespace modifiers {
 
 		national_modifier_tag fetch_unique_national_modifier(text_data::text_tag n); // adds index only if valid text tag
 		provincial_modifier_tag fetch_unique_provincial_modifier(text_data::text_tag n); // adds index only if valid text tag
+
+		template<typename F>
+		void for_each_national_focus(F const& f) const {
+			int32_t const cmax = int32_t(national_focuses.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(national_focus_tag(national_focus_tag::value_base_t(i)));
+			}
+		}
 	};
 }

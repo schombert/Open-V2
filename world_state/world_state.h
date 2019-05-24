@@ -26,6 +26,7 @@
 #include "events\\events_gui.h"
 #include "bottombar.h"
 #include "graphics\\world_map.h"
+#include "modifiers\modifiers_gui.h"
 #include "find.h"
 #include "menu.h"
 
@@ -131,6 +132,7 @@ namespace current_state {
 		find_dialog::find_window find_w;
 		menu::menu_window menu_w;
 		economy::build_factory_window build_factory_w;
+		modifiers::national_focus_window national_focus_w;
 
 		topbar topbar_w;
 		bottombar bottombar_w;
