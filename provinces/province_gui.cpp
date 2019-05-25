@@ -1060,4 +1060,23 @@ namespace provinces {
 	void province_window::init_province_window(world_state & ws) {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["province_view"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
+	void province_national_focus_button::button_function(ui::simple_button<province_national_focus_button>& self, world_state & ws) {
+		auto rc = ui::absolute_position(ws.w.gui_m, ui::find_in_parent(ws.w.gui_m, *(self.associated_object)))
+			+ ui::xy_pair{self.associated_object->size.x, int16_t(self.associated_object->size.y / 2)};
+		ws.w.national_focus_w.show(ws.w.gui_m, tag, rc.x, rc.y);
+	}
+	void province_national_focus_button::update(ui::simple_button<province_national_focus_button>& ico, world_state & ws) {
+		tag = ws.w.province_s.province_state_container.get<province_state::state_instance>(ws.w.province_w.selected_province);
+		if(tag) {
+			auto nf = ws.w.nation_s.states.get<state::owner_national_focus>(tag);
+			ico.set_frame(ws.w.gui_m, modifiers::nf_tag_to_frame(ws, nf));
+		} else {
+			ico.set_frame(ws.w.gui_m, 0);
+		}
+		ico.set_enabled(modifiers::nf_button_clickable(ws, tag));
+	}
+	void province_national_focus_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		modifiers::nf_tooltip_text(tag, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
+	}
 }

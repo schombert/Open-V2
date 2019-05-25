@@ -26,7 +26,7 @@ namespace modifiers {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
-	class national_focus_window_base : ui::visible_region {
+	class national_focus_window_base : public ui::window_pane {
 	public:
 		std::vector<ui::simple_button<focus_choice_button>> nf_buttons;
 
@@ -53,24 +53,24 @@ namespace modifiers {
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			nf_buttons.back());
 		ui::move_to_front(ws.w.gui_m, res);
-		res.object.position.x = int16_t((x_off++) * 39 + 4);
-		res.object.position.y = int16_t((y_off) * 36 + 4);
+		res.object.position.x = int16_t((x_off++) * 39 + 38);
+		res.object.position.y = int16_t((y_off) * 36 + 62);
 		if(x_off == 7) {
 			x_off = 0;
 			++y_off;
 		}
 
-		ws.s.modifiers_m.for_each_national_focus([&ws, &nf_buttons, &x_off, &y_off](national_focus_tag nf) {
+		ws.s.modifiers_m.for_each_national_focus([&ws, _this = this, &x_off, &y_off, ui_tag, &win](national_focus_tag nf) {
 			if(ws.s.modifiers_m.national_focuses[nf].modifier) {
-				nf_buttons.emplace_back();
+				_this->nf_buttons.emplace_back();
 				auto const res = ui::create_static_element(
 					ws, ui_tag,
-					ui::tagged_gui_object{ *associated_object, win.window_object },
-					nf_buttons.back());
-				nf_buttons.back().tag = nf;
+					ui::tagged_gui_object{ *(_this->associated_object), win.window_object },
+					_this->nf_buttons.back());
+				_this->nf_buttons.back().tag = nf;
 				ui::move_to_front(ws.w.gui_m, res);
-				res.object.position.x = int16_t((x_off++) * 39 + 4);
-				res.object.position.y = int16_t((y_off) * 36 + 4);
+				res.object.position.x = int16_t((x_off++) * 39 + 38);
+				res.object.position.y = int16_t((y_off) * 36 + 62);
 				if(x_off == 7) {
 					x_off = 0;
 					++y_off;
@@ -81,22 +81,24 @@ namespace modifiers {
 		x_off = 0;
 		++y_off;
 
-		ws.s.modifiers_m.for_each_national_focus([&ws, &nf_buttons, &x_off, &y_off](national_focus_tag nf) {
-			if(ws.s.modifiers_m.national_focuses[nf].pop_type && ws.s.modifiers_m.national_focuses[nf].pop_type != ws.s.population_m.laborer) {
-				nf_buttons.emplace_back();
+		ws.s.modifiers_m.for_each_national_focus([&ws, _this = this, &x_off, &y_off, ui_tag, &win](national_focus_tag nf) {
+			if(ws.s.modifiers_m.national_focuses[nf].pop_type) {
+				_this->nf_buttons.emplace_back();
 				auto const res = ui::create_static_element(
 					ws, ui_tag,
-					ui::tagged_gui_object{ *associated_object, win.window_object },
-					nf_buttons.back());
-				nf_buttons.back().tag = nf;
+					ui::tagged_gui_object{ *(_this->associated_object), win.window_object },
+					_this->nf_buttons.back());
+				_this->nf_buttons.back().tag = nf;
 				ui::move_to_front(ws.w.gui_m, res);
-				res.object.position.x = int16_t((x_off++) * 39 + 4);
-				res.object.position.y = int16_t((y_off) * 36 + 4);
+				res.object.position.x = int16_t((x_off++) * 39 + 38);
+				res.object.position.y = int16_t((y_off) * 36 + 62);
 				if(x_off == 7) {
 					x_off = 0;
 					++y_off;
 				}
 			}
 		});
+
+		ui::hide(*associated_object);
 	}
 }

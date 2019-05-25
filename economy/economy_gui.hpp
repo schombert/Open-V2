@@ -823,6 +823,8 @@ namespace economy {
 		template<typename window_type>
 		void windowed_update(ui::simple_button<state_focus_button>& self, window_type& win, world_state& ws);
 		void button_function(ui::simple_button<state_focus_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class state_name {
@@ -2164,7 +2166,16 @@ namespace economy {
 	}
 
 	template<typename window_type>
-	void state_focus_button::windowed_update(ui::simple_button<state_focus_button>& self, window_type & win, world_state & ws) {}
+	void state_focus_button::windowed_update(ui::simple_button<state_focus_button>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+		if(tag) {
+			auto nf = ws.w.nation_s.states.get<state::owner_national_focus>(tag);
+			self.set_frame(ws.w.gui_m, modifiers::nf_tag_to_frame(ws, nf));
+		} else {
+			self.set_frame(ws.w.gui_m, 0);
+		}
+		self.set_enabled(modifiers::nf_button_clickable(ws, tag));
+	}
 
 	template<typename W>
 	void state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {

@@ -74,6 +74,16 @@ namespace provinces {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	class province_national_focus_button {
+	public:
+		nations::state_tag tag;
+
+		void button_function(ui::simple_button<province_national_focus_button>& self, world_state& ws);
+		void update(ui::simple_button<province_national_focus_button>& ico, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
 	class province_name {
 	public:
 		template<typename ...PARAMS>
@@ -160,6 +170,7 @@ namespace provinces {
 		CT_STRING("province_modifiers"), ui::overlap_box<modifier_lb, ui::window_tag, modifier_item>,
 		CT_STRING("slave_state_icon"), ui::dynamic_icon<slave_state_icon>,
 		CT_STRING("colony_button"), ui::simple_button<colony_button>,
+		CT_STRING("national_focus"), ui::simple_button<province_national_focus_button>,
 		CT_STRING("admin_icon"), ui::dynamic_icon<admin_icon>,
 		CT_STRING("admin_efficiency"), ui::display_text<admin_text_box, -4>,
 		CT_STRING("controller_flag"), ui::masked_flag<province_controller_flag>,

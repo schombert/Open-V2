@@ -671,8 +671,8 @@ namespace modifiers {
 			if(auto const lim = ws.s.modifiers_m.national_focuses[tag].limit; lim) {
 				if(!triggers::test_trigger(
 					ws.s.trigger_m.trigger_data.data() + to_index(lim),
-					ws, ws.w.nation_s.nations.get<state::state_capital>(ws.w.national_focus_w.in_state),
-					ws.w.nation_s.nations.get<state::owner>(ws.w.national_focus_w.in_state),
+					ws, ws.w.nation_s.states.get<state::state_capital>(ws.w.national_focus_w.in_state),
+					ws.w.nation_s.states.get<state::owner>(ws.w.national_focus_w.in_state),
 					triggers::const_parameter())) {
 
 					self.set_enabled(false);
@@ -684,10 +684,11 @@ namespace modifiers {
 	}
 	void focus_choice_button::button_function(ui::simple_button<focus_choice_button>& self, world_state & ws) {
 		ws.w.pending_commands.add<commands::change_national_focus>(ws.w.local_player_nation, ws.w.national_focus_w.in_state, tag);
+		ws.w.national_focus_w.hide(ws.w.gui_m);
 	}
 	void focus_choice_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::line_manager lm;
-		nf_modifier_text(tag, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
+		nf_modifier_text(tag, ws.w.national_focus_w.in_state, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
 	}
 	void nf_window_header::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::national_focus, fmt, ws, box, lm);
@@ -703,9 +704,9 @@ namespace modifiers {
 			return 0;
 	}
 	bool nf_button_clickable(world_state const& ws, nations::state_tag s) {
-		return ws.w.nation_s.states.get<state::owner>(s) == ws.w.local_player_nation;
+		return s && ws.w.nation_s.states.get<state::owner>(s) == ws.w.local_player_nation;
 	}
-	ui::xy_pair nf_modifier_text(national_focus_tag nf, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
+	ui::xy_pair nf_modifier_text(national_focus_tag nf, nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
 		if(!nf) {
 			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::no_focus, fmt, ws, container, lm);
 		} else {
@@ -739,8 +740,8 @@ namespace modifiers {
 					lm,
 					fmt,
 					ws.s.trigger_m.trigger_data.data() + to_index(lim),
-					ws.w.nation_s.nations.get<state::state_capital>(s),
-					ws.w.nation_s.nations.get<state::owner>(s),
+					ws.w.nation_s.states.get<state::state_capital>(s),
+					ws.w.nation_s.states.get<state::owner>(s),
 					triggers::const_parameter()
 				);
 			}
@@ -755,22 +756,55 @@ namespace modifiers {
 		return cursor_in;
 	}
 	ui::xy_pair nf_tooltip_text(nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt) {
-		auto const nf = ws.w.nation_s.states.get<state::owner_national_focus>(s);
+		if(s) {
+			auto const nf = ws.w.nation_s.states.get<state::owner_national_focus>(s);
 
-		if(!nf) {
+			if(!nf) {
+				cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::no_focus, fmt, ws, container, lm);
+				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+			} else {
+				cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_focuses[nf].name, fmt, ws, container, lm);
+				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+
+				if(ws.s.modifiers_m.national_focuses[nf].modifier) {
+					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
+					cursor_in = make_province_modifier_text_body(
+						ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.national_focuses[nf].modifier]);
+				}
+			}
+		} else {
 			cursor_in = ui::add_text(cursor_in, scenario::fixed_ui::no_focus, fmt, ws, container, lm);
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
-		} else {
-			cursor_in = ui::add_text(cursor_in, ws.s.modifiers_m.national_focuses[nf].name, fmt, ws, container, lm);
-			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
-
-			if(ws.s.modifiers_m.national_focuses[nf].modifier) {
-				cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt, lm);
-				cursor_in = make_province_modifier_text_body(
-					ws, container, cursor_in, lm, fmt, ws.s.modifiers_m.provincial_modifier_definitions[ws.s.modifiers_m.national_focuses[nf].modifier]);
-			}
 		}
 		
 		return cursor_in;
+	}
+	national_focus_window::national_focus_window() : win(std::make_unique<national_focus_window_t>()) {}
+	national_focus_window::~national_focus_window() {}
+	void national_focus_window::hide(ui::gui_manager & gui_m) {
+		auto gobj = win->associated_object;
+		if(gobj)
+			ui::hide(*gobj);
+	}
+	void national_focus_window::init(world_state & ws) {
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_nf_window"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+	}
+	void national_focus_window::update(ui::gui_manager & gui_m, nations::state_tag s) {
+		in_state = s;
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
+	}
+	void national_focus_window::show(ui::gui_manager & gui_m, nations::state_tag s, int32_t x, int32_t y) {
+		in_state = s;
+
+		if(win->associated_object->size.x + x < gui_m.root.size.x) {
+			win->associated_object->position.x = int16_t(x);
+			win->associated_object->position.y = int16_t(std::clamp(y - win->associated_object->size.y / 2, 0, gui_m.root.size.y - win->associated_object->size.y));
+		} else {
+			win->associated_object->position.x = int16_t(x - win->associated_object->size.x);
+			win->associated_object->position.y = int16_t(std::clamp(y - win->associated_object->size.y / 2, 0, gui_m.root.size.y - win->associated_object->size.y));
+		}
+
+		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
+		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 }

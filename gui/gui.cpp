@@ -1440,6 +1440,8 @@ bool ui::gui_manager::on_rbutton_down(world_state& ws, const rbutton_down& rd) {
 void ui::gui_manager::refresh_tooltip(world_state& ws) {
 	tooltip = ui::gui_object_tag();
 	on_mouse_move(ws, mouse_move{ last_mouse_move.x, last_mouse_move.y, key_modifiers::modifiers_none });
+	if(!tooltip)
+		hide(ui::tagged_gui_object{ tooltip_window, gui_object_tag(3) });
 }
 
 bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_move& mm) {

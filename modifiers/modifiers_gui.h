@@ -57,6 +57,6 @@ namespace modifiers {
 
 	uint32_t nf_tag_to_frame(world_state const& ws, national_focus_tag t);
 	bool nf_button_clickable(world_state const& ws, nations::state_tag s);
-	ui::xy_pair nf_modifier_text(national_focus_tag nf, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
+	ui::xy_pair nf_modifier_text(national_focus_tag nf, nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair nf_tooltip_text(nations::state_tag s, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 }

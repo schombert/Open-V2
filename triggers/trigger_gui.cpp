@@ -3393,20 +3393,20 @@ namespace triggers {
 		return cursor_in;
 	}
 	ui::xy_pair tf_total_pops_nation(TRIGGER_DISPLAY_PARAMS) {
-		return display_with_comparison_no_newline(tval[0],
+		return display_with_comparison(tval[0],
 			scenario::fixed_ui::population, read_float_from_payload(tval + 2), display_type::integer, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_total_pops_state(TRIGGER_DISPLAY_PARAMS) {
-		return display_with_comparison_no_newline(tval[0],
+		return display_with_comparison(tval[0],
 			scenario::fixed_ui::population, read_float_from_payload(tval + 2), display_type::integer, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_total_pops_province(TRIGGER_DISPLAY_PARAMS) {
-		return display_with_comparison_no_newline(tval[0],
+		return display_with_comparison(tval[0],
 			scenario::fixed_ui::population, read_float_from_payload(tval + 2), display_type::integer, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_total_pops_pop(TRIGGER_DISPLAY_PARAMS) {
-		return display_with_comparison_no_newline(tval[0],
-			scenario::fixed_ui::size, read_float_from_payload(tval + 2), display_type::integer, ws, container, cursor_in, lm, fmt);
+		return display_with_comparison(tval[0],
+			scenario::fixed_ui::state_population, read_float_from_payload(tval + 2), display_type::integer, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_has_pop_type_nation(TRIGGER_DISPLAY_PARAMS) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
@@ -5902,28 +5902,28 @@ namespace triggers {
 		cursor_in = ui::add_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		return display_with_comparison(tval[0],
-			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent, ws, container, cursor_in, lm, fmt);
+			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent_fp_one_place, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_variable_pop_type_name_state(TRIGGER_DISPLAY_PARAMS) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		cursor_in = ui::add_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		return display_with_comparison(tval[0],
-			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent, ws, container, cursor_in, lm, fmt);
+			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent_fp_one_place, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_variable_pop_type_name_province(TRIGGER_DISPLAY_PARAMS) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		cursor_in = ui::add_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		return display_with_comparison(tval[0],
-			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent, ws, container, cursor_in, lm, fmt);
+			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent_fp_one_place, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_variable_pop_type_name_pop(TRIGGER_DISPLAY_PARAMS) {
 		auto type = trigger_payload(tval[2]).small.values.pop_type;
 		cursor_in = ui::add_text(cursor_in, ws.s.population_m.pop_types[type].name, fmt, ws, container, lm);
 		cursor_in = ui::advance_cursor_by_space(cursor_in, ws.s.gui_m, fmt);
 		return display_with_comparison(tval[0],
-			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent, ws, container, cursor_in, lm, fmt);
+			scenario::fixed_ui::percentage, read_float_from_payload(tval + 3), display_type::percent_fp_one_place, ws, container, cursor_in, lm, fmt);
 	}
 	ui::xy_pair tf_variable_good_name(TRIGGER_DISPLAY_PARAMS) {
 		auto type = trigger_payload(tval[2]).small.values.good;

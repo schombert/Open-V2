@@ -10,6 +10,7 @@
 #include "governments\governments_functions.h"
 #include "issues\issues_functions.h"
 #include "economy\economy_functions.hpp"
+#include "modifiers\modifier_functions.h"
 
 namespace commands {
 	set_budget::set_budget(nations::country_tag n, set_budget_type t, int8_t v) : nation_for(n), type(t) {
@@ -440,8 +441,20 @@ namespace commands {
 			auto max_focuses = modifiers::maximum_national_focuses(ws, ws.w.local_player_nation);
 			auto used_focuses = modifiers::current_focus_count(ws, ws.w.local_player_nation);
 
-			return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
-				&& (used_focuses < max_focuses);
+			if(auto const lim = ws.s.modifiers_m.national_focuses[c.new_focus].limit; lim) {
+				return
+					ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
+					&& (used_focuses < max_focuses)
+					&& triggers::test_trigger(
+						ws.s.trigger_m.trigger_data.data() + to_index(lim),
+						ws,
+						ws.w.nation_s.states.get<state::state_capital>(c.in_state),
+						ws.w.nation_s.states.get<state::owner>(c.in_state),
+						triggers::const_parameter());
+			} else {
+				return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
+					&& (used_focuses < max_focuses);
+			}
 		} else {
 			return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation;
 		}
@@ -452,9 +465,9 @@ namespace commands {
 			auto& nf = ws.w.nation_s.states.get<state::owner_national_focus>(c.in_state);
 
 			if(nf && !(c.new_focus))
-				remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), c.in_state);
+				remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(c.by_nation), c.in_state);
 			else if(!nf && c.new_focus)
-				add_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), c.in_state);
+				add_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(c.by_nation), c.in_state);
 
 			nf = c.new_focus;
 		}

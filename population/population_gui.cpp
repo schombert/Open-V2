@@ -569,8 +569,15 @@ namespace population {
 		}
 	}
 
-	void pop_state_focus_button::button_function(ui::simple_button<pop_state_focus_button>&, world_state&) {
+	void pop_state_focus_button::button_function(ui::simple_button<pop_state_focus_button>& self, world_state& ws) {
+		auto rc = ui::absolute_position(ws.w.gui_m, ui::find_in_parent(ws.w.gui_m, *(self.associated_object)))
+			+ ui::xy_pair{ self.associated_object->size.x, int16_t(self.associated_object->size.y / 2) };
+		ws.w.national_focus_w.show(ws.w.gui_m, tag, rc.x, rc.y);
+	}
 
+	void pop_state_focus_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		ui::line_manager lm;
+		modifiers::nf_tooltip_text(tag, ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format);
 	}
 
 	void pop_state_expand_button::button_function(ui::simple_button<pop_state_expand_button>&, world_state& ws) {

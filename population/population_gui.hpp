@@ -608,6 +608,8 @@ namespace population {
 		template<typename W>
 		void windowed_update(ui::simple_button<pop_state_focus_button>&, W& w, world_state& ws);
 		void button_function(ui::simple_button<pop_state_focus_button>&, world_state&);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class pop_colonial_state_button {
@@ -2259,8 +2261,15 @@ namespace population {
 	}
 
 	template<typename W>
-	void pop_state_focus_button::windowed_update(ui::simple_button<pop_state_focus_button>&, W& w, world_state& ws) {
+	void pop_state_focus_button::windowed_update(ui::simple_button<pop_state_focus_button>& ico, W& w, world_state& ws) {
 		tag = w.tag;
+		if(tag) {
+			auto nf = ws.w.nation_s.states.get<state::owner_national_focus>(tag);
+			ico.set_frame(ws.w.gui_m, modifiers::nf_tag_to_frame(ws, nf));
+		} else {
+			ico.set_frame(ws.w.gui_m, 0);
+		}
+		ico.set_enabled(modifiers::nf_button_clickable(ws, tag));
 	}
 
 	template<typename W>
