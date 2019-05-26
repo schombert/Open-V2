@@ -444,7 +444,7 @@ namespace commands {
 			if(auto const lim = ws.s.modifiers_m.national_focuses[c.new_focus].limit; lim) {
 				return
 					ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
-					&& (used_focuses < max_focuses)
+					&& (used_focuses < max_focuses || is_valid_index(ws.w.nation_s.states.get<state::owner_national_focus>(c.in_state)))
 					&& triggers::test_trigger(
 						ws.s.trigger_m.trigger_data.data() + to_index(lim),
 						ws,
@@ -453,7 +453,7 @@ namespace commands {
 						triggers::const_parameter());
 			} else {
 				return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation
-					&& (used_focuses < max_focuses);
+					&& (used_focuses < max_focuses || is_valid_index(ws.w.nation_s.states.get<state::owner_national_focus>(c.in_state)));
 			}
 		} else {
 			return ws.w.nation_s.states.get<state::owner>(c.in_state) == c.by_nation;

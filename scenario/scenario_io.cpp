@@ -856,5 +856,6 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::no_focus] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "NO_FOCUS");
 		s.fixed_ui_text[fixed_ui::focus_limit] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "FOCUS_LIMIT");
 		s.fixed_ui_text[fixed_ui::state_population] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "state_population");
+		s.fixed_ui_text[fixed_ui::replace_national_focus] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "replace_national_focus");
 	}
 }

@@ -775,8 +775,9 @@ namespace scenario {
 		constexpr uint32_t no_focus = 752ui32;
 		constexpr uint32_t focus_limit = 753ui32;
 		constexpr uint32_t state_population = 754ui32;
+		constexpr uint32_t replace_national_focus = 755ui32;
 
-		constexpr uint32_t count = 755ui32;
+		constexpr uint32_t count = 756ui32;
 	}
 
 

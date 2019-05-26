@@ -664,7 +664,8 @@ namespace modifiers {
 			auto max_focuses = modifiers::maximum_national_focuses(ws, player);
 			auto used_focuses = modifiers::current_focus_count(ws, player);
 
-			if(used_focuses >= max_focuses) {
+			if(used_focuses > max_focuses
+				|| (used_focuses == max_focuses && !is_valid_index(ws.w.nation_s.states.get<state::owner_national_focus>(ws.w.national_focus_w.in_state)))) {
 				self.set_enabled(false);
 				return;
 			}
@@ -691,7 +692,10 @@ namespace modifiers {
 		nf_modifier_text(tag, ws.w.national_focus_w.in_state, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
 	}
 	void nf_window_header::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
-		ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::national_focus, fmt, ws, box, lm);
+		if(ws.w.national_focus_w.win->choose_new_focus)
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::national_focus, fmt, ws, box, lm);
+		else
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::replace_national_focus, fmt, ws, box, lm);
 	}
 	void close_nf_window::button_function(ui::simple_button<close_nf_window>& self, world_state & ws) {
 		ws.w.national_focus_w.hide(ws.w.gui_m);
@@ -720,7 +724,7 @@ namespace modifiers {
 			auto max_focuses = modifiers::maximum_national_focuses(ws, ws.w.local_player_nation);
 			auto used_focuses = modifiers::current_focus_count(ws, ws.w.local_player_nation);
 
-			if(used_focuses < max_focuses) {
+			if(used_focuses < max_focuses || is_valid_index(ws.w.nation_s.states.get<state::owner_national_focus>(s))) {
 				ui::text_format local_fmt{ ui::text_color::green, fmt.font_handle, fmt.font_size };
 				cursor_in = ui::add_text(cursor_in, u"\u2714 ", local_fmt, ws, container, lm);
 			} else {
@@ -794,8 +798,6 @@ namespace modifiers {
 		ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 	void national_focus_window::show(ui::gui_manager & gui_m, nations::state_tag s, int32_t x, int32_t y) {
-		in_state = s;
-
 		if(win->associated_object->size.x + x < gui_m.root.size.x) {
 			win->associated_object->position.x = int16_t(x);
 			win->associated_object->position.y = int16_t(std::clamp(y - win->associated_object->size.y / 2, 0, gui_m.root.size.y - win->associated_object->size.y));
@@ -805,6 +807,30 @@ namespace modifiers {
 		}
 
 		ui::move_to_front(gui_m, ui::tagged_gui_object{ *(win->associated_object), win->window_object });
-		ui::make_visible_and_update(gui_m, *(win->associated_object));
+		update(gui_m, s);
+	}
+	void national_focus_window_base::update(world_state & ws) {
+		auto max_focuses = modifiers::maximum_national_focuses(ws, ws.w.local_player_nation);
+		auto used_focuses = modifiers::current_focus_count(ws, ws.w.local_player_nation);
+		choose_new_focus = (used_focuses < max_focuses) || is_valid_index(ws.w.nation_s.states.get<state::owner_national_focus>(ws.w.national_focus_w.in_state));
+
+		if(choose_new_focus) {
+			for(auto& b : nf_buttons) {
+				ui::make_visible_immediate(*b.associated_object);
+			}
+			ui::hide(*(ws.w.national_focus_w.win->get<CT_STRING("nf_listbox")>().associated_object));
+		} else {
+			for(auto& b : nf_buttons) {
+				ui::hide(*b.associated_object);
+			}
+			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.national_focus_w.win->get<CT_STRING("nf_listbox")>().associated_object));
+		}
+	}
+	void replacement_choice_button::button_function(ui::simple_button<replacement_choice_button>& self, world_state & ws) {
+		ws.w.pending_commands.add<commands::change_national_focus>(ws.w.local_player_nation, tag, national_focus_tag());
+		//ws.w.national_focus_w.update(ws.w.gui_m, ws.w.national_focus_w.in_state);
+	}
+	ui::window_tag nf_replacement_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_nf_overwrite_entry"]);
 	}
 }
