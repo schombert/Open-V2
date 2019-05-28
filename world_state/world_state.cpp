@@ -161,7 +161,7 @@ void apply_new_settings(world_state& ws) {
 
 namespace current_state {
 
-	state::state() {};
+	state::state() {}
 	state::~state() {}
 
 	void state::init_gui_objects(world_state& ws) {
@@ -188,6 +188,7 @@ namespace current_state {
 		menu_w.init_menu_window(ws);
 		build_factory_w.init(ws);
 		national_focus_w.init(ws);
+		map_view.init(ws);
 	}
 
 	void state::toggle_pause() {

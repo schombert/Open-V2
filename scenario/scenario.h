@@ -776,8 +776,11 @@ namespace scenario {
 		constexpr uint32_t focus_limit = 753ui32;
 		constexpr uint32_t state_population = 754ui32;
 		constexpr uint32_t replace_national_focus = 755ui32;
+		constexpr uint32_t map_legend_culture = 756ui32;
+		constexpr uint32_t map_legend_political = 757ui32;
+		constexpr uint32_t owner_label = 758ui32;
 
-		constexpr uint32_t count = 756ui32;
+		constexpr uint32_t count = 759ui32;
 	}
 
 

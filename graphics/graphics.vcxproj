@@ -150,6 +150,8 @@
     <ClInclude Include="glew.h" />
     <ClInclude Include="glxew.h" />
     <ClInclude Include="lines.h" />
+    <ClInclude Include="map_modes.h" />
+    <ClInclude Include="map_modes.hpp" />
     <ClInclude Include="open_gl_wrapper.h" />
     <ClInclude Include="open_gl_wrapper.hpp" />
     <ClInclude Include="test_helpers.h" />
@@ -162,6 +164,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="lines.cpp" />
+    <ClCompile Include="map_modes.cpp" />
     <ClCompile Include="open_gl_wrapper.cpp" />
     <ClCompile Include="test_helpers.cpp" />
     <ClCompile Include="text.cpp" />

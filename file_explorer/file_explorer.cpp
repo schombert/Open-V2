@@ -61,6 +61,7 @@ struct gui_window_handler {
 			sound::play_new_track(s);
 
 		win.make_fullscreen();
+		map_mode::change_mode(s, map_mode::type::political);
 	}
 	void operator()(const ui::music_finished&, ui::window_base&) {
 		if(s.s.sound_m.music_finished())
@@ -93,23 +94,15 @@ struct gui_window_handler {
 				auto map_coord = s.w.map.map_coordinates_from_screen(s.w.map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
 				auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
 				
-				s.w.map_view.selected_province = provinces::province_tag(id);
-				if(is_valid_index(provinces::province_tag(id)) && id != 0 && id < s.s.province_m.first_sea_province) {
-					sound::play_interface_sound(s, s.s.sound_m.click_sound);
-					s.w.province_w.show_province_window(s.w.gui_m, provinces::province_tag(id));
+				map_mode::on_selection(s, provinces::province_tag(id));
 
+				if(is_valid_index(provinces::province_tag(id)) && id != 0 && id < s.s.province_m.first_sea_province) {
 					if(auto sid = provinces::province_state(s, provinces::province_tag(id)); sid) {
-						if(s.w.nation_s.states.is_valid_index(sid) && s.w.map_view.selected_state != sid) {
-							s.w.map_view.selected_state = sid;
+						if(s.w.nation_s.states.is_valid_index(sid) && s.w.trade_w.selected_state != sid) {
 							s.w.trade_w.selected_state = sid;
 							s.w.trade_w.update(s.w.gui_m);
 						}
 					}
-					if(auto n = provinces::province_owner(s, provinces::province_tag(id)); n) {
-						if(auto nid = n; s.w.nation_s.nations.is_valid_index(nid))
-							s.w.map_view.selected_country = nid;
-					}
-					s.w.map_view.changed = true;
 				} else {
 					s.w.province_w.hide_province_window(s.w.gui_m);
 				}
@@ -122,20 +115,15 @@ struct gui_window_handler {
 				sound::play_interface_sound(s, s.s.sound_m.click_sound);
 				s.w.menu_w.show_menu_window(s);
 			} else if(m.keycode == virtual_key::NUMPAD1 || m.keycode == virtual_key::NUM_1) {
-				s.w.map_view.mode = current_state::map_mode::political;
-				s.w.map_view.changed = true;
+				map_mode::change_mode(s, map_mode::type::political);
 			} else if(m.keycode == virtual_key::NUMPAD2 || m.keycode == virtual_key::NUM_2) {
-				s.w.map_view.mode = current_state::map_mode::distance;
-				s.w.map_view.changed = true;
+				map_mode::change_mode(s, map_mode::type::distance);
 			} else if(m.keycode == virtual_key::NUMPAD3 || m.keycode == virtual_key::NUM_3) {
-				s.w.map_view.mode = current_state::map_mode::prices;
-				s.w.map_view.changed = true;
+				map_mode::change_mode(s, map_mode::type::prices);
 			} else if(m.keycode == virtual_key::NUMPAD4 || m.keycode == virtual_key::NUM_4) {
-				s.w.map_view.mode = current_state::map_mode::purchasing;
-				s.w.map_view.changed = true;
+				map_mode::change_mode(s, map_mode::type::purchasing);
 			} else if(m.keycode == virtual_key::NUMPAD5 || m.keycode == virtual_key::NUM_5) {
-				s.w.map_view.mode = current_state::map_mode::production;
-				s.w.map_view.changed = true;
+				map_mode::change_mode(s, map_mode::type::production);
 			}
 		}
 	}
@@ -161,7 +149,11 @@ struct gui_window_handler {
 		}
 	}
 	void operator()(const ui::mouse_move& m, ui::window_base&) {
-		s.w.gui_m.on_mouse_move(s, m);
+		if(!s.w.gui_m.on_mouse_move(s, m)) {
+			auto map_coord = s.w.map.map_coordinates_from_screen(s.w.map.state.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
+			auto id = s.s.province_m.province_map_data[size_t(map_coord.first + map_coord.second * s.s.province_m.province_map_width)];
+			map_mode::on_mouse_over(s, provinces::province_tag(id));
+		}
 	}
 	void operator()(const ui::text_event& t, ui::window_base&) {
 		if(!s.w.gui_m.on_text(s, t)) {
@@ -180,7 +172,7 @@ struct gui_window_handler {
 	}
 
 	void on_idle(ui::window_base& win) {
-		graphics::update_map_colors(s.w.map, s);
+		map_mode::update_map_colors(s);
 
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);

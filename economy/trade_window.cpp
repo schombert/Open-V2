@@ -32,11 +32,11 @@ namespace economy {
 	void tw_good_item_background::button_function(ui::simple_button<tw_good_item_background>& self, world_state & ws) {
 		if(is_valid_index(tag)) {
 			ws.w.trade_w.show(ws.w.gui_m, tag);
-			ws.w.map_view.selected_good = tag;
-			if(ws.w.map_view.mode == current_state::map_mode::prices
-				|| ws.w.map_view.mode == current_state::map_mode::purchasing
-				|| ws.w.map_view.mode == current_state::map_mode::production)
-				ws.w.map_view.changed = true;
+
+			if(ws.w.map_view.mode == map_mode::type::prices
+				|| ws.w.map_view.mode == map_mode::type::purchasing
+				|| ws.w.map_view.mode == map_mode::type::production)
+				ws.w.map_view.changed.store(true, std::memory_order_release);
 		}
 	}
 	void tw_good_item_background::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {

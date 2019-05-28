@@ -51,7 +51,7 @@ namespace current_state {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["menubar"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 	void bottombar::update_bottombar(ui::gui_manager & gui_m) {
-		if(win->associated_object)
+		if(win && win->associated_object)
 			ui::make_visible_and_update(gui_m, *(win->associated_object));
 	}
 	void message_settings_button::button_function(ui::simple_button<message_settings_button>& self, world_state & ws) {

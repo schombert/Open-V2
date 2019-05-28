@@ -54,6 +54,12 @@
     <ClInclude Include="world_map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="map_modes.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="map_modes.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="v2_window.cpp">
@@ -75,6 +81,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="world_map.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="map_modes.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

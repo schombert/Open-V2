@@ -105,7 +105,7 @@ namespace current_state {
 
 	using chat_window = ui::gui_window<chat_window_base>;
 
-	template<current_state::map_mode mode>
+	template<map_mode::type mode>
 	class map_mode_button {
 	public:
 		void update(ui::simple_button<map_mode_button<mode>>& self, world_state& ws);
@@ -157,40 +157,38 @@ namespace current_state {
 		CT_STRING("button_goto"), ui::simple_button<goto_button>,
 		CT_STRING("map_zoom_in"), ui::simple_button<zoom_in_button>,
 		CT_STRING("map_zoom_out"), ui::simple_button<zoom_out_button>,
-		CT_STRING("mapmode_1"), ui::simple_button<map_mode_button<current_state::map_mode::political>>,
-		CT_STRING("mapmode_2"), ui::simple_button<map_mode_button<current_state::map_mode::distance>>,
-		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<current_state::map_mode::prices>>,
-		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<current_state::map_mode::production>>,
-		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_10"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_11"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_12"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_13"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_14"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
-		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<current_state::map_mode::purchasing>>,
+		CT_STRING("mapmode_1"), ui::simple_button<map_mode_button<map_mode::type::political>>,
+		CT_STRING("mapmode_2"), ui::simple_button<map_mode_button<map_mode::type::distance>>,
+		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<map_mode::type::prices>>,
+		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<map_mode::type::production>>,
+		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_10"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_11"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_12"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_13"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_14"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		bottombar_base
 	> {};
 
-	template<current_state::map_mode mode>
+	template<map_mode::type mode>
 	void map_mode_button<mode>::update(ui::simple_button<map_mode_button<mode>>& self, world_state & ws) {
 		self.set_frame(ws.w.gui_m, uint32_t(ws.w.map_view.mode == mode));
 	}
-	template<current_state::map_mode mode>
+	template<map_mode::type mode>
 	void map_mode_button<mode>::button_function(ui::simple_button<map_mode_button<mode>>&, world_state & ws) {
-		ws.w.map_view.mode = mode;
-		ws.w.map_view.changed = true;
-		ws.w.bottombar_w.update_bottombar(ws.w.gui_m);
+		map_mode::change_mode(ws, mode);
 	}
 	template<typename W>
 	void chat_window_base::on_create(W & w, world_state & ws) {

@@ -29,6 +29,7 @@
 #include "modifiers\modifiers_gui.h"
 #include "find.h"
 #include "menu.h"
+#include "graphics/map_modes.h"
 
 #undef small
 
@@ -48,23 +49,6 @@ namespace current_state {
 	};
 
 	constexpr int32_t max_speed = 5;
-
-	enum class map_mode {
-		political,
-		prices,
-		distance,
-		purchasing,
-		production
-	};
-
-	struct map_state {
-		map_mode mode = map_mode::political;
-		economy::goods_tag selected_good;
-		nations::country_tag selected_country;
-		nations::state_tag selected_state;
-		provinces::province_tag selected_province;
-		std::atomic<bool> changed = true;
-	};
 
 	struct crisis_state {
 		float temperature = 0.0f; // from 0 to 100
@@ -113,7 +97,7 @@ namespace current_state {
 		commands::full_command_set pending_commands;
 
 		//gui state
-		map_state map_view;
+		map_mode::state map_view;
 
 		nations::diplomacy_window diplomacy_w;
 		provinces::province_window province_w;
