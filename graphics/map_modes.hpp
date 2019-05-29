@@ -20,15 +20,40 @@ namespace map_mode {
 		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class generic_legend_min {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class generic_legend_max {
+	public:
+		void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class gradient_bar {
+	public:
+		void update(ui::tinted_icon<gradient_bar>& self, world_state& ws);
+	};
+
 	using generic_legend_window_t = ui::gui_window<
 		CT_STRING("legend_title"), ui::display_text<generic_legend_title>,
 		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
 		generic_legend_window_base
 	>;
 
+	using generic_gradient_legend_window_t = ui::gui_window<
+		CT_STRING("legend_title"), ui::display_text<generic_legend_title>,
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("gradient_icon"), ui::tinted_icon<gradient_bar>,
+		CT_STRING("gradient_min"), ui::display_text<generic_legend_min>,
+		CT_STRING("gradient_max"), ui::display_text<generic_legend_max>,
+		generic_legend_window_base
+	>;
+
 	class legend_gui {
 	public:
 		generic_legend_window_t generic_legend_window;
+		generic_gradient_legend_window_t generic_gradient_legend_window;
 
 		provinces::province_tag current_province;
 		cultures::culture_tag current_culture;
