@@ -779,8 +779,15 @@ namespace scenario {
 		constexpr uint32_t map_legend_culture = 756ui32;
 		constexpr uint32_t map_legend_political = 757ui32;
 		constexpr uint32_t owner_label = 758ui32;
+		constexpr uint32_t map_legend_region = 759ui32;
+		constexpr uint32_t map_legend_sphere = 760ui32;
+		constexpr uint32_t sphere_label = 761ui32;
+		constexpr uint32_t region_label = 762ui32;
+		constexpr uint32_t none = 763ui32;
+		constexpr uint32_t map_legend_population = 764ui32;
+		constexpr uint32_t population_label = 765ui32;
 
-		constexpr uint32_t count = 759ui32;
+		constexpr uint32_t count = 766ui32;
 	}
 
 

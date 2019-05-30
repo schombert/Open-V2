@@ -860,5 +860,12 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::map_legend_culture] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_culture");
 		s.fixed_ui_text[fixed_ui::map_legend_political] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_political");
 		s.fixed_ui_text[fixed_ui::owner_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "owner_label");
+		s.fixed_ui_text[fixed_ui::map_legend_region] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_region");
+		s.fixed_ui_text[fixed_ui::map_legend_sphere] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_sphere");
+		s.fixed_ui_text[fixed_ui::sphere_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "sphere_label");
+		s.fixed_ui_text[fixed_ui::region_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "region_label");
+		s.fixed_ui_text[fixed_ui::none] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "none");
+		s.fixed_ui_text[fixed_ui::map_legend_population] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_population");
+		s.fixed_ui_text[fixed_ui::population_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "population_label");
 	}
 }

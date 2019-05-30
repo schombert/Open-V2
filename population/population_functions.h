@@ -63,6 +63,14 @@ namespace population {
 	void update_independence_movements(world_state& ws);
 	void update_local_rebels_and_movements(world_state& ws);
 
+	struct population_range {
+		float min;
+		float max;
+	};
+
+	population_range get_population_range(world_state const& ws);
+	population_range get_population_density_range(world_state const& ws);
+
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename T>

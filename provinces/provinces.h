@@ -264,6 +264,21 @@ namespace provinces {
 		int32_t province_map_width = 0;
 		int32_t province_map_height = 0;
 		borders_manager borders;
+
+		template<typename F>
+		void for_each_province(F const& f) const {
+			int32_t const cmax = int32_t(province_container.size());
+			for(int32_t i = 1; i < cmax; ++i) {
+				f(province_tag(province_tag::value_base_t(i)));
+			}
+		}
+		template<typename F>
+		void for_each_land_province(F const& f) const {
+			int32_t const cmax = first_sea_province;
+			for(int32_t i = 1; i < cmax; ++i) {
+				f(province_tag(province_tag::value_base_t(i)));
+			}
+		}
 	};
 
 	struct color_to_terrain_map {

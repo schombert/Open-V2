@@ -1505,6 +1505,36 @@ namespace population {
 		return pop_tag();
 	}
 
+	population_range get_population_range(world_state const& ws) {
+		float min_v = std::numeric_limits<float>::max();
+		float max_v = 0;
+
+		ws.s.province_m.for_each_land_province([&min_v, &max_v, &ws](provinces::province_tag p) {
+			auto amount = ws.w.province_s.province_state_container.get<province_state::total_population>(p);
+			if(amount > 0) {
+				min_v = std::min(min_v, amount);
+				max_v = std::max(max_v, amount);
+			}
+		});
+
+		return population_range{min_v, max_v};
+	}
+	population_range get_population_density_range(world_state const& ws) {
+		float min_v = std::numeric_limits<float>::max();
+		float max_v = 0;
+
+		ws.s.province_m.for_each_land_province([&min_v, &max_v, &ws](provinces::province_tag p) {
+			auto amount = ws.w.province_s.province_state_container.get<province_state::total_population>(p);
+			auto area = ws.s.province_m.province_container.get<province::area>(p);
+			if(amount > 0 && area > 0) {
+				min_v = std::min(min_v, amount/area);
+				max_v = std::max(max_v, amount/area);
+			}
+		});
+
+		return population_range{ min_v, max_v };
+	}
+
 	struct pop_migration_key {
 		cultures::culture_tag c;
 		//cultures::religion_tag r;

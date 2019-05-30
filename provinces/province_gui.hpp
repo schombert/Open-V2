@@ -165,8 +165,8 @@ namespace provinces {
 
 	using province_window_header = ui::gui_window<
 		CT_STRING("prov_terrain"), ui::dynamic_icon<terrain_icon>,
-		CT_STRING("state_name"), ui::display_text<province_state_name>,
-		CT_STRING("province_name"), ui::display_text<province_name>,
+		CT_STRING("state_name"), ui::display_text<province_state_name, 4>,
+		CT_STRING("province_name"), ui::display_text<province_name, 4>,
 		CT_STRING("province_modifiers"), ui::overlap_box<modifier_lb, ui::window_tag, modifier_item>,
 		CT_STRING("slave_state_icon"), ui::dynamic_icon<slave_state_icon>,
 		CT_STRING("colony_button"), ui::simple_button<colony_button>,

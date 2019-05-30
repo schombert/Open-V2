@@ -694,3 +694,71 @@ NO_CHANGE_PARTY_TOOLTIP;The ruling party cannot be changed again until
 UPPER_HOUSE_SUPPORT;upper house support
 NO_MORE_REFORM;Another reform is not possible until
 REFORM_NEXT_STEP;This reform is the next step
+PROJECTED_ASSIMILATION;Projected monthly cultural assimilation:
+ASSIMILATION_SCALE;Assimilation scale
+FACTOR;factor
+PROJECTED_CONVERSION;Projected monthly religious conversion:
+CONVERSION_SCALE;Conversion scale
+NO_CONVERSION;No current religious conversion
+NO_PROMOTION;No current promotion
+NO_DEMOTION;No current demotion
+NO_CMIGRATION;No current colonial migration
+NO_MIGRATION;No current internal migration
+NO_EMIGRATION;No current emigration
+PROJECTED_PROMOTION;Projected monthly promotion:
+PROJECTED_DEMOTION;Projected monthly demotion:
+PROJECTED_MIGRATION;Projected monthly internal migration:
+PROJECTED_EMIGRATION;Projected monthly emigration:
+PROMOTION_SCALE;Promotion scale
+EMIGRATION_SCALE;Emigration scale
+PAREN_SQUARED;(Squared)
+TECH_EDU_EFFICIENCY;Education efficiency from technology
+LIT_CHANGE_SPEED;Literacy change speed
+CLERGY_AMOUNT;Clergy amount
+PROJECTED_LIT;Projected monthly literacy change:
+LIT_FACTORS;Literacy change factors
+PROJECTED_MIL;Projected monthly militancy change:
+MIL_FACTORS;Militancy factors
+NEEDS_SATISFACTION;Needs satisfaction
+NON_ACCEPTED_MOD;Non accepted culture factors:
+TECH_OWNER_SEPERATISM;Owner separatism (from technology)
+NON_ACCEPTED_MIL_MOD;Base non accepted militancy factor
+C_SUPPORT;Conservative support
+RP_SUPPORT;Ruling party support
+PROJECTED_CON;Projected monthly consciousness change:
+CON_FACTORS;Consciousness factors
+LIT_FACTOR;Literacy factor
+COL_FACTOR;Colonial factor
+POOR_CLERGY;Poor clergy-amount factor
+MID_RICH_CLERGY;Middle and rich clergy-amount factor
+LUX_SATISFACTION_FACTOR;Luxury needs satisfaction
+WEIGHT;weight
+OWNER_PR_DESIRE;National political reform desire, times
+OWNER_SR_DESIRE;National social reform desire, times
+PAREN_NAT_MOD;(national modifier)
+PAREN_PROV_MOD;(provincial modifier)
+PROFIT;Profit
+TOTAL_COST;Total cost
+FACTORY_UNLOCKED;Factory type is unlocked
+F_INVESTMENT_ALLOWED;Foreign investment allowed
+G_BUILDING_ALLOWED;Government construction of factories is allowed
+FACTORY_LIMIT;Fewer than $VALUE$ factories in the state
+STATE_IS_COASTAL;State is coastal
+FACTORY_ALREADY_PRESENT;No factory of this type is present in the state
+NOT_COLONIAL;Is not a colonial state
+NO_FOCUS;No national focus
+FOCUS_LIMIT;Fewer than $VALUE$ national focuses allocated
+state_population;state population
+replace_national_focus;Replace National Focus
+map_legend_culture;Culture Map
+map_legend_political;Political Map
+owner_label;Owner:
+map_legend_region;Region Map
+map_legend_sphere;Sphere Map
+sphere_label;Sphere:
+region_label;Region:
+none;None
+population_amount_label;Show amount
+population_density_label;Show density
+map_legend_population;Population Map
+population_label;Population:
