@@ -174,9 +174,9 @@ namespace current_state {
 		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
-		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<map_mode::type::migration>>,
 		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
-		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<map_mode::type::relations>>,
 		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		bottombar_base

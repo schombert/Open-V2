@@ -786,8 +786,13 @@ namespace scenario {
 		constexpr uint32_t none = 763ui32;
 		constexpr uint32_t map_legend_population = 764ui32;
 		constexpr uint32_t population_label = 765ui32;
+		constexpr uint32_t map_legend_relations = 766ui32;
+		constexpr uint32_t map_relation_explanation = 767ui32;
+		constexpr uint32_t map_legend_migration = 768ui32;
+		constexpr uint32_t migration_external_label = 769ui32;
+		constexpr uint32_t migration_internal_label = 770ui32;
 
-		constexpr uint32_t count = 766ui32;
+		constexpr uint32_t count = 771ui32;
 	}
 
 

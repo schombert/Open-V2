@@ -68,8 +68,10 @@ namespace population {
 		float max;
 	};
 
-	population_range get_population_range(world_state const& ws);
-	population_range get_population_density_range(world_state const& ws);
+	population_range population_amount_range(world_state const& ws);
+	population_range population_density_range(world_state const& ws);
+	population_range internal_migration_range(world_state const& ws);
+	population_range external_migration_range(world_state const& ws);
 
 	template<typename T>
 	auto desired_needs_spending(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));

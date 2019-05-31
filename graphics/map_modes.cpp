@@ -245,7 +245,7 @@ namespace map_mode {
 				}
 			} else if(ws.w.map_view.mode == type::population) {
 				auto const range = ws.w.map_view.legends->showing_density == false ? 
-					population::get_population_range(ws) : population::get_population_density_range(ws);
+					population::population_amount_range(ws) : population::population_density_range(ws);
 
 				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
 					const provinces::province_tag p(static_cast<provinces::province_tag::value_base_t>(i));
@@ -274,6 +274,133 @@ namespace map_mode {
 						default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
 					}
 				}
+			} else if(ws.w.map_view.mode == type::relations) {
+				auto const rel_with = ws.w.map_view.legends->current_nation;
+				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+					const provinces::province_tag p(static_cast<provinces::province_tag::value_base_t>(i));
+					if(is_valid_index(p) && p != provinces::province_tag(0) && to_index(p) < ws.s.province_m.first_sea_province) {
+						if(auto owner = provinces::province_owner(ws, p)) {
+							auto const rel_value = nations::get_relationship(ws, rel_with, owner);
+							float const frac = float(rel_value + 200) / 400.0f;
+							pcolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+							pcolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+							pcolors[i * 3 + 2] = uint8_t(25);
+							scolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+							scolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+							scolors[i * 3 + 2] = uint8_t(25);
+						} else {
+							default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+						}
+					} else {
+						default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+					}
+				}
+			} else if(ws.w.map_view.mode == type::migration) {
+				if(ws.w.map_view.legends->showing_internal_migration) {
+					tagged_vector<population::population_range, nations::country_tag, concurrent_allocator<population::population_range>> nation_ranges;
+					auto const size = ws.w.nation_s.nations.size();
+					nation_ranges.resize(size);
+					std::fill_n(nation_ranges.data(), size, population::population_range{ 0.0f, 0.0f });
+
+					for(int32_t i = 0; i < int32_t(size); ++i) {
+						nations::country_tag n = nations::country_tag(nations::country_tag::value_base_t(i));
+						auto prange = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+						for(auto p : prange) {
+							auto p_amount = std::trunc(ws.w.province_s.province_state_container.get<province_state::old_migration_growth>(p));
+							nation_ranges[n].min = std::min(nation_ranges[n].min, p_amount);
+							nation_ranges[n].max = std::max(nation_ranges[n].max, p_amount);
+						}
+					}
+
+					for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+						const provinces::province_tag p(static_cast<provinces::province_tag::value_base_t>(i));
+						if(is_valid_index(p) && p != provinces::province_tag(0) && to_index(p) < ws.s.province_m.first_sea_province) {
+							auto const owner = provinces::province_owner(ws, p);
+							if(owner && to_index(owner) < nation_ranges.size()) {
+								auto amount = std::trunc(ws.w.province_s.province_state_container.get<province_state::old_migration_growth>(p));
+
+								float const frac = [range = nation_ranges[owner], amount]() {
+									if(amount < 0)
+										return range.min != 0 ? 0.5f * (1.0f - amount / range.min) : 0.5f;
+									else if(amount > 0)
+										return range.max != 0 ? 0.5f + (0.5f * amount / range.max) : 0.5f;
+									else
+										return 0.5f;
+								}();
+
+								pcolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+								pcolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+								pcolors[i * 3 + 2] = uint8_t(25);
+								scolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+								scolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+								scolors[i * 3 + 2] = uint8_t(25);
+							} else {
+								pcolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								pcolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								pcolors[i * 3 + 2] = uint8_t(25);
+								scolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								scolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								scolors[i * 3 + 2] = uint8_t(25);
+							}
+						} else {
+							default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+						}
+					}
+				} else {
+					tagged_vector<float, nations::country_tag, concurrent_allocator<float>> nation_totals;
+					auto const size = ws.w.nation_s.nations.size();
+					nation_totals.resize(size);
+					std::fill_n(nation_totals.data(), size, 0.0f);
+					population::population_range range{ 0.0f, 0.0f };
+
+					for(int32_t i = 0; i < int32_t(size); ++i) {
+						nations::country_tag n = nations::country_tag(nations::country_tag::value_base_t(i));
+						auto prange = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+						for(auto p : prange) {
+							nation_totals[n] += ws.w.province_s.province_state_container.get<province_state::old_immigration_growth>(p);
+						}
+						nation_totals[n] = std::trunc(nation_totals[n]);
+						range.min = std::min(range.min, nation_totals[n]);
+						range.max = std::max(range.max, nation_totals[n]);
+					}
+
+					for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+						const provinces::province_tag p(static_cast<provinces::province_tag::value_base_t>(i));
+						if(is_valid_index(p) && p != provinces::province_tag(0) && to_index(p) < ws.s.province_m.first_sea_province) {
+							auto const owner = provinces::province_owner(ws, p);
+							if(owner && to_index(owner) < nation_totals.size()) {
+								auto amount = nation_totals[owner];
+
+								float const frac = [range, amount]() {
+									if(amount < 0)
+										return range.min != 0 ? 0.5f * (1.0f - amount / range.min) : 0.5f;
+									else if(amount > 0)
+										return range.max != 0 ? 0.5f + (0.5f * amount / range.max) : 0.5f;
+									else
+										return 0.5f;
+								}();
+
+								pcolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+								pcolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+								pcolors[i * 3 + 2] = uint8_t(25);
+								scolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * (1.0f - frac), 0.0f, 255.0f));
+								scolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * frac, 0.0f, 255.0f));
+								scolors[i * 3 + 2] = uint8_t(25);
+							} else {
+								pcolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								pcolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								pcolors[i * 3 + 2] = uint8_t(25);
+								scolors[i * 3 + 0] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								scolors[i * 3 + 1] = uint8_t(std::clamp(25.0f + 230.0f * 0.5f, 0.0f, 255.0f));
+								scolors[i * 3 + 2] = uint8_t(25);
+							}
+						} else {
+							default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+						}
+					}
+
+				}
+				
 			} else { // default case: color by ownership
 				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
 					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
@@ -302,6 +429,8 @@ namespace map_mode {
 			ui::hide(*(ws.w.map_view.legends->generic_legend_window.associated_object));
 			ui::hide(*(ws.w.map_view.legends->generic_gradient_legend_window.associated_object));
 			ui::hide(*(ws.w.map_view.legends->population_legend_window.associated_object));
+			ui::hide(*(ws.w.map_view.legends->relations_legend_window.associated_object));
+			ui::hide(*(ws.w.map_view.legends->migration_legend_window.associated_object));
 
 			ws.w.map_view.mode = new_mode;
 			ws.w.map_view.changed.store(true, std::memory_order_release);
@@ -315,6 +444,11 @@ namespace map_mode {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
 			} else if(ws.w.map_view.mode == type::population) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->population_legend_window.associated_object));
+			} else if(ws.w.map_view.mode == type::relations) {
+				ws.w.map_view.legends->current_nation = ws.w.local_player_nation;
+				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
+			} else if(ws.w.map_view.mode == type::migration) {
+				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
 			}
 		}
 	}
@@ -322,7 +456,7 @@ namespace map_mode {
 	void on_selection(world_state& ws, provinces::province_tag p) {
 		if(is_valid_index(p) && p != provinces::province_tag(0) && to_index(p) < ws.s.province_m.first_sea_province) {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
-				|| ws.w.map_view.mode == type::population) {
+				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration) {
 				sound::play_interface_sound(ws, ws.s.sound_m.click_sound);
 				ws.w.province_w.show_province_window(ws.w.gui_m, p);
 			} else if(ws.w.map_view.mode == type::culture) {
@@ -337,16 +471,28 @@ namespace map_mode {
 					ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
 				}
 				ws.w.map_view.changed.store(true, std::memory_order_release);
+			} else if(ws.w.map_view.mode == type::relations) {
+				auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(p);
+				if(owner) 
+					ws.w.map_view.legends->current_nation = owner;
+				else
+					ws.w.map_view.legends->current_nation = ws.w.local_player_nation;
+				ws.w.map_view.changed.store(true, std::memory_order_release);
+				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
 			}
 		} else {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
-				|| ws.w.map_view.mode == type::population) {
+				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration) {
 				ws.w.province_w.hide_province_window(ws.w.gui_m);
 			} else if(ws.w.map_view.mode == type::culture) {
 				ws.w.map_view.legends->current_culture = cultures::culture_tag();
 				ui::hide(*(ws.w.map_view.legends->generic_gradient_legend_window.associated_object));
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
 				ws.w.map_view.changed.store(true, std::memory_order_release);
+			} else if(ws.w.map_view.mode == type::relations) {
+				ws.w.map_view.legends->current_nation = ws.w.local_player_nation;
+				ws.w.map_view.changed.store(true, std::memory_order_release);
+				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
 			}
 		}
 	}
@@ -369,6 +515,12 @@ namespace map_mode {
 		} else if(ws.w.map_view.mode == type::population) {
 			ws.w.map_view.legends->current_province = p;
 			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->population_legend_window.associated_object));
+		} else if(ws.w.map_view.mode == type::relations) {
+			ws.w.map_view.legends->current_province = p;
+			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
+		} else if(ws.w.map_view.mode == type::migration) {
+			ws.w.map_view.legends->current_province = p;
+			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
 		}
 	}
 
@@ -376,6 +528,8 @@ namespace map_mode {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_generic"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->generic_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_generic_gradient"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->generic_gradient_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_population"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->population_legend_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_relations"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->relations_legend_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_migration"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->migration_legend_window);
 	}
 	void generic_legend_title::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(ws.w.map_view.mode == type::political) {
@@ -388,6 +542,10 @@ namespace map_mode {
 			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_sphere, fmt, ws, box, lm);
 		} else if(ws.w.map_view.mode == type::population) {
 			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_population, fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == type::relations) {
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_relations, fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == type::migration) {
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_migration, fmt, ws, box, lm);
 		}
 	}
 	void generic_legend_contents::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -461,6 +619,48 @@ namespace map_mode {
 				cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
 				cursor = ui::add_text(cursor, text_data::integer{total_pop}, fmt, ws, box, lm);
 			}
+		} else if(ws.w.map_view.mode == type::relations) {
+			auto const rel_with = ws.w.map_view.legends->current_nation;
+			auto const owner = ws.w.province_s.province_state_container.get<province_state::owner>(ws.w.map_view.legends->current_province);
+			if(rel_with && owner) {
+				text_data::text_replacement repl[] = {
+					text_data::text_replacement(text_data::value_type::nation, ws.w.nation_s.nations.get<nation::name>(rel_with)),
+					text_data::text_replacement(text_data::value_type::target, ws.w.nation_s.nations.get<nation::name>(owner)),
+					text_data::text_replacement(text_data::value_type::value, text_data::integer{ nations::get_relationship(ws, rel_with, owner)})
+				};
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_relation_explanation, fmt, ws, box, lm, repl, 3);
+			}
+		} else if(ws.w.map_view.mode == type::migration) {
+			if(auto const p = ws.w.map_view.legends->current_province; is_valid_index(p) && p != provinces::province_tag(0)) {
+				if(to_index(p) < ws.s.province_m.first_sea_province) {
+					if(ws.w.map_view.legends->showing_internal_migration) {
+						auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws, box, lm);
+						auto amount = ws.w.province_s.province_state_container.get<province_state::old_migration_growth>(p);
+
+						cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+						cursor = ui::add_text(cursor,
+							scenario::fixed_ui::migration_internal_label,
+							fmt, ws, box, lm);
+						cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+						cursor = ui::add_text(cursor, text_data::integer{ int32_t(amount) }, fmt, ws, box, lm);
+					} else if(auto const owner = provinces::province_owner(ws, p); owner) {
+						auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.nations.get<nation::name>(owner), fmt, ws, box, lm);
+
+						float amount = 0.0f;
+						
+						auto provs = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(owner));
+						for(auto ip : provs)
+							amount += ws.w.province_s.province_state_container.get<province_state::old_immigration_growth>(ip);
+						
+						cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+						cursor = ui::add_text(cursor,
+							scenario::fixed_ui::migration_external_label,
+							fmt, ws, box, lm);
+						cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+						cursor = ui::add_text(cursor, text_data::integer{ int32_t(amount) }, fmt, ws, box, lm);
+					}
+				}
+			}
 		}
 	}
 	void gradient_bar::update(ui::tinted_icon<gradient_bar>& self, world_state & ws) {
@@ -478,19 +678,29 @@ namespace map_mode {
 			ui::add_text(ui::xy_pair{ 0,0 }, u"0%", fmt, ws, box, lm);
 		} else if(ws.w.map_view.mode == map_mode::type::population) {
 			auto const range = ws.w.map_view.legends->showing_density == false ?
-				population::get_population_range(ws) : population::get_population_density_range(ws);
+				population::population_amount_range(ws) : population::population_density_range(ws);
 			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{range.min}, fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == map_mode::type::relations) {
+			ui::add_text(ui::xy_pair{ 0,0 }, u"-200", fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == map_mode::type::migration) {
+			//auto const range = ws.w.map_view.legends->showing_internal_migration ?
+			//	population::internal_migration_range(ws) : population::external_migration_range(ws);
+			//ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ range.min }, fmt, ws, box, lm);
 		}
-
-		
 	}
 	void generic_legend_max::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(ws.w.map_view.mode == map_mode::type::culture) {
 			ui::add_text(ui::xy_pair{ 0,0 }, u"100%", fmt, ws, box, lm);
 		} else if(ws.w.map_view.mode == map_mode::type::population) {
 			auto const range = ws.w.map_view.legends->showing_density == false ?
-				population::get_population_range(ws) : population::get_population_density_range(ws);
+				population::population_amount_range(ws) : population::population_density_range(ws);
 			ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ range.max }, fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == map_mode::type::relations) {
+			ui::add_text(ui::xy_pair{ 0,0 }, u"+200", fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == map_mode::type::migration) {
+			//auto const range = ws.w.map_view.legends->showing_internal_migration ?
+			//	population::internal_migration_range(ws) : population::external_migration_range(ws);
+			//ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ range.max }, fmt, ws, box, lm);
 		}
 	}
 	void population_amount_button::update(ui::simple_button<population_amount_button>& self, world_state & ws) {
@@ -514,5 +724,27 @@ namespace map_mode {
 		ws.w.map_view.legends->showing_density = true;
 		ws.w.map_view.changed.store(true, std::memory_order_release);
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->population_legend_window.associated_object));
+	}
+	void external_button::update(ui::simple_button<external_button>& self, world_state & ws) {
+		if(ws.w.map_view.legends->showing_internal_migration)
+			self.set_frame(ws.w.gui_m, 0);
+		else
+			self.set_frame(ws.w.gui_m, 1);
+	}
+	void external_button::button_function(ui::simple_button<external_button>& self, world_state & ws) {
+		ws.w.map_view.legends->showing_internal_migration = false;
+		ws.w.map_view.changed.store(true, std::memory_order_release);
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
+	}
+	void internal_button::update(ui::simple_button<internal_button>& self, world_state & ws) {
+		if(ws.w.map_view.legends->showing_internal_migration)
+			self.set_frame(ws.w.gui_m, 1);
+		else
+			self.set_frame(ws.w.gui_m, 0);
+	}
+	void internal_button::button_function(ui::simple_button<internal_button>& self, world_state & ws) {
+		ws.w.map_view.legends->showing_internal_migration = true;
+		ws.w.map_view.changed.store(true, std::memory_order_release);
+		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
 	}
 }

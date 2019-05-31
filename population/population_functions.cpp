@@ -1151,17 +1151,17 @@ namespace population {
 				ws.s.population_m.emigration_chance, ws, pop_v, pop_v);
 
 			auto owner_civilization = ve::load(owner, owner_is_civilized);
-			auto province_colonial = ve::load(loc, provinces_are_colonial);
+			auto province_not_colonial = ~(ve::load(loc, provinces_are_colonial));
 			// auto owner_tech_mod = ve::load(owner, tech_colonial_migration);
 			auto mod_sq = ve::multiply_and_add(mod, mod + 2.0f, 1.0f);
 			// auto adj_size = ve::select(mid | poor, sz, 0.0f);
 
-			ve::store(pop_v, local_migration_amount, ve::select(province_colonial, 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale)));
+			ve::store(pop_v, local_migration_amount, ve::select(province_not_colonial & ve::is_valid_index(owner), ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * immigration_scale), 0.0f));
 			//ve::store(pop_v, colonial_migration_amount,
 			//	ve::multiply_and_add(mod, adj_size, adj_size) *
 			//	ve::multiply_and_add(owner_tech_mod, immigration_scale, immigration_scale) *
 			//	(trigger_amount_colonial));
-			ve::store(pop_v, emigration_amount, ve::select(owner_civilization & ~province_colonial, (sz * mod_sq) * (trigger_amount_emigration * immigration_scale), 0.0f));
+			ve::store(pop_v, emigration_amount, ve::select(owner_civilization & province_not_colonial, (sz * mod_sq) * (trigger_amount_emigration * immigration_scale), 0.0f));
 		}
 	};
 
@@ -1192,7 +1192,7 @@ namespace population {
 			ws.s.population_m.migration_chance, ws, pop_v, pop_v);
 
 		auto province_colonial = ve::load(loc, ws.w.province_s.province_state_container.get_row<province_state::is_non_state>());
-		return ve::select(province_colonial, 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * ws.s.modifiers_m.global_defines.immigration_scale));
+		return ve::select(province_colonial || !is_valid_index(owner), 0.0f, ve::multiply_and_add(mod, sz, sz) * (trigger_amount_local * ws.s.modifiers_m.global_defines.immigration_scale));
 	}
 
 	void calculate_migration_qnty(world_state& ws) {
@@ -1505,7 +1505,7 @@ namespace population {
 		return pop_tag();
 	}
 
-	population_range get_population_range(world_state const& ws) {
+	population_range population_amount_range(world_state const& ws) {
 		float min_v = std::numeric_limits<float>::max();
 		float max_v = 0;
 
@@ -1519,7 +1519,7 @@ namespace population {
 
 		return population_range{min_v, max_v};
 	}
-	population_range get_population_density_range(world_state const& ws) {
+	population_range population_density_range(world_state const& ws) {
 		float min_v = std::numeric_limits<float>::max();
 		float max_v = 0;
 
@@ -1530,6 +1530,35 @@ namespace population {
 				min_v = std::min(min_v, amount/area);
 				max_v = std::max(max_v, amount/area);
 			}
+		});
+
+		return population_range{ min_v, max_v };
+	}
+
+	population_range internal_migration_range(world_state const& ws) {
+		float min_v = 0;
+		float max_v = 0;
+
+		ws.s.province_m.for_each_land_province([&min_v, &max_v, &ws](provinces::province_tag p) {
+			auto amount = ws.w.province_s.province_state_container.get<province_state::old_migration_growth>(p);
+			
+			min_v = std::min(min_v, amount);
+			max_v = std::max(max_v, amount);
+			
+		});
+
+		return population_range{ min_v, max_v };
+	}
+	population_range external_migration_range(world_state const& ws) {
+		float min_v = 0;
+		float max_v = 0;
+
+		ws.s.province_m.for_each_land_province([&min_v, &max_v, &ws](provinces::province_tag p) {
+			auto amount = ws.w.province_s.province_state_container.get<province_state::old_immigration_growth>(p);
+
+			min_v = std::min(min_v, amount);
+			max_v = std::max(max_v, amount);
+
 		});
 
 		return population_range{ min_v, max_v };
@@ -1583,12 +1612,13 @@ namespace population {
 				auto const mt_trigger = ws.s.population_m.pop_types[p_type].country_migration_target;
 				for(int32_t i = 0; i < nation_count; i += ve::vector_size) {
 					ve::contiguous_tags<nations::country_tag> off(i);
+					auto civ_status = ve::load(off, ws.w.nation_s.nations.get_row<nation::is_civilized>());
 					auto const nat_mod = ve::load(off, ws.w.nation_s.modifier_values.get_row<modifiers::national_offsets::global_immigrant_attract>(nation_count));
 					auto const modifier_result = modifiers::test_semi_contiguous_multiplicative_factor(mt_trigger, ws, off, from_pop, from_pop);
 					ve::store(
 						off,
 						nation_weights.view(int32_t(nation_count)),
-						ve::max(ve::multiply_and_add(nat_mod, modifier_result, modifier_result), 0.0f));
+						ve::max(ve::select(civ_status, ve::multiply_and_add(nat_mod, modifier_result, modifier_result), 0.0f), 0.0f));
 				}
 				float const avg = std::reduce(
 					                  nation_weights.begin(),

@@ -47,6 +47,18 @@ namespace map_mode {
 		void button_function(ui::simple_button<population_density_button>& self, world_state& ws);
 	};
 
+	class external_button {
+	public:
+		void update(ui::simple_button<external_button>& self, world_state& ws);
+		void button_function(ui::simple_button<external_button>& self, world_state& ws);
+	};
+
+	class internal_button {
+	public:
+		void update(ui::simple_button<internal_button>& self, world_state& ws);
+		void button_function(ui::simple_button<internal_button>& self, world_state& ws);
+	};
+
 	using generic_legend_window_t = ui::gui_window<
 		CT_STRING("legend_title"), ui::display_text<generic_legend_title>,
 		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
@@ -73,15 +85,35 @@ namespace map_mode {
 		generic_legend_window_base
 	>;
 
+	using relations_legend_window_t = ui::gui_window<
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("gradient_min"), ui::display_text<generic_legend_min>,
+		CT_STRING("gradient_max"), ui::display_text<generic_legend_max>,
+		generic_legend_window_base
+	>;
+
+	using migration_legend_window_t = ui::gui_window <
+		CT_STRING("external_cb"), ui::simple_button<external_button>,
+		CT_STRING("internal_cb"), ui::simple_button<internal_button>,
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("gradient_min"), ui::display_text<generic_legend_min>,
+		CT_STRING("gradient_max"), ui::display_text<generic_legend_max>,
+		generic_legend_window_base
+	>;
+
 	class legend_gui {
 	public:
 		generic_legend_window_t generic_legend_window;
 		generic_gradient_legend_window_t generic_gradient_legend_window;
 		population_legend_window_t population_legend_window;
+		relations_legend_window_t relations_legend_window;
+		migration_legend_window_t migration_legend_window;
 
 		bool showing_density = false;
+		bool showing_internal_migration = false;
 
 		provinces::province_tag current_province;
+		nations::country_tag current_nation;
 		cultures::culture_tag current_culture;
 	};
 	template<typename W>
