@@ -26,7 +26,9 @@ namespace ui {
 	}
 
 	void window_base::maximize() {
-		ShowWindow((HWND)handle, SW_MAXIMIZE);
+		if(!topmost) {
+			ShowWindow((HWND)handle, SW_MAXIMIZE);
+		}
 	}
 	void window_base::make_fullscreen() {
 		if(!topmost) {

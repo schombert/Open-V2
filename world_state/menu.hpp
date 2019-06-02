@@ -207,9 +207,9 @@ namespace menu {
 		ws.s.settings.projection = ws.s.settings.projection + (is_left ? -1 : 1);
 
 		if(ws.s.settings.projection == 0)
-			ws.w.map.state.set_projection(graphics::projection_type::standard_map);
+			ws.w.map.set_projection(graphics::projection_type::standard_map);
 		else if(ws.s.settings.projection == 1)
-			ws.w.map.state.set_projection(graphics::projection_type::spherical);
+			ws.w.map.set_projection(graphics::projection_type::spherical);
 		ws.w.menu_w.graphics->graphics_setting_changed = true;
 
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.graphics->associated_object));
@@ -224,6 +224,7 @@ namespace menu {
 
 		ws.w.gui_m.rescale(scenario::ui_scales[ws.s.settings.ui_scale]);
 		ws.w.topbar_w.resize_topbar(ws.w.gui_m);
+		ws.w.map.resize(ws.w.gui_m.root.size.x, ws.w.gui_m.root.size.y);
 		ws.w.menu_w.graphics->graphics_setting_changed = true;
 
 		ui::make_visible_and_update(ws.w.gui_m, *(ws.w.menu_w.graphics->associated_object));

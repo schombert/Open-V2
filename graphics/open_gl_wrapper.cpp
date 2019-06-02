@@ -1033,7 +1033,7 @@ namespace graphics {
 
 		glUniform3f(parameters::inner_color, c.r, c.g, c.b);
 		glUniform1f(parameters::border_size, 0.08f * 16.0f / size); // for normal outlines
-		// glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
+		//glUniform1f(parameters::border_size, 0.16f * 16.0f / size); // for bold outlines
 
 		internal_text_render(codepoints, count, x, y + size, size, f, 0.6f);
 	}

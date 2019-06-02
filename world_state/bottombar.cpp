@@ -23,16 +23,16 @@ namespace current_state {
 		ui::add_text(ui::xy_pair{ 0,0 }, ws.s.fixed_ui_text[scenario::fixed_ui::find_label], ui::tooltip_text_format, ws, tw);
 	}
 	void zoom_in_button::button_function(ui::simple_button<zoom_in_button>& self, world_state & ws) {
-		ws.w.map.state.rescale_by(2.0f);
+		ws.w.map.rescale_by(2.0f);
 	}
 	void zoom_out_button::button_function(ui::simple_button<zoom_out_button>& self, world_state & ws) {
-		ws.w.map.state.rescale_by(0.5f);
+		ws.w.map.rescale_by(0.5f);
 	}
 	bool mini_map::on_lclick(ui::gui_object_tag o, world_state & ws, const ui::lbutton_down& l) {
-		Eigen::Vector3f target = graphics::globe_point_from_position(float(l.x) / 266.0f, float(l.y + 9) / 133.0f, 1.57f, -1.57f);
-		Eigen::Vector3f destination = ws.w.map.state.get_unrotated_vector_for(
+		Eigen::Vector3f target = ws.w.map.globe_point_from_map(float(l.x) / 266.0f, float(l.y + 9) / 133.0f);
+		Eigen::Vector3f destination = ws.w.map.get_unrotated_vector_for(
 			std::pair<float, float>(0.0f, 0.0f));
-		ws.w.map.state.move_vector_to(target, destination);
+		ws.w.map.move_vector_to(target, destination);
 		ws.w.bottombar_w.update_location(ws);
 		return true;
 	}

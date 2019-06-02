@@ -34,6 +34,7 @@ namespace province {
 	struct is_lake;
 	struct area;
 	struct centroid;
+	struct centroid_2d;
 	struct continent;
 	struct climate;
 	struct state_id;
@@ -47,6 +48,7 @@ namespace province {
 		is_lake, bitfield_type, 
 		area, float,
 		centroid, Eigen::Vector3f,
+		centroid_2d, Eigen::Vector2f,
 		continent, modifiers::provincial_modifier_tag,
 		climate, modifiers::provincial_modifier_tag,
 		state_id, provinces::state_tag

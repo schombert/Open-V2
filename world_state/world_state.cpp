@@ -153,9 +153,9 @@ void ready_world_state(world_state& ws) {
 void apply_new_settings(world_state& ws) {
 	ws.w.gui_m.rescale(scenario::ui_scales[ws.s.settings.ui_scale]);
 	if(ws.s.settings.projection == 0)
-		ws.w.map.state.set_projection(graphics::projection_type::standard_map);
+		ws.w.map.set_projection(graphics::projection_type::standard_map);
 	else if(ws.s.settings.projection == 1)
-		ws.w.map.state.set_projection(graphics::projection_type::spherical);
+		ws.w.map.set_projection(graphics::projection_type::spherical);
 	ws.s.sound_m.change_music_volume(ws.s.settings.music_volume * ws.s.settings.master_volume);
 }
 

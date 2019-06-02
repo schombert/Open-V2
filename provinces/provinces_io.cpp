@@ -1319,8 +1319,10 @@ namespace provinces {
 		float long_step = 6.28318530718f / float(m.province_map_width);
 		float top_lat = top_latitude;
 
+
 		m.province_container.for_each([&m](province_tag p) {
 			m.province_container.get<province::centroid>(p).setZero();
+			m.province_container.get<province::centroid_2d>(p).setZero();
 		});
 
 		for(int32_t y = 0; y < m.province_map_height; ++y) {
@@ -1342,8 +1344,14 @@ namespace provinces {
 			}
 		}
 
-		m.province_container.for_each([&m](province_tag p) {
-			m.province_container.get<province::centroid>(p).normalize();
+		m.province_container.for_each([&m, top_lat, lat_step, long_step](province_tag p) {
+			auto& cen = m.province_container.get<province::centroid>(p);
+
+			cen.normalize();
+			auto const pr = graphics::map_coordinate_from_globe(cen,
+				top_lat, lat_step, 0.0f, long_step, m.province_map_width, m.province_map_height);
+
+			m.province_container.set<province::centroid_2d>(p, Eigen::Vector2f(pr.first, pr.second));
 		});
 	}
 

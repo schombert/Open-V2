@@ -162,7 +162,7 @@ namespace current_state {
 		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<map_mode::type::prices>>,
 		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<map_mode::type::production>>,
 		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<map_mode::type::region>>,
-		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<map_mode::type::infrastructure>>,
 		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,

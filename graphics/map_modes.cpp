@@ -439,16 +439,26 @@ namespace map_mode {
 
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
 			} else if(ws.w.map_view.mode == type::culture) {
 				ws.w.map_view.legends->current_culture = cultures::culture_tag();
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
 			} else if(ws.w.map_view.mode == type::population) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->population_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
 			} else if(ws.w.map_view.mode == type::relations) {
 				ws.w.map_view.legends->current_nation = ws.w.local_player_nation;
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
 			} else if(ws.w.map_view.mode == type::migration) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+			} else if(ws.w.map_view.mode == type::infrastructure) {
+				ws.w.map.associate_map_icon_set(
+					ws.w.map_view.legends->infrastructure_map_icons.data(),
+					ws.w.map_view.legends->infrastructure_map_container,
+					ws.s.province_m.first_sea_province);
 			}
 		}
 	}
@@ -456,7 +466,7 @@ namespace map_mode {
 	void on_selection(world_state& ws, provinces::province_tag p) {
 		if(is_valid_index(p) && p != provinces::province_tag(0) && to_index(p) < ws.s.province_m.first_sea_province) {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
-				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration) {
+				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration || ws.w.map_view.mode == type::infrastructure) {
 				sound::play_interface_sound(ws, ws.s.sound_m.click_sound);
 				ws.w.province_w.show_province_window(ws.w.gui_m, p);
 			} else if(ws.w.map_view.mode == type::culture) {
@@ -482,7 +492,7 @@ namespace map_mode {
 			}
 		} else {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
-				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration) {
+				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration || ws.w.map_view.mode == type::infrastructure) {
 				ws.w.province_w.hide_province_window(ws.w.gui_m);
 			} else if(ws.w.map_view.mode == type::culture) {
 				ws.w.map_view.legends->current_culture = cultures::culture_tag();
@@ -530,6 +540,22 @@ namespace map_mode {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_population"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->population_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_relations"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->relations_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_migration"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->migration_legend_window);
+
+		auto i_con = ws.w.gui_m.gui_objects.emplace();
+		i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
+		ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
+
+		legends->infrastructure_map_container = &(i_con.object);
+		legends->infrastructure_map_icons.resize(ws.s.province_m.first_sea_province);
+		legends->infrastructure_icons_windows.resize(ws.s.province_m.first_sea_province);
+
+		for(int32_t i = 0; i < ws.s.province_m.first_sea_province; ++i) {
+			auto obj = ui::create_static_element(ws, std::get<ui::window_tag>(
+				ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_infra"]),
+				i_con, legends->infrastructure_icons_windows[i]);
+			legends->infrastructure_icons_windows[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
+			legends->infrastructure_map_icons[i] = &(obj.object);
+		}
 	}
 	void generic_legend_title::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(ws.w.map_view.mode == type::political) {

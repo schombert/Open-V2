@@ -218,13 +218,13 @@ namespace graphics {
 					break;
 			}
 			assert(p.first >= 0.0f && p.first <= 65.0f && p.second >= 0.0f && p.second <= 65.0f);
-			auto const pre_adjust = std::pair<float, float>(p.first  / float(block_size), p.second / float(block_size));
+			auto const pre_adjust = std::pair<float, float>(p.first / float(block_size), p.second / float(block_size));
 			//return pre_adjust;
 			auto const adjust_magnitude_rt = float(abs(y_size / 2 - y_offset)) / float(y_size) * 7.0f;
 			auto const adjust_magnitude = adjust_magnitude_rt * adjust_magnitude_rt;
 
-			return std::pair<float, float>(pre_adjust.first 
-				- (0.5f - abs(pre_adjust.second - 0.5f)) * (0.5f - abs(pre_adjust.first - 0.5f)) * adjust_magnitude / float(block_size), 
+			return std::pair<float, float>(pre_adjust.first
+				- (0.5f - abs(pre_adjust.second - 0.5f)) * (0.5f - abs(pre_adjust.first - 0.5f)) * adjust_magnitude / float(block_size),
 				pre_adjust.second);
 		}
 	};
@@ -249,8 +249,8 @@ namespace graphics {
 	struct ordered_id_pair {
 		uint16_t a;
 		uint16_t b;
-			
-		ordered_id_pair(uint16_t x, uint16_t y) : a(std::min(x,y)), b(std::max(x,y)) {}
+
+		ordered_id_pair(uint16_t x, uint16_t y) : a(std::min(x, y)), b(std::max(x, y)) {}
 		ordered_id_pair(uint32_t v) : a(uint16_t(v >> 16)), b(uint16_t(v)) {};
 
 		operator uint32_t() {
@@ -285,10 +285,10 @@ namespace graphics {
 			enumerate_edges_at_point(
 				sub_point,
 				[old_point = point, edge_id = uint32_t(origin_pair), &block, &found_next_point, segments, &point, &edge, &sub_point](
-				pt_xy direction,
-				subpixel_edge inner_new_edge,
-				subpixel_point inner_new_sub_point) {
-				
+					pt_xy direction,
+					subpixel_edge inner_new_edge,
+					subpixel_point inner_new_sub_point) {
+
 				pt_xy temp_new_point = old_point + direction;
 
 				// bounds test
@@ -329,13 +329,13 @@ namespace graphics {
 			}
 		} while(found_next_point);
 	}
-	
+
 	borders_set block_to_borders(block_view const& block, int32_t first_sea_province) {
 		borders_set result;
 		segment_data segments[block_size * block_size] = { segment_data() };
 
 		// populate border segments
-		
+
 		for(int32_t j = 0; j < block_size; ++j) {
 			for(int32_t i = 0; i < block_size; ++i) {
 				pt_xy t(i, j);
@@ -382,15 +382,15 @@ namespace graphics {
 			}
 		}
 
-		for(int32_t j = 0; j < block_size+1; ++j) {
-			for(int32_t i = 0; i < block_size+1; ++i) {
+		for(int32_t j = 0; j < block_size + 1; ++j) {
+			for(int32_t i = 0; i < block_size + 1; ++i) {
 				pt_xy a(i, j);
-				pt_xy b(i-1, j);
-				pt_xy c(i, j-1);
-				pt_xy d(i-1, j-1);
-				if((block(a) == block(d) && (block(a) == block(c) || block(a) == block(b))) 
+				pt_xy b(i - 1, j);
+				pt_xy c(i, j - 1);
+				pt_xy d(i - 1, j - 1);
+				if((block(a) == block(d) && (block(a) == block(c) || block(a) == block(b)))
 					|| block(b) == block(c) && (block(b) == block(a) || block(b) == block(d))) {
-					
+
 					if(i > 0 && j > 0)
 						segments[i - 1 + (j - 1) * block_size].set(subpixel_edge::d, false);
 					if(i > 0 && j < block_size) {
@@ -404,7 +404,7 @@ namespace graphics {
 		}
 
 		// consume border segments
-		
+
 		for(int32_t j = 0; j < block_size; ++j) {
 			for(int32_t i = 0; i < block_size; ++i) {
 				pt_xy t(i, j);
@@ -531,7 +531,7 @@ namespace graphics {
 				return r;
 			}
 
-			
+
 		}
 	}
 
@@ -575,85 +575,170 @@ namespace graphics {
 		}
 	}
 
-	map_state::map_state() {
+	map_display::map_display() : province_centroids(nullptr, 0) {
 		rotate(0.0f, 0.0f);
 	}
-	void map_state::resize(int32_t x, int32_t y) {
+	void map_display::resize(int32_t x, int32_t y) {
+		screen_x = x;
+		screen_y = y;
 		_aspect = static_cast<float>(x) / static_cast<float>(y);
 		globe_out_of_date = true;
-	}
-	constexpr float scale_min = 1.0f;
-	constexpr float scale_max = 18.0f;
-	void map_state::rescale_by(float multiplier) {
-		scale = std::clamp(scale * multiplier, scale_min, scale_max);
-		globe_out_of_date = true;
-	}
-	void map_state::set_scale(float value) {
-		scale = std::clamp(value, scale_min, scale_max);
-		globe_out_of_date = true;
-	}
-	void map_state::set_projection(projection_type p) {
-		_projection = p;
-		globe_out_of_date = true;
+		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 
-	void map_state::rotate(float longr, float latr) {
+	void map_display::rescale_by(float multiplier) {
+		scale = std::clamp(scale * multiplier, scale_min, scale_max);
+		globe_out_of_date = true;
+		province_ui_out_of_date.store(true, std::memory_order_release);
+	}
+	void map_display::set_scale(float value) {
+		scale = std::clamp(value, scale_min, scale_max);
+		globe_out_of_date = true;
+		province_ui_out_of_date.store(true, std::memory_order_release);
+	}
+	void map_display::set_projection(projection_type p) {
+		_projection = p;
+		globe_out_of_date = true;
+		province_ui_out_of_date.store(true, std::memory_order_release);
+	}
+
+	void map_display::rotate(float longr, float latr) {
 		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
 		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
 		globe_out_of_date = true;
+		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
-	globe_mesh& map_state::get_globe() {
+	globe_mesh& map_display::get_globe() {
 		if(globe_out_of_date) {
 			globe_out_of_date = false;
 			globe.update_transformed_buffer(_aspect, scale, _rotation, _projection);
 		}
 		return globe;
 	}
-	std::pair<float, float> map_state::normalize_screen_coordinates(int32_t x, int32_t y, int32_t width, int32_t height) const {
-		return std::make_pair(float(x * 2) / float(width) - 1.0f, float(-y * 2) / float(height) + 1.0f);
+	std::pair<float, float> map_display::normalize_screen_coordinates(int32_t x, int32_t y, int32_t screen_w, int32_t screen_h) const {
+		return std::make_pair(float(x * 2) / float(screen_w) - 1.0f, float(-y * 2) / float(screen_h) + 1.0f);
 	}
-	void map_state::move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination) {
+	void map_display::move_vector_to(const Eigen::Vector3f& start, const Eigen::Vector3f& destination) {
 		const auto[z_r, y_r] = move_vector_to_vector(start, destination);
 		rotate(z_r, y_r);
 	}
-	Eigen::Vector3f map_state::get_vector_for(const std::pair<float, float>& in) const {
+	Eigen::Vector3f map_display::get_vector_for(const std::pair<float, float>& in) const {
 		return inverse_rotation * projected_to_unrotated(in.first, in.second, scale, _aspect, _projection);
 	}
-	Eigen::Vector3f map_state::get_unrotated_vector_for(const std::pair<float, float>& in) const {
+	Eigen::Vector3f map_display::get_unrotated_vector_for(const std::pair<float, float>& in) const {
 		return  projected_to_unrotated(in.first, in.second, scale, _aspect, _projection);
 	}
 
+	void map_display::init_province_ui(tagged_array_view<Eigen::Vector2f, provinces::province_tag> c, int32_t count, std::function<void()> sig_f) {
+		new (&province_centroids) tagged_array_view<Eigen::Vector2f, provinces::province_tag>(c);
+		province_count = count;
+		signal_ui_update = sig_f;
+	}
 
-	std::pair<int32_t, int32_t> map_display::map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const {
-		auto vector = state.get_vector_for(normalized_screen_coordinates);
+	void map_display::associate_map_icon_set(ui::gui_object** new_map_ui_objects, ui::gui_object* new_map_ui_container, int32_t count) {
+		ui::gui_object* old_object_container = map_ui_container.load(std::memory_order_acquire);
+
+		if(map_ui_objects_count.load(std::memory_order_acquire) < count) {
+			map_ui_objects.store(new_map_ui_objects, std::memory_order_release);
+			map_ui_objects_count.store(count, std::memory_order_release);
+			map_ui_container.store(new_map_ui_container, std::memory_order_release);
+		} else {
+			map_ui_objects_count.store(count, std::memory_order_release);
+			map_ui_objects.store(new_map_ui_objects, std::memory_order_release);
+			map_ui_container.store(new_map_ui_container, std::memory_order_release);
+		}
+		province_ui_out_of_date.store(true, std::memory_order_release);
+
+		if(old_object_container)
+			ui::hide(*old_object_container);
+	}
+
+	void map_display::update_province_ui_positions() {
+		bool update_expected = true;
+
+		int32_t max_ui_objects = map_ui_objects_count.load(std::memory_order_acquire);
+		ui::gui_object** ui_objects = map_ui_objects.load(std::memory_order_acquire);
+		ui::gui_object* object_container = map_ui_container.load(std::memory_order_acquire);
+
+		if(get_scale() >= map_ui_scale_threshold) {
+			if(ui_objects) {
+				if(province_ui_out_of_date.compare_exchange_strong(update_expected, false, std::memory_order_acq_rel)) {
+					auto ui_obj_sz = ui_objects[0]->size;
+					auto x_border = ui_obj_sz.x / 2;
+					auto y_border = ui_obj_sz.y / 2;
+
+					for(int32_t i = 1; i < max_ui_objects; ++i) {
+						auto const p = provinces::province_tag(provinces::province_tag::value_base_t(i));
+						auto centroid = province_centroids[p];
+						auto screen_coords = fast_screen_coordinates_from_map(centroid[0], centroid[1]);
+
+						if(screen_coords.visible) {
+							if(screen_coords.x + x_border >= 0 && screen_coords.x - x_border < screen_x
+								&& screen_coords.y + y_border >= 0 && screen_coords.y - y_border < screen_y) {
+
+								ui_objects[i]->position = ui::xy_pair{ int16_t(screen_coords.x - x_border), int16_t(screen_coords.y - y_border) };
+								ui_objects[i]->flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+							} else {
+								ui::hide(*(ui_objects[i]));
+							}
+						}
+					}
+
+					if(object_container) {
+						object_container->size = ui::xy_pair{ int16_t(screen_x), int16_t(screen_y) };
+						ui::make_visible_immediate(*object_container);
+					}
+
+					signal_ui_update();
+				}
+			}
+		} else {
+			if(object_container)
+				ui::hide(*object_container);
+		}
+	}
+
+	std::pair<float, float> map_coordinate_from_globe(Eigen::Vector3f vector,
+		float top_lat, float lat_step, float left_long, float long_step, int32_t map_width, int32_t map_height) {
 
 		const auto vy_pos = asin(vector[2]);
 		const auto vx_pos = atan2(vector[1], vector[0]);
-		const auto x_off = (vx_pos - left_long) / long_step;
+		const auto x_off = (vx_pos- left_long) / long_step;
 		const auto y_off = (vy_pos - top_lat) / lat_step;
 
-		const int32_t final_yoff = std::clamp(int32_t(y_off), 0, map_height - 1);
-		const int32_t final_xoff = std::clamp(x_off < 0.0f ? int32_t(x_off) + map_width : int32_t(x_off), 0, map_width - 1);
+		const float final_yoff = std::clamp(y_off, 0.0f, float(map_height - 1));
+		const float final_xoff = std::clamp(x_off < 0.0f ? x_off + map_width : x_off, 0.0f, float(map_width - 1));
 
 		return std::make_pair(final_xoff, final_yoff);
 	}
 
+	std::pair<float, float> map_display::map_coordinate_from_globe(Eigen::Vector3f vector) const {
+		return graphics::map_coordinate_from_globe(vector, top_lat, lat_step, left_long, long_step, map_width, map_height);
+	}
+
+
+	std::pair<int32_t, int32_t> map_display::map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const {
+		auto fp_result = map_coordinate_from_globe(get_vector_for(normalized_screen_coordinates));
+		return std::pair<int32_t, int32_t>(int32_t(fp_result.first), int32_t(fp_result.second));
+	}
+
 	void map_goto(world_state& ws, provinces::province_tag t) {
 		auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(t);
-		Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
-		ws.w.map.state.move_vector_to(province_centroid, display_center);
+		
+		Eigen::Vector3f const display_center = ws.w.map.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+		ws.w.map.move_vector_to(province_centroid, display_center);
 		ws.w.bottombar_w.update_location(ws);
-		ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.75f));
+		ws.w.map.set_scale(std::max(ws.w.map.get_scale(), scale_max * 0.75f));
 	}
 	void map_goto(world_state& ws, nations::state_tag t) {
 		auto const state_capital = ws.w.nation_s.states.get<state::state_capital>(t);
 		if(state_capital) {
 			auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(state_capital);
 
-			Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
-			ws.w.map.state.move_vector_to(province_centroid, display_center);
+			Eigen::Vector3f const display_center = ws.w.map.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+			ws.w.map.move_vector_to(province_centroid, display_center);
 			ws.w.bottombar_w.update_location(ws);
-			ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.5f));
+			ws.w.map.set_scale(std::max(ws.w.map.get_scale(), scale_max * 0.5f));
 		}
 	}
 	void map_goto(world_state& ws, nations::country_tag t) {
@@ -661,11 +746,65 @@ namespace graphics {
 		if(national_capital) {
 			auto const province_centroid = ws.s.province_m.province_container.get<province::centroid>(national_capital);
 
-			Eigen::Vector3f const display_center = ws.w.map.state.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
-			ws.w.map.state.move_vector_to(province_centroid, display_center);
+			Eigen::Vector3f const display_center = ws.w.map.get_unrotated_vector_for(std::pair<float, float>(0.0f, 0.0f));
+			ws.w.map.move_vector_to(province_centroid, display_center);
 			ws.w.bottombar_w.update_location(ws);
-			ws.w.map.state.set_scale(std::max(ws.w.map.state.get_scale(), scale_max * 0.25f));
+			ws.w.map.set_scale(std::max(ws.w.map.get_scale(), scale_max * 0.25f));
 		}
+	}
+
+	map_display::fast_screen_coordinate map_display::fast_screen_coordinates_from_map(float x, float y) const {
+		map_display::fast_screen_coordinate result{0,0,false};
+
+		const auto wblocks = (map_width + block_size - 1) / block_size;
+
+		int32_t const i = int32_t(x / block_size);
+		int32_t const j = int32_t(y / block_size);
+		
+
+		int32_t const index_a = (i + j * (wblocks + 1)) * 2;
+		std::pair<float, float> top_left(globe.transformed_buffer[index_a], globe.transformed_buffer[index_a + 1]);
+
+		int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
+		std::pair<float, float> top_right(globe.transformed_buffer[index_b], globe.transformed_buffer[index_b + 1]);
+
+		int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
+		std::pair<float, float> bottom_left(globe.transformed_buffer[index_c], globe.transformed_buffer[index_c + 1]);
+
+		int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
+		std::pair<float, float> bottom_right(globe.transformed_buffer[index_d], globe.transformed_buffer[index_d + 1]);
+
+		result.visible = ((top_right.first - top_left.first) * (top_right.second + top_left.second) +
+				(bottom_right.first - top_right.first) * (bottom_right.second + top_right.second) +
+				(top_left.first - bottom_right.first) * (top_left.second + bottom_right.second)) > 0.00001f;
+
+		if(result.visible) {
+			float x_in_block = (x - float(i * block_size)) / float(block_size);
+			float y_in_block = (y - float(j * block_size)) / float(block_size);
+			
+			Eigen::Matrix2f xmatrix;
+			Eigen::Matrix2f ymatrix;
+
+			Eigen::Vector2f vx(1.0f - x_in_block, x_in_block);
+			Eigen::Vector2f vy(1.0f - y_in_block, y_in_block);
+
+			// xmatrix << top_left.first, top_right.first, bottom_left.first, bottom_right.first;
+			// ymatrix << top_left.second, top_right.second, bottom_left.second, bottom_right.second;
+
+			xmatrix << top_left.first, bottom_left.first, top_right.first, bottom_right.first;
+			ymatrix << top_left.second, bottom_left.second, top_right.second, bottom_right.second;
+
+			float xresult_norm = vx.dot(xmatrix * vy);
+			float yresult_norm = vx.dot(ymatrix * vy);
+
+			float xresult = (xresult_norm + 1.0f) * float(screen_x) / 2.0f;
+			float yresult = (-yresult_norm + 1.0f) * float(screen_y) / 2.0f;
+
+			result.x = int16_t(std::clamp(xresult, float(std::numeric_limits<int16_t>().lowest()), float(std::numeric_limits<int16_t>().max())));
+			result.y = int16_t(std::clamp(yresult, float(std::numeric_limits<int16_t>().lowest()), float(std::numeric_limits<int16_t>().max())));
+		}
+
+		return result;
 	}
 
 	std::pair<float, float> normalized_coordinates_from_base(float aspect, float scale, Eigen::Matrix3f const& rotation, float x, float y, float z, projection_type projection) {
@@ -800,7 +939,16 @@ namespace graphics {
 		const float cos_vy = cos(vy_pos);
 		const float sin_vy = sin(vy_pos);
 
-		return Eigen::Vector3f(cos(vx_pos) * cos_vy , sin(vx_pos) * cos_vy, sin_vy );
+		return Eigen::Vector3f(cos(vx_pos) * cos_vy, sin(vx_pos) * cos_vy, sin_vy);
+	}
+
+	Eigen::Vector3f map_display::globe_point_from_map(float x_off, float y_off) const {
+		const float vx_pos = x_off * long_step;
+		const float vy_pos = y_off * lat_step + top_lat;
+		const float cos_vy = cos(vy_pos);
+		const float sin_vy = sin(vy_pos);
+
+		return Eigen::Vector3f(cos(vx_pos) * cos_vy, sin(vx_pos) * cos_vy, sin_vy);
 	}
 
 	inline map_vertex_data_3d_b generate_3d_map_point_b(int32_t x_off, int32_t y_off, float base_lat, float lat_step, float long_step) {
@@ -966,7 +1114,7 @@ namespace graphics {
 
 		const auto wblocks = (map_width + block_size - 1) / block_size;
 
-		state.get_globe().for_each_visible_block(map_width, map_height, [scale = this->state.get_scale(), wblocks, &borders, &ws](int32_t x, int32_t y, float const* x_matrix, float const* y_matrix) {
+		get_globe().for_each_visible_block(map_width, map_height, [scale = this->get_scale(), wblocks, &borders, &ws](int32_t x, int32_t y, float const* x_matrix, float const* y_matrix) {
 			auto& block = borders.borders[x + y * wblocks];
 			
 			ready_border_render(borders.border_vbo, block.vertices_handle, block.indices_handle, x_matrix, y_matrix);
@@ -1350,7 +1498,7 @@ namespace graphics {
 		create_data_textures(data_textures, map_data, width, height);
 		colors.create_color_textures();
 
-		const auto [v, e, c] = create_patches_buffers_b(width, height, state.get_globe_unbuffered(), top_lat, lat_step, long_step);
+		const auto [v, e, c] = create_patches_buffers_b(width, height, get_globe_unbuffered(), top_lat, lat_step, long_step);
 		vertex_buffer = v;
 		element_buffer = e;
 		triangle_vertex_count = static_cast<int32_t>(c);
@@ -1477,10 +1625,10 @@ namespace graphics {
 			glBindVertexBuffer(0, vertex_buffer, 0, sizeof(map_vertex_data_3d_b));
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, element_buffer);
 
-			GLuint subroutine = to_projection_parameter(state.projection());
+			GLuint subroutine = to_projection_parameter(projection());
 			glUniformSubroutinesuiv(GL_VERTEX_SHADER, 1, &subroutine); // must set all subroutines in one call
 
-			inner_render_b(state.get_scale(), state.rotation(), state.aspect(), triangle_vertex_count);
+			inner_render_b(get_scale(), rotation(), aspect(), triangle_vertex_count);
 
 			render_borders(ws.s.province_m.borders, ws);
 		}
