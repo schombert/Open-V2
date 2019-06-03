@@ -29,7 +29,7 @@ namespace current_state {
 		ws.w.map.rescale_by(0.5f);
 	}
 	bool mini_map::on_lclick(ui::gui_object_tag o, world_state & ws, const ui::lbutton_down& l) {
-		Eigen::Vector3f target = ws.w.map.globe_point_from_map(float(l.x) / 266.0f, float(l.y + 9) / 133.0f);
+		Eigen::Vector3f target = graphics::globe_point_from_position(float(l.x) / 266.0f, float(l.y + 9) / 133.0f, 1.57f, -1.57f);
 		Eigen::Vector3f destination = ws.w.map.get_unrotated_vector_for(
 			std::pair<float, float>(0.0f, 0.0f));
 		ws.w.map.move_vector_to(target, destination);

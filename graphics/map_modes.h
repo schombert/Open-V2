@@ -21,7 +21,8 @@ namespace map_mode {
 		sphere,
 		voting,
 		revolt_risk,
-		region
+		region,
+		rgo
 	};
 
 	class legend_gui;

@@ -410,7 +410,13 @@ namespace economy {
 	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag> prices) {
 		return ve::dot_product(ws.s.economy_m.goods_count, prices, ws.s.economy_m.building_costs.get_row(ws.s.economy_m.railroad.cost_tag));
 	}
-
+	money_qnty_type get_railroad_cost(world_state const& ws, provinces::province_tag p) {
+		if(auto const si = provinces::province_state(ws, p); si) {
+			return get_railroad_cost(ws, state_current_prices(ws, si));
+		} else {
+			return 0.0f;
+		}
+	}
 
 	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag> prices) {
 		auto& project = ws.w.nation_s.states.get<state::project>(si);

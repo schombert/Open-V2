@@ -1169,7 +1169,20 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 	graphics::color_modification cmod = determine_color_modification(manager, root_obj, parent_enabled);
 
 	if ((flags & ui::gui_object::dont_clip_children) == 0) {
-		graphics::scissor_rect clip(ogl, std::lround(screen_pos.effective_position_x), manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height), std::lround(screen_pos.effective_width), std::lround(screen_pos.effective_height));
+		graphics::scissor_rect clip(ogl,
+			std::lround(screen_pos.effective_position_x) - 1,
+			manager.height() - std::lround(screen_pos.effective_position_y + screen_pos.effective_height) - 1,
+			std::lround(screen_pos.effective_width) + 2,
+			std::lround(screen_pos.effective_height) + 2
+		);
+		/*auto const int_start_x = int32_t(std::floor(screen_pos.effective_position_x));
+		auto const int_start_y = manager.height() - int32_t(std::ceil(screen_pos.effective_position_y + screen_pos.effective_height));
+		graphics::scissor_rect clip(ogl,
+			int_start_x - 1,
+			int_start_y - 1,
+			int32_t(std::ceil(screen_pos.effective_width + screen_pos.effective_position_x)) - int_start_x + 2,
+			manager.height() - int32_t(std::floor(screen_pos.effective_position_y)) - int_start_y + 2
+		);*/
 
 		detail::render_object_type(static_manager, manager, ogl, root_obj, screen_pos, type, cmod);
 

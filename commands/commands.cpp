@@ -203,6 +203,32 @@ namespace commands {
 		}
 	}
 
+	bool is_command_valid(foreign_invest_railroad const& c, world_state const& ws) {
+		if(auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(c.p); owner) {
+			return
+				owner != c.nation_by
+				&& !nations::is_great_power(ws, owner)
+				&& ws.w.province_s.province_state_container.get<province_state::railroad_upgrade_progress>(c.p) == 0
+				&& ws.w.province_s.province_state_container.get<province_state::railroad_level>(c.p) <
+				(ws.w.nation_s.tech_attributes.get<technologies::tech_offset::max_railroad>(c.nation_by) - ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::min_build_railroad>(c.p))
+				&& (ws.w.nation_s.nations.get<nation::current_rules>(owner) & issues::rules::allow_foreign_investment) != 0;
+		}
+		return false;
+	}
+
+	void execute_command(foreign_invest_railroad const& c, world_state& ws) {
+		if(is_command_valid(c, ws)) {
+			ws.w.province_s.province_state_container.set<province_state::railroad_upgrade_progress>(c.p, 1.0f / float(ws.s.economy_m.railroad.time));
+
+			auto owner = ws.w.province_s.province_state_container.get<province_state::owner>(c.p);
+			auto const cost = economy::get_railroad_cost(ws, c.p);
+
+			ws.w.nation_s.nations.get<nation::treasury>(owner) += cost;
+			ws.w.nation_s.nations.get<nation::treasury>(c.nation_by) -= cost;
+			nations::increase_foreign_investment(ws, c.nation_by, owner, cost);
+		}
+	}
+
 	void commands::execute_command(province_building const & c, world_state & ws) {
 		if(is_command_valid(c, ws)) {
 			switch(c.type) {

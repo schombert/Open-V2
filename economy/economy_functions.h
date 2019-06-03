@@ -70,6 +70,7 @@ namespace economy {
 	factory_project_type get_factory_project_type(world_state const& ws, nations::state_tag location, factory_type_tag ftype);
 	money_qnty_type get_factory_project_cost(world_state const& ws, factory_type_tag ftype, factory_project_type ptype, tagged_array_view<const float, goods_tag> prices);
 	money_qnty_type get_railroad_cost(world_state const& ws, tagged_array_view<const float, goods_tag> prices);
+	money_qnty_type get_railroad_cost(world_state const& ws, provinces::province_tag p);
 	float project_completion(world_state const& ws, nations::state_tag si, tagged_array_view<const float, goods_tag> prices);
 	tagged_array_view<const float, goods_tag> state_current_prices(world_state const& ws, nations::state_tag s);
 	tagged_array_view<const float, goods_tag> state_price_delta(world_state const& ws, nations::state_tag s);

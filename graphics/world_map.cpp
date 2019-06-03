@@ -660,7 +660,7 @@ namespace graphics {
 		ui::gui_object** ui_objects = map_ui_objects.load(std::memory_order_acquire);
 		ui::gui_object* object_container = map_ui_container.load(std::memory_order_acquire);
 
-		if(get_scale() >= map_ui_scale_threshold) {
+		if(get_scale() >= scale_max * 0.6f) {
 			if(ui_objects) {
 				if(province_ui_out_of_date.compare_exchange_strong(update_expected, false, std::memory_order_acq_rel)) {
 					auto ui_obj_sz = ui_objects[0]->size;
@@ -877,6 +877,8 @@ namespace graphics {
 		"in vec2 t_value;\n"
 		"layout (location = 0) out vec4 frag_color;\n"
 		"\n"
+		"layout(location = 1) uniform float scale;\n"
+		"\n"
 		"layout (binding = 0) uniform usampler2D data_texture;\n"
 		"layout (binding = 1) uniform sampler1D primary_colors;\n"
 		"layout (binding = 2) uniform sampler1D secondary_colors;\n"
@@ -885,7 +887,8 @@ namespace graphics {
 		"\n"
 		"void main() {\n"
 		"   const float d_value = abs(fract(t_value.x) - 0.5f) + abs(fract(t_value.y) - 0.5f);\n"
-		"   frag_color = texture(map_shadows, t_value) * texelFetch(primary_colors, d_value <= 0.5f ? "
+		"   const bool is_primary = fract((gl_FragCoord.x + gl_FragCoord.y) / scale) >= 0.5f;\n"
+		"   frag_color = texture(map_shadows, t_value) * texelFetch(is_primary ? primary_colors : secondary_colors, d_value <= 0.5f ? "
 		"       int(texelFetch(data_texture, ivec2(int(t_value.x), int(t_value.y)), 0).r) : "
 		"       int(texelFetch(data_texture, "
 		"           ivec2(int(t_value.x) + texelFetch(corner_texture, ivec2(int(t_value.x * 2.0f), int(t_value.y * 2.0f)), 0).r,"

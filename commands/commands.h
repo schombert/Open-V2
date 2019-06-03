@@ -82,6 +82,13 @@ namespace commands {
 		province_building(nations::country_tag n, province_building_type t, nations::state_tag st) : nation_for(n), s(st), type(t) {}
 	};
 
+	struct foreign_invest_railroad {
+		nations::country_tag nation_by;
+		provinces::province_tag p;
+
+		foreign_invest_railroad(nations::country_tag b, provinces::province_tag prov) : nation_by(b), p(prov) {}
+	};
+
 	struct fabricate_cb {
 		nations::country_tag nation_for;
 		nations::country_tag nation_target;
@@ -165,6 +172,7 @@ namespace commands {
 	void execute_command(set_reform const& c, world_state& ws);
 	void execute_command(build_factory const& c, world_state& ws);
 	void execute_command(change_national_focus const& c, world_state& ws);
+	void execute_command(foreign_invest_railroad const& c, world_state& ws);
 
 	bool is_command_valid(province_building const& c, world_state const& ws);
 	bool is_command_valid(fabricate_cb const& c, world_state const& ws);
@@ -173,6 +181,7 @@ namespace commands {
 	bool is_command_valid(set_reform const& c, world_state const& ws);
 	bool is_command_valid(build_factory const& c, world_state const& ws);
 	bool is_command_valid(change_national_focus const& c, world_state const& ws);
+	bool is_command_valid(foreign_invest_railroad const& c, world_state const& ws);
 
 	ui::xy_pair explain_command_conditions(province_building const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 	ui::xy_pair explain_command_conditions(fabricate_cb const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
@@ -181,5 +190,6 @@ namespace commands {
 	ui::xy_pair explain_command_conditions(build_factory const& c, world_state& ws, ui::tagged_gui_object container, ui::xy_pair cursor_in, ui::unlimited_line_manager& lm, ui::text_format const& fmt);
 
 	using full_command_set = command_set<set_budget, province_building, fabricate_cb, change_research, execute_event,
-		change_influence_priority_level, change_sphere_leader, change_ruling_party, set_reform, build_factory, change_national_focus>;
+		change_influence_priority_level, change_sphere_leader, change_ruling_party, set_reform, build_factory, change_national_focus,
+		foreign_invest_railroad>;
 }

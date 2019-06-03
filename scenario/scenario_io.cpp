@@ -872,5 +872,8 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::map_legend_migration] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_migration");
 		s.fixed_ui_text[fixed_ui::migration_external_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "migration_external_label_b");
 		s.fixed_ui_text[fixed_ui::migration_internal_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "migration_internal_label_b");
+		s.fixed_ui_text[fixed_ui::map_legend_infrastructure] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_infrastructure");
+		s.fixed_ui_text[fixed_ui::map_legend_rgo] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_rgo");
+		s.fixed_ui_text[fixed_ui::all] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OV_ALL");
 	}
 }
