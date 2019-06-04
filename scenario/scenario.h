@@ -794,8 +794,13 @@ namespace scenario {
 		constexpr uint32_t map_legend_infrastructure = 771ui32;
 		constexpr uint32_t map_legend_rgo = 772ui32;
 		constexpr uint32_t all = 773ui32;
+		constexpr uint32_t map_legend_prices = 774ui32;
+		constexpr uint32_t map_legend_production = 775ui32;
+		constexpr uint32_t price_label = 776ui32;
+		constexpr uint32_t production_label = 777ui32;
+		constexpr uint32_t map_legend_voting = 778ui32;
 
-		constexpr uint32_t count = 774ui32;
+		constexpr uint32_t count = 779ui32;
 	}
 
 

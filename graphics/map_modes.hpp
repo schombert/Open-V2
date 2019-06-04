@@ -179,6 +179,87 @@ namespace map_mode {
 		generic_legend_window_base
 	>;
 
+	class resource_item_button {
+	public:
+		economy::goods_tag tag;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<resource_item_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<resource_item_button>& self, world_state& ws);
+	};
+
+	using resource_item = ui::gui_window <
+		CT_STRING("background"), ui::simple_button<resource_item_button>,
+		CT_STRING("resource_icon"), ui::dynamic_icon<rgo_item_icon>,
+		CT_STRING("resource_name"), ui::display_text<rgo_item_name>,
+		rgo_item_base
+	>;
+
+	class resource_items_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using resource_legend_window_t = ui::gui_window <
+		CT_STRING("legend_title"), ui::display_text<generic_legend_title>,
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("resource_items"), ui::discrete_listbox<resource_items_lb, resource_item, economy::goods_tag>,
+		CT_STRING("gradient_min"), ui::display_text<generic_legend_min>,
+		CT_STRING("gradient_max"), ui::display_text<generic_legend_max>,
+		generic_legend_window_base
+	>;
+
+	class ideology_item_base : public ui::visible_region {
+	public:
+		ideologies::ideology_tag tag;
+		void set_value(ideologies::ideology_tag t) {
+			tag = t;
+		}
+	};
+
+	class ideology_item_button {
+	public:
+		ideologies::ideology_tag tag;
+
+		template<typename window_type>
+		void windowed_update(ui::simple_button<ideology_item_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<ideology_item_button>& self, world_state& ws);
+	};
+
+	class ideology_item_color {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::tinted_icon<ideology_item_color>& self, window_type& win, world_state& ws);
+	};
+
+	class ideology_item_name {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	using ideology_item = ui::gui_window <
+		CT_STRING("background"), ui::simple_button<ideology_item_button>,
+		CT_STRING("ideology_color"), ui::tinted_icon<ideology_item_color>,
+		CT_STRING("ideology_name"), ui::display_text<ideology_item_name>,
+		ideology_item_base
+	>;
+
+	class ideology_items_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	using voting_legend_window_t = ui::gui_window <
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("ideologies"), ui::discrete_listbox<ideology_items_lb, ideology_item, ideologies::ideology_tag>,
+		generic_legend_window_base
+	>;
+
 	class map_icon_base : public ui::gui_behavior {
 	public:
 		provinces::province_tag tag;
@@ -195,7 +276,6 @@ namespace map_mode {
 		template<typename window_type>
 		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
-
 
 	using infrastructure_map_icon_window_t = ui::gui_window <
 		CT_STRING("port_icon"), ui::dynamic_icon<map_port_icon>,
@@ -218,6 +298,8 @@ namespace map_mode {
 		migration_legend_window_t migration_legend_window;
 		infrastructure_legend_window_t infrastructure_legend_window;
 		rgo_legend_window_t rgo_legend_window;
+		resource_legend_window_t resource_legend_window;
+		voting_legend_window_t voting_legend_window;
 
 		bool showing_density = false;
 		bool showing_internal_migration = false;
@@ -230,6 +312,7 @@ namespace map_mode {
 		std::vector<ui::gui_object*> rgo_map_icons;
 		std::vector<ui::dynamic_icon<rgo_map_icon>> rgo_map_icons_objects;
 
+		ideologies::ideology_tag current_ideology;
 		provinces::province_tag current_province;
 		nations::country_tag current_nation;
 		cultures::culture_tag current_culture;
@@ -289,5 +372,51 @@ namespace map_mode {
 				data.push_back(g);
 		});
 		lb.new_list(data.begin(), data.end());
+	}
+	template<typename window_type>
+	void resource_item_button::windowed_update(ui::simple_button<resource_item_button>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+		if(ws.w.map_view.legends->current_good == tag)
+			self.set_frame(ws.w.gui_m, 0);
+		else
+			self.set_frame(ws.w.gui_m, 1);
+	}
+	template<typename lb_type>
+	void resource_items_lb::populate_list(lb_type & lb, world_state & ws) {
+		boost::container::small_vector<economy::goods_tag, 32, concurrent_allocator<economy::goods_tag>> data;
+		ws.s.economy_m.for_each_good([&ws, &data](economy::goods_tag g) {
+			if(g != economy::gold_good)
+				data.push_back(g);
+		});
+		lb.new_list(data.begin(), data.end());
+	}
+	template<typename lb_type>
+	void ideology_items_lb::populate_list(lb_type & lb, world_state & ws) {
+		boost::container::small_vector<ideologies::ideology_tag, 32, concurrent_allocator<ideologies::ideology_tag>> data;
+		data.push_back(ideologies::ideology_tag());
+		ws.s.ideologies_m.for_each_ideology([&data](ideologies::ideology_tag g) {
+			data.push_back(g);
+		});
+		lb.new_list(data.begin(), data.end());
+	}
+	template<typename window_type>
+	void ideology_item_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		if(win.tag)
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.s.ideologies_m.ideology_container[win.tag].name, fmt, ws, box, lm);
+		else
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::all, fmt, ws, box, lm);
+	}
+	template<typename window_type>
+	void ideology_item_color::windowed_update(ui::tinted_icon<ideology_item_color>& self, window_type & win, world_state & ws) {
+		auto clr = win.tag ? ws.s.ideologies_m.ideology_container[win.tag].color : graphics::color_rgb{ 255ui8, 255ui8, 255ui8 };
+		self.set_color(ws.w.gui_m, float(clr.r) / 255.0f, float(clr.g) / 255.0f, float(clr.b) / 255.0f);
+	}
+	template<typename window_type>
+	void ideology_item_button::windowed_update(ui::simple_button<ideology_item_button>& self, window_type & win, world_state & ws) {
+		tag = win.tag;
+		if(ws.w.map_view.legends->current_ideology == tag)
+			self.set_frame(ws.w.gui_m, 0);
+		else
+			self.set_frame(ws.w.gui_m, 1);
 	}
 }

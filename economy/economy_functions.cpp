@@ -1003,6 +1003,21 @@ namespace economy {
 		return result;
 	}
 
+	range_information global_production_range(world_state const& ws, economy::goods_tag t) {
+		range_information result{ std::numeric_limits<money_qnty_type>::max(), std::numeric_limits<money_qnty_type>::lowest(), 0.0f };
+		int32_t count = 0;
+		ws.w.nation_s.states.for_each([&ws, t, &result, &count](nations::state_tag sid) {
+			if(is_valid_index(ws.w.nation_s.states.get<state::owner>(sid)) && ws.w.nation_s.states.is_valid_index(sid)) {
+				auto v = state_current_production(ws, sid, t);
+				result.minimum = std::min(result.minimum, v);
+				result.maximum = std::max(result.maximum, v);
+				result.average += v;
+				++count;
+			}
+		});
+		result.average /= float(count);
+		return result;
+	}
 
 
 	money_qnty_type daily_state_owner_building_cost(world_state const& ws, nations::state_tag id) {

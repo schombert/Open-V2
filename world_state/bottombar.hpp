@@ -110,6 +110,8 @@ namespace current_state {
 	public:
 		void update(ui::simple_button<map_mode_button<mode>>& self, world_state& ws);
 		void button_function(ui::simple_button<map_mode_button<mode>>&, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class open_log_button {
@@ -159,8 +161,8 @@ namespace current_state {
 		CT_STRING("map_zoom_out"), ui::simple_button<zoom_out_button>,
 		CT_STRING("mapmode_1"), ui::simple_button<map_mode_button<map_mode::type::political>>,
 		CT_STRING("mapmode_2"), ui::simple_button<map_mode_button<map_mode::type::distance>>,
-		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<map_mode::type::prices>>,
-		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<map_mode::type::production>>,
+		CT_STRING("mapmode_3"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_4"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_5"), ui::simple_button<map_mode_button<map_mode::type::region>>,
 		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<map_mode::type::infrastructure>>,
 		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
@@ -172,10 +174,10 @@ namespace current_state {
 		CT_STRING("mapmode_13"), ui::simple_button<map_mode_button<map_mode::type::culture>>,
 		CT_STRING("mapmode_14"), ui::simple_button<map_mode_button<map_mode::type::sphere>>,
 		CT_STRING("mapmode_15"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
-		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
-		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_16"), ui::simple_button<map_mode_button<map_mode::type::voting>>,
+		CT_STRING("mapmode_17"), ui::simple_button<map_mode_button<map_mode::type::prices>>,
 		CT_STRING("mapmode_18"), ui::simple_button<map_mode_button<map_mode::type::migration>>,
-		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<map_mode::type::production>>,
 		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<map_mode::type::relations>>,
 		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
@@ -189,6 +191,37 @@ namespace current_state {
 	template<map_mode::type mode>
 	void map_mode_button<mode>::button_function(ui::simple_button<map_mode_button<mode>>&, world_state & ws) {
 		map_mode::change_mode(ws, mode);
+	}
+	template<map_mode::type mode>
+	void map_mode_button<mode>::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		switch(mode){
+			case map_mode::type::political:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_political, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::prices:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_prices, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::production:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_production, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::population:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_population, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::migration:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_migration, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::relations:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_relations, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::culture:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_culture, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::infrastructure:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_infrastructure, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::sphere:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_sphere, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::voting:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_voting, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::region:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_region, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::rgo:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_rgo, ui::tooltip_text_format, ws, tw); return;
+			default:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::none, ui::tooltip_text_format, ws, tw); return;
+		}
 	}
 	template<typename W>
 	void chat_window_base::on_create(W & w, world_state & ws) {

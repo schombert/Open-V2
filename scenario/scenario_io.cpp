@@ -875,5 +875,10 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::map_legend_infrastructure] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_infrastructure");
 		s.fixed_ui_text[fixed_ui::map_legend_rgo] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_rgo");
 		s.fixed_ui_text[fixed_ui::all] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "OV_ALL");
+		s.fixed_ui_text[fixed_ui::map_legend_prices] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_prices");
+		s.fixed_ui_text[fixed_ui::map_legend_production] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_production");
+		s.fixed_ui_text[fixed_ui::price_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "price_label");
+		s.fixed_ui_text[fixed_ui::production_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "production_label");
+		s.fixed_ui_text[fixed_ui::map_legend_voting] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_voting");
 	}
 }
