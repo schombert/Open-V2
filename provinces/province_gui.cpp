@@ -170,29 +170,30 @@ namespace provinces {
 				ui::unlimited_line_manager lm;
 				ui::xy_pair cursor{ 0,0 };
 
-				text_data::text_replacement value_rep(text_data::value_type::value, text_data::percent{ ws.w.nation_s.states.get<state::administrative_efficiency>(state_id) });
+				text_data::text_replacement value_rep(text_data::value_type::value,
+					text_data::fp_one_place{ 100.0f * ws.w.nation_s.states.get<state::administrative_efficiency>(state_id) });
 				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin], ui::tooltip_text_format, ws, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
 
 				lm.increase_indent(1);
 
-				value_rep.data = text_data::percent{ 0 };
+				value_rep.data = text_data::fp_one_place{ 0 };
 				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_base], ui::tooltip_text_format, ws, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
 
-				value_rep.data = text_data::percent{ 0 };
+				value_rep.data = text_data::fp_one_place{ 0 };
 				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_pops], ui::tooltip_text_format, ws, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
 
-				value_rep.data = text_data::percent{ 0 };
+				value_rep.data = text_data::fp_one_place{ 0 };
 				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_admin_tech], ui::tooltip_text_format, ws, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
 
-				value_rep.data = text_data::percent{ 0 };
+				value_rep.data = text_data::fp_one_place{ 0 };
 				cursor = ui::add_text(cursor, ws.s.fixed_ui_text[scenario::fixed_ui::province_view_state_non_cores], ui::tooltip_text_format, ws, tw, lm, &value_rep, 1ui32);
 				cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, ui::tooltip_text_format);
 				lm.finish_current_line();
@@ -379,8 +380,8 @@ namespace provinces {
 		}
 	}
 
-	void crimefight_percent_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
-
+	void crimefight_percent_text_box::update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws) {
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ crime_fighting_value(ws, ws.w.province_w.selected_province) }, fmt, ws, box, lm);
 	}
 
 	void rebel_percent_text_box::update(ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&) {
@@ -1078,5 +1079,18 @@ namespace provinces {
 	void province_national_focus_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
 		ui::line_manager lm;
 		modifiers::nf_tooltip_text(tag, ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format);
+	}
+	void crime_icon::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto const mod = ws.w.province_s.province_state_container.get<province_state::crime>(ws.w.province_w.selected_province);
+		ui::line_manager lm;
+		modifiers::make_province_modifier_text(ws, tw, ui::xy_pair{0,0}, lm, ui::tooltip_text_format, mod);
+	}
+	bool crime_name::has_tooltip(world_state & ws) {
+		return is_valid_index(ws.w.province_s.province_state_container.get<province_state::crime>(ws.w.province_w.selected_province));
+	}
+	void crime_name::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {
+		auto const mod = ws.w.province_s.province_state_container.get<province_state::crime>(ws.w.province_w.selected_province);
+		ui::line_manager lm;
+		modifiers::make_province_modifier_text(ws, tw, ui::xy_pair{ 0,0 }, lm, ui::tooltip_text_format, mod);
 	}
 }

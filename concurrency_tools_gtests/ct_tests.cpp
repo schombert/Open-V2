@@ -2520,3 +2520,31 @@ TEST(concurrency_tools, verify_index_edge_cases) {
 		EXPECT_EQ(0, to_index(d));
 	}
 }
+
+TEST(concurrency_tools, chunking) {
+	{
+		auto const r = ve::generate_partition_range<5ui32, 3ui32>(0, 19);
+		EXPECT_EQ(0ui32, r.low);
+		EXPECT_EQ(3ui32, r.high);
+	}
+	{
+		auto const r = ve::generate_partition_range<5ui32, 3ui32>(1, 19);
+		EXPECT_EQ(3ui32, r.low);
+		EXPECT_EQ(6ui32, r.high);
+	}
+	{
+		auto const r = ve::generate_partition_range<5ui32, 3ui32>(2, 19);
+		EXPECT_EQ(6ui32, r.low);
+		EXPECT_EQ(9ui32, r.high);
+	}
+	{
+		auto const r = ve::generate_partition_range<5ui32, 3ui32>(3, 19);
+		EXPECT_EQ(9ui32, r.low);
+		EXPECT_EQ(15ui32, r.high);
+	}
+	{
+		auto const r = ve::generate_partition_range<5ui32, 3ui32>(4, 19);
+		EXPECT_EQ(15ui32, r.low);
+		EXPECT_EQ(19ui32, r.high);
+	}
+}

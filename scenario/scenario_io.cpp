@@ -880,5 +880,7 @@ namespace scenario {
 		s.fixed_ui_text[fixed_ui::price_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "price_label");
 		s.fixed_ui_text[fixed_ui::production_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "production_label");
 		s.fixed_ui_text[fixed_ui::map_legend_voting] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_voting");
+		s.fixed_ui_text[fixed_ui::map_legend_admin] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "map_legend_admin");
+		s.fixed_ui_text[fixed_ui::admin_eff_label] = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "admin_eff_label");
 	}
 }

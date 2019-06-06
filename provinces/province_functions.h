@@ -22,6 +22,8 @@ namespace provinces {
 
 	template<typename T>
 	auto get_life_rating(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
+	template<typename T>
+	auto crime_fighting_value(world_state const& ws, T p) -> decltype(ve::widen_to<T>(0.0f));
 	template<typename F>
 	void for_each_pop(world_state const& ws, province_tag p, F&& f);
 	template<typename T>
@@ -42,4 +44,6 @@ namespace provinces {
 	void fill_distance_arrays(world_state& ws);
 
 	void ready_initial_province_statistics(world_state& ws);
+
+	void update_crime(world_state& ws);
 }

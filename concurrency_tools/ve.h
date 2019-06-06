@@ -112,6 +112,31 @@ namespace ve {
 	template<typename A, typename C>
 	constexpr bool has_prefetch = _has_prefetch<A, void, C>::value;
 
+
+	struct partition_range {
+		uint32_t low;
+		uint32_t high;
+	};
+
+	template<uint32_t divisions_count, uint32_t chunk_size>
+	partition_range generate_partition_range(int32_t partition_index, int32_t total_count) {
+		uint32_t const total_chunks = uint32_t((total_count + chunk_size - 1) / chunk_size);
+		uint32_t const low_chunk_size = total_chunks / divisions_count;
+		uint32_t const high_chunks_count = total_chunks - low_chunk_size * divisions_count;
+
+		if(uint32_t(partition_index) < divisions_count - high_chunks_count) {
+			return partition_range{ uint32_t(partition_index) * low_chunk_size * chunk_size, uint32_t(partition_index + 1) * low_chunk_size * chunk_size };
+		} else {
+			uint32_t const first_high_chunk = (divisions_count - high_chunks_count) * low_chunk_size * chunk_size;
+			uint32_t const high_chunk_index = uint32_t(partition_index) - (divisions_count - high_chunks_count);
+
+			return partition_range{
+				first_high_chunk + high_chunk_index * (low_chunk_size + 1) * chunk_size,
+				std::min(first_high_chunk + (high_chunk_index + 1) * (low_chunk_size + 1) * chunk_size, uint32_t(total_count))
+			};
+		}
+	}
+
 	constexpr int32_t block_repitition = 4;
 
 	template<typename tag_type, typename F>

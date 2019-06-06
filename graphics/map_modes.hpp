@@ -120,6 +120,20 @@ namespace map_mode {
 		generic_legend_window_base
 	>;
 
+	class crime_color {
+	public:
+		void update(ui::tinted_icon<crime_color>& self, world_state& ws);
+	};
+
+	using admin_legend_window_t = ui::gui_window <
+		CT_STRING("crime_color"), ui::tinted_icon<crime_color>,
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("gradient_icon"), ui::tinted_icon<gradient_bar>,
+		CT_STRING("gradient_min"), ui::display_text<generic_legend_min>,
+		CT_STRING("gradient_max"), ui::display_text<generic_legend_max>,
+		generic_legend_window_base
+	>;
+
 	class rgo_item_base : public ui::visible_region {
 	public:
 		economy::goods_tag tag;
@@ -289,6 +303,12 @@ namespace map_mode {
 		void update(ui::dynamic_icon<rgo_map_icon>& self, world_state& ws);
 	};
 
+	class crime_map_icon {
+	public:
+		provinces::province_tag tag;
+		void update(ui::dynamic_icon<crime_map_icon>& self, world_state& ws);
+	};
+
 	class legend_gui {
 	public:
 		generic_legend_window_t generic_legend_window;
@@ -300,6 +320,7 @@ namespace map_mode {
 		rgo_legend_window_t rgo_legend_window;
 		resource_legend_window_t resource_legend_window;
 		voting_legend_window_t voting_legend_window;
+		admin_legend_window_t admin_legend_window;
 
 		bool showing_density = false;
 		bool showing_internal_migration = false;
@@ -311,6 +332,10 @@ namespace map_mode {
 		ui::gui_object* rgo_map_container;
 		std::vector<ui::gui_object*> rgo_map_icons;
 		std::vector<ui::dynamic_icon<rgo_map_icon>> rgo_map_icons_objects;
+
+		ui::gui_object* admin_map_container;
+		std::vector<ui::gui_object*> admin_map_icons;
+		std::vector<ui::dynamic_icon<crime_map_icon>> admin_map_icons_objects;
 
 		ideologies::ideology_tag current_ideology;
 		provinces::province_tag current_province;

@@ -229,12 +229,16 @@ namespace provinces {
 	public:
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<crime_icon>& ico, window_type const&, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class crime_name {
 	public:
 		template<typename window_type>
 		void windowed_update(window_type&, ui::tagged_gui_object, ui::text_box_line_manager&, ui::text_format&, world_state&);
+		bool has_tooltip(world_state& ws);
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
 	class crimefight_percent_text_box {

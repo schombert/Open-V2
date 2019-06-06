@@ -993,7 +993,7 @@ namespace nations {
 
 	float calculate_state_administrative_efficiency(world_state const& ws, state_tag this_state, float admin_requirement) {
 		auto owner = ws.w.nation_s.states.get<state::owner>(this_state);
-		if(bool(owner))
+		if(!bool(owner))
 			return 0.0f;
 
 		int32_t count_non_core = 0;

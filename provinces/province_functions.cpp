@@ -6,6 +6,7 @@
 #include "modifiers\\modifier_functions.h"
 #include "military\\military_functions.h"
 #include <ppl.h>
+#include <random>
 #include "concurrency_tools\\ve.h"
 
 namespace provinces {
@@ -542,5 +543,36 @@ namespace provinces {
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);
 			ws.w.province_s.province_state_container.set<province_state::old_monthly_population>(t, total);
 		}
+	}
+
+	constexpr uint32_t crime_update_frequency = 32ui32;
+	constexpr uint32_t crime_update_size = uint32_t(std::max(16, ve::vector_size));
+
+	void update_crime(world_state& ws) {
+		const uint32_t index = uint32_t(to_index(ws.w.current_date) & (crime_update_frequency - 1));
+		auto const part = ve::generate_partition_range<crime_update_frequency, crime_update_size>(
+			index, ws.s.province_m.first_sea_province);
+
+		concurrency::parallel_for(part.low, part.high, [&ws](uint32_t i) {
+			auto const val = provinces::province_tag(provinces::province_tag::value_base_t(i));
+
+			auto cf_value = crime_fighting_value(ws, val);
+			auto& current_crime = ws.w.province_s.province_state_container.get<province_state::crime>(val);
+			
+
+			std::uniform_real_distribution<float> const dist(0.0f, 1.0f);
+			auto const result = dist(get_local_generator());
+
+			if(result < cf_value) {
+				current_crime = modifiers::provincial_modifier_tag();
+			} else if(!current_crime) {
+				std::uniform_int_distribution<int32_t> const idist(0, int32_t(ws.s.modifiers_m.crimes.size()));
+				auto const index = idist(get_local_generator());
+				auto prov_owner = province_owner(ws, val);
+
+				if(bit_vector_test((bitfield_type*)(&(ws.w.nation_s.nations.get<nation::enabled_crimes>(prov_owner))), uint32_t(index)))
+					current_crime = ws.s.modifiers_m.crimes[index].modifier;
+			}
+		});
 	}
 }

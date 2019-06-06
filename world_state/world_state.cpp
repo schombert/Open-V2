@@ -37,6 +37,8 @@ void world_state_non_ai_update(world_state & ws) {
 
 	governments::government_composition_update(ws);
 
+	provinces::update_crime(ws);
+
 	population::update_independence_movements(ws);
 	population::update_local_rebels_and_movements(ws);
 
