@@ -16,36 +16,72 @@ namespace events {
 namespace scenario {
 	class scenario_manager;
 }
+
+namespace cb_type {
+	struct flags;
+	struct badboy_factor;
+	struct prestige_factor;
+	struct peace_cost_factor;
+	struct penalty_factor;
+	struct break_truce_prestige_factor;
+	struct break_truce_infamy_factor;
+	struct break_truce_militancy_factor;
+	struct good_relation_prestige_factor;
+	struct good_relation_infamy_factor;
+	struct good_relation_militancy_factor;
+	struct construction_speed;
+	struct tws_battle_factor;
+
+	struct name;
+	struct explanation;
+	struct war_name;
+
+	struct allowed_states;
+	struct allowed_states_in_crisis;
+	struct allowed_substate_regions;
+	struct allowed_countries;
+	struct can_use;
+
+	struct on_add;
+	struct on_po_accepted;
+
+	struct sprite_index;
+	struct months;
+	struct truce_months;
+
+	struct speed;
+}
+
 namespace military {
 	struct cb_type {
-		static constexpr uint32_t is_civil_war						= 0x00000001;
-		static constexpr uint32_t always							= 0x00000002;
-		static constexpr uint32_t is_not_triggered_only				= 0x00000004;
-		static constexpr uint32_t is_not_constructing_cb			= 0x00000008;
-		static constexpr uint32_t great_war_obligatory				= 0x00000010;
-		static constexpr uint32_t all_allowed_states				= 0x00000020;
-		static constexpr uint32_t not_in_crisis						= 0x00000040;
-		static constexpr uint32_t po_clear_union_sphere				= 0x00000080;
-		static constexpr uint32_t po_gunboat						= 0x00000100;
-		static constexpr uint32_t po_annex							= 0x00000200;
-		static constexpr uint32_t po_demand_state					= 0x00000400;
-		static constexpr uint32_t po_add_to_sphere					= 0x00000800;
-		static constexpr uint32_t po_disarmament					= 0x00001000;
-		static constexpr uint32_t po_reparations					= 0x00002000;
-		static constexpr uint32_t po_transfer_provinces				= 0x00004000;
-		static constexpr uint32_t po_remove_prestige				= 0x00008000;
-		static constexpr uint32_t po_make_puppet					= 0x00010000;
-		static constexpr uint32_t po_release_puppet					= 0x00020000;
-		static constexpr uint32_t po_status_quo						= 0x00040000;
-		static constexpr uint32_t po_install_communist_gov_type		= 0x00080000;
-		static constexpr uint32_t po_uninstall_communist_gov_type	= 0x00100000;
-		static constexpr uint32_t po_remove_cores					= 0x00200000;
-		static constexpr uint32_t po_colony							= 0x00400000;
-		static constexpr uint32_t po_destroy_forts					= 0x00800000;
-		static constexpr uint32_t po_destroy_naval_bases			= 0x01000000;
-		static constexpr uint32_t po_liberate						= 0x02000000;
-		static constexpr uint32_t po_take_from_sphere				= 0x04000000;
-		
+		static constexpr uint32_t is_civil_war = 0x00000001;
+		static constexpr uint32_t always = 0x00000002;
+		static constexpr uint32_t is_not_triggered_only = 0x00000004;
+		static constexpr uint32_t is_not_constructing_cb = 0x00000008;
+		static constexpr uint32_t great_war_obligatory = 0x00000010;
+		static constexpr uint32_t all_allowed_states = 0x00000020;
+		static constexpr uint32_t not_in_crisis = 0x00000040;
+		static constexpr uint32_t po_clear_union_sphere = 0x00000080;
+		static constexpr uint32_t po_gunboat = 0x00000100;
+		static constexpr uint32_t po_annex = 0x00000200;
+		static constexpr uint32_t po_demand_state = 0x00000400;
+		static constexpr uint32_t po_add_to_sphere = 0x00000800;
+		static constexpr uint32_t po_disarmament = 0x00001000;
+		static constexpr uint32_t po_reparations = 0x00002000;
+		static constexpr uint32_t po_transfer_provinces = 0x00004000;
+		static constexpr uint32_t po_remove_prestige = 0x00008000;
+		static constexpr uint32_t po_make_puppet = 0x00010000;
+		static constexpr uint32_t po_release_puppet = 0x00020000;
+		static constexpr uint32_t po_status_quo = 0x00040000;
+		static constexpr uint32_t po_install_communist_gov_type = 0x00080000;
+		static constexpr uint32_t po_uninstall_communist_gov_type = 0x00100000;
+		static constexpr uint32_t po_remove_cores = 0x00200000;
+		static constexpr uint32_t po_colony = 0x00400000;
+		static constexpr uint32_t po_destroy_forts = 0x00800000;
+		static constexpr uint32_t po_destroy_naval_bases = 0x01000000;
+		static constexpr uint32_t po_liberate = 0x02000000;
+		static constexpr uint32_t po_take_from_sphere = 0x04000000;
+
 		uint32_t flags = 0;
 
 		float badboy_factor = 1.0f;
@@ -64,7 +100,7 @@ namespace military {
 		text_data::text_tag name;
 		text_data::text_tag explanation;
 		text_data::text_tag war_name;
-		
+
 		triggers::trigger_tag allowed_states;
 		triggers::trigger_tag allowed_states_in_crisis;
 		triggers::trigger_tag allowed_substate_regions;
@@ -79,7 +115,39 @@ namespace military {
 		uint8_t truce_months = 60ui8;
 		cb_type_tag id;
 	};
+}
 
+START_STRUCT(military::cb_type)
+STRUCT_MEMBER(cb_type::flags, flags)
+STRUCT_MEMBER(cb_type::badboy_factor, badboy_factor)
+STRUCT_MEMBER(cb_type::prestige_factor, prestige_factor)
+STRUCT_MEMBER(cb_type::peace_cost_factor, peace_cost_factor)
+STRUCT_MEMBER(cb_type::penalty_factor, penalty_factor)
+STRUCT_MEMBER(cb_type::break_truce_prestige_factor, break_truce_prestige_factor)
+STRUCT_MEMBER(cb_type::break_truce_infamy_factor, break_truce_infamy_factor)
+STRUCT_MEMBER(cb_type::break_truce_militancy_factor, break_truce_militancy_factor)
+STRUCT_MEMBER(cb_type::good_relation_prestige_factor, good_relation_prestige_factor)
+STRUCT_MEMBER(cb_type::good_relation_infamy_factor, good_relation_infamy_factor)
+STRUCT_MEMBER(cb_type::good_relation_militancy_factor, good_relation_militancy_factor)
+STRUCT_MEMBER(cb_type::construction_speed, construction_speed)
+STRUCT_MEMBER(cb_type::tws_battle_factor, tws_battle_factor)
+STRUCT_MEMBER(cb_type::name, name)
+STRUCT_MEMBER(cb_type::explanation, explanation)
+STRUCT_MEMBER(cb_type::war_name, war_name)
+STRUCT_MEMBER(cb_type::allowed_states, allowed_states)
+STRUCT_MEMBER(cb_type::allowed_states_in_crisis, allowed_states_in_crisis)
+STRUCT_MEMBER(cb_type::allowed_substate_regions, allowed_substate_regions)
+STRUCT_MEMBER(cb_type::allowed_countries, allowed_countries)
+STRUCT_MEMBER(cb_type::can_use, can_use)
+STRUCT_MEMBER(cb_type::on_add, on_add)
+STRUCT_MEMBER(cb_type::on_po_accepted, on_po_accepted)
+STRUCT_MEMBER(cb_type::sprite_index, sprite_index)
+STRUCT_MEMBER(cb_type::months, months)
+STRUCT_MEMBER(cb_type::truce_months, truce_months)
+END_STRUCT
+
+namespace military {
+	/*
 	using unit_attribute_type = float;
 
 	namespace unit_attribute {
@@ -126,7 +194,7 @@ namespace military {
 		static constexpr uint8_t class_transport = 0x06;
 
 		text_data::text_tag name; // 2 bytes
-		
+
 		//sound::effect_tag select_sound; // 3 bytes
 		//sound::effect_tag move_sound; // 4 bytes
 
@@ -147,7 +215,7 @@ namespace military {
 	};
 
 	const size_t type_size = sizeof(unit_type);
-	
+	*/
 
 	namespace traits {
 		constexpr int32_t organisation = 0;
@@ -164,89 +232,19 @@ namespace military {
 		using value_type = float;
 	}
 
+	/*
 	struct ship {
 		float hull = 1.0f;
 		float org = 1.0f;
 		unit_type_tag type;
 	};
-
-	struct military_leader {
-		traits::value_type leader_traits[traits::trait_count] = { traits::value_type(0) };
-		vector_backed_string<char16_t> first_name;
-		vector_backed_string<char16_t> last_name;
-
-		date_tag creation_date;
-		graphics::texture_tag portrait;
-		leader_tag id;
-		leader_trait_tag personality;
-		leader_trait_tag background;
-		bool attached = false;
-	};
+	*/
 
 	enum class army_orders_type : uint8_t {
 		garrison = 0,
 		defend = 1,
 		attack = 2,
 		naval_invasion = 3
-	};
-
-	struct army_orders {
-		military_leader* leader = nullptr;
-
-		set_tag<provinces::province_tag> involved_provinces;
-		set_tag<army_tag> involved_armies;
-
-		fleet_tag escort;
-		provinces::province_tag naval_invasion_target;
-
-		army_orders_tag id;
-
-		bool is_active = false;
-		army_orders_type type = army_orders_type::garrison;
-	};
-
-	struct alignas(32) army {
-		unit_attribute_vector total_attributes = unit_attribute_vector::Zero();
-
-		military_leader* leader = nullptr;
-		army_orders* current_orders = nullptr;
-
-		uint32_t minimum_soldiers = 0ui32;
-
-		float org = 1.0f;
-		uint32_t total_soldiers = 0ui32;
-		date_tag locked_date; // cannot be rebased until date
-
-		set_tag<population::pop_tag> backing_pops;
-		nations::country_tag owner;
-
-		//extern: unit type composition
-		//extern: supplies
-
-		army_tag id;
-		provinces::province_tag base;
-	};
-
-	enum class fleet_orders_type : uint8_t {
-		dock = 0,
-		patrol = 1,
-		escort = 2
-	};
-
-	struct alignas(32) fleet {
-		unit_attribute_vector total_attributes = unit_attribute_vector::Zero();
-
-		military_leader* leader = nullptr;
-		date_tag locked_date; // cannot be rebased until date
-
-		array_tag<ship, int32_t, false> ships;
-
-		//extern: supplies
-
-		fleet_tag id;
-		provinces::province_tag base;
-
-		fleet_orders_type orders = fleet_orders_type::dock;
 	};
 
 	struct fleet_presence {
@@ -285,47 +283,202 @@ namespace military {
 				(cb_type == other.cb_type);
 		}
 	};
+};
 
-	struct war {
-		static constexpr uint8_t is_great_war = 0x01;
-		static constexpr uint8_t is_world_war = 0x02;
+namespace army_order {
+	struct type;
+	struct province_set;
+	struct army_set;
+	struct target;
+		
+	constexpr int32_t container_size = 4000;
 
-		set_tag<nations::country_tag> attackers;
-		set_tag<nations::country_tag> defenders;
-		set_tag<naval_control> naval_control_set;
+	using container = variable_layout_tagged_vector< military::army_orders_tag, container_size,
+		type, military::army_orders_type,
+		province_set, set_tag<provinces::province_tag>,
+		army_set, set_tag<military::army_tag>,
+		target, provinces::province_tag
+		> ;
+}
 
-		date_tag start_date;
-		float current_war_score = 0.0f; // from 1.0f = 100% attacker, to -1.0 = 100% defender
+namespace military_leader {
+	struct first_name;
+	struct last_name;
+	struct creation_date;
+	struct portrait;
+	struct personality;
+	struct background;
 
-		text_data::text_tag war_name;
-		text_data::text_tag first_adj;
-		text_data::text_tag second;
-		text_data::text_tag state_name;
+	struct organisation;
+	struct morale;
+	struct attack;
+	struct defence;
+	struct reconnaissance;
+	struct speed;
+	struct experience;
+	struct reliability;
 
-		nations::country_tag primary_attacker;
-		nations::country_tag primary_defender;
+	struct is_attached;
 
-		array_tag<war_goal, int32_t, false> war_goals;
+	constexpr int32_t container_size = 6000;
 
-		war_tag id;
+	using container = variable_layout_tagged_vector< military::leader_tag, container_size,
+		first_name, vector_backed_string<char16_t>,
+		last_name, vector_backed_string<char16_t>,
+		creation_date, date_tag,
+		portrait, graphics::texture_tag,
+		personality, military::leader_trait_tag,
+		background, military::leader_trait_tag,
+		organisation, float,
+		morale, float,
+		attack, float,
+		defence, float,
+		reconnaissance, float,
+		speed, float,
+		experience, float,
+		reliability, float,
+		is_attached, bitfield_type
+	>;
+}
 
-		uint8_t flags = 0x00;
-	};
+namespace army {
+	struct leader;
+	struct hq;
+	struct location;
+	struct order;
+	struct current_soldiers;
+	struct target_solders;
+	struct readiness;
+	struct supply;
+	struct priority;
+	struct composition;
+	struct arrival_time;
 
+	constexpr int32_t container_size = 6000;
+
+	using container = variable_layout_tagged_vector< military::army_tag, container_size,
+		leader, military::leader_tag,
+		hq, military::strategic_hq_tag,
+		order, military::army_orders_tag,
+		location, provinces::province_tag,
+		current_soldiers, float,
+		target_solders, float,
+		readiness, float,
+		supply, float,
+		priority, int8_t,
+		composition, military::army_composition_tag,
+		arrival_time, date_tag
+	>;
+}
+
+namespace fleet {
+	struct leader;
+	struct location;
+	struct order;
+	struct supply;
+	struct readiness;
+	struct size;
+	struct arrival_time;
+
+	constexpr int32_t container_size = 6000;
+
+	using container = variable_layout_tagged_vector< military::fleet_tag, container_size,
+		leader, military::leader_tag,
+		location, provinces::province_tag,
+		supply, float,
+		readiness, float,
+		size, float,
+		arrival_time, date_tag
+	>;
+}
+
+namespace strategic_hq {
+	struct leader;
+	struct location;
+	struct province_set;
+	struct injured_soldiers;
+	struct pow_soldiers;
+	struct reserve_soldiers;
+	struct allocated_soldiers;
+	struct total_soldier_pops;
+	struct total_non_soldier_pops;
+	struct mobilization_level;
+	struct army_set;
+	struct doctrine;
+
+	constexpr int32_t container_size = 4000;
+
+	using container = variable_layout_tagged_vector < military::strategic_hq_tag, container_size,
+		leader, military::leader_tag,
+		location, provinces::province_tag,
+		province_set, set_tag<provinces::province_tag>,
+		army_set, set_tag<military::army_tag>,
+		injured_soldiers, float,
+		pow_soldiers, float,
+		reserve_soldiers, float,
+		allocated_soldiers, float,
+		total_soldier_pops, float,
+		total_non_soldier_pops, float,
+		mobilization_level, int8_t
+	>;
+}
+
+namespace war {
+	struct is_great_war;
+	struct is_world_war;
+
+	struct attackers;
+	struct defenders;
+	struct naval_control_set;
+	struct start_date;
+	struct current_war_score;
+	struct war_name;
+	struct first_adj;
+	struct second;
+	struct state_name;
+
+	struct primary_attacker;
+	struct primary_defender;
+
+	struct war_goals;
+	struct flags;
+
+	constexpr int32_t container_size = 500;
+
+	using container = variable_layout_tagged_vector < military::war_tag, container_size,
+		attackers, set_tag<nations::country_tag>,
+		defenders, set_tag<nations::country_tag>,
+		naval_control_set, set_tag<military::naval_control>,
+		start_date, date_tag,
+		current_war_score, float,
+		war_name, text_data::text_tag,
+		first_adj, text_data::text_tag,
+		second, text_data::text_tag,
+		state_name, text_data::text_tag,
+		primary_attacker, nations::country_tag,
+		primary_defender, nations::country_tag,
+		war_goals, array_tag<military::war_goal, int32_t, false>,
+		is_great_war, bitfield_type,
+		is_world_war, bitfield_type
+	>;
+}
+
+namespace military {
 	class military_state {
 	public:
-		stable_vector<military_leader, leader_tag, 1024, 16> leaders;
-		stable_vector<army, army_tag, 1024, 16> armies;
-		stable_vector<army_orders, army_orders_tag, 1024, 16> army_orders_container;
-		stable_vector<fleet, fleet_tag, 1024, 16> fleets;
-		stable_vector<war, war_tag, 1024, 16> wars;
+		army::container armies;
+		war::container wars;
+		fleet::container fleets;
+		army_order::container army_orders;
+		strategic_hq::container strategic_hqs;
+		military_leader::container leaders;
 
-		stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
-		stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
-		stable_2d_vector<economy::goods_qnty_type, fleet_tag, economy::goods_tag, 1024, 16> fleet_supplies;
+		// stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
+		// stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
+		// stable_2d_vector<economy::goods_qnty_type, fleet_tag, economy::goods_tag, 1024, 16> fleet_supplies;
 
 		stable_variable_vector_storage_mk_2<leader_tag, 4, 8192> leader_arrays;
-		stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;
+		// stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;
 		stable_variable_vector_storage_mk_2<army_tag, 4, 8192> army_arrays;
 		stable_variable_vector_storage_mk_2<army_orders_tag, 4, 8192> orders_arrays;
 		stable_variable_vector_storage_mk_2<fleet_tag, 4, 8192> fleet_arrays;
@@ -335,15 +488,35 @@ namespace military {
 
 		stable_variable_vector_storage_mk_2<fleet_presence, 4, 8192> fleet_presence_arrays;
 		stable_variable_vector_storage_mk_2<naval_control, 32, 8192> naval_control_arrays;
+
+		GET_SET(armies)
+		GET_SET(wars)
+		GET_SET(fleets)
+		GET_SET(army_orders)
+		GET_SET(strategic_hqs)
+		GET_SET(leaders)
+
+		ARRAY_BACKING_BASE(fleet_presence_arrays)
+		ARRAY_BACKING_BASE(naval_control_arrays)
+		ARRAY_BACKING_BASE(cb_arrays)
+		ARRAY_BACKING_BASE(war_goal_arrays)
+		ARRAY_BACKING_BASE(war_arrays)
+		ARRAY_BACKING_BASE(fleet_arrays)
+		ARRAY_BACKING_BASE(orders_arrays)
+		ARRAY_BACKING_BASE(army_arrays)
+		ARRAY_BACKING_BASE(leader_arrays)
 	};
 
 	constexpr unit_type_tag army_unit_base(0);
 	constexpr unit_type_tag naval_unit_base(1);
 
+	struct leader_trait_name;
+	struct leader_trait_values;
+
 	class military_manager {
 	public:
 		tagged_vector<cb_type, cb_type_tag> cb_types;
-		tagged_vector<unit_type, unit_type_tag> unit_types;
+		// tagged_vector<unit_type, unit_type_tag> unit_types;
 
 		tagged_vector<text_data::text_tag, leader_trait_tag> leader_traits;
 		tagged_fixed_blocked_2dvector<traits::value_type, leader_trait_tag, uint32_t, aligned_allocator_32<traits::value_type>> leader_trait_definitions;
@@ -359,9 +532,14 @@ namespace military {
 
 		tagged_vector<float, cb_type_tag, padded_aligned_allocator_64<float>, true> cb_type_to_speed;
 
-		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
-		tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
+		// tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
+		// tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
 
-		uint32_t unit_types_count = 2ui32;
+		// uint32_t unit_types_count = 2ui32;
+
+		GET_SET(cb_types)
+		GET_SET_TV(leader_trait_name, leader_traits)
+		GET_SET_TFV(leader_trait_values, leader_trait_definitions)
+		GET_SET_TV(::cb_type::speed, cb_type_to_speed)
 	};
 }

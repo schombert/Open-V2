@@ -155,8 +155,8 @@ namespace technologies {
 		std::vector<tech_tag> inventions;
 
 		tagged_fixed_blocked_2dvector<float, production_adjustment_tag, adjusted_goods_tag, aligned_allocator_32<float>> production_adjustments;
-		tagged_fixed_blocked_2dvector<military::unit_attribute_vector, unit_adjustment_tag, military::unit_type_tag, aligned_allocator_32<military::unit_attribute_vector>>
-			unit_type_adjustments;
+		// tagged_fixed_blocked_2dvector<military::unit_attribute_vector, unit_adjustment_tag, military::unit_type_tag, aligned_allocator_32<military::unit_attribute_vector>>
+		// 	unit_type_adjustments;
 		tagged_fixed_blocked_2dvector<float, rebel_adjustment_tag, population::rebel_type_tag, aligned_allocator_32<float>> rebel_org_gain;
 
 		std::vector<text_data::text_tag> tech_modifier_names;

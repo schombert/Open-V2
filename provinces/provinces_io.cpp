@@ -715,7 +715,7 @@ namespace provinces {
 		auto& container = ws.w.province_s.province_state_container;
 
 		for(auto c : result.add_cores)
-			add_core(ws.w, ps, c);
+			add_core(ws, ps, c);
 		if(is_valid_index(result.trade_goods))
 			container.set<province_state::rgo_production>(ps, result.trade_goods);
 		if(is_valid_index(result.terrain))

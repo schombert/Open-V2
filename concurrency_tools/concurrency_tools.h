@@ -529,6 +529,8 @@ namespace alignment_type {
 template<typename object_type, uint32_t minimum_size, size_t memory_size, int32_t align = alignment_type::none>
 class stable_variable_vector_storage_mk_2 {
 public:
+	using contents_type = object_type;
+
 	uint64_t* backing_storage = nullptr;
 	std::atomic<uint32_t> first_free = 0ui32;
 

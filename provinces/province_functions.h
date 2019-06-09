@@ -9,9 +9,9 @@ namespace current_state {
 class world_state;
 
 namespace provinces {
-	void add_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
-	void remove_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
-	bool province_has_core(current_state::state& ws, province_tag prov, cultures::national_tag tag);
+	void add_core(world_state& ws, province_tag prov, cultures::national_tag tag);
+	void remove_core(world_state& ws, province_tag prov, cultures::national_tag tag);
+	bool province_has_core(world_state& ws, province_tag prov, cultures::national_tag tag);
 	void init_province_state(world_state& ws);
 	void update_province_demographics(world_state& ws); // move total population to old population, then recalculate
 	void recalculate_province_demographics(world_state& ws);

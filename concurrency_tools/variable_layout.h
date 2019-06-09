@@ -18,54 +18,19 @@ namespace variable_layout_detail {
 		};
 
 		RELEASE_INLINE static void reset(data& d) {}
+		
 		template<typename T>
-		RELEASE_INLINE static void get(tag_type i, const data&) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static void get(tag_type i, const data&);
 		template<typename T>
-		RELEASE_INLINE static void get_row(data&) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static void get_row(data&);
 		template<typename T>
-		RELEASE_INLINE static void get_row(const data&) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static void get_row(const data&);
 		template<typename T>
-		RELEASE_INLINE static void get(tag_type i, data&) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static void get(tag_type i, data&);
 		template<typename U, typename T>
-		RELEASE_INLINE static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data&, T const&) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static std::enable_if_t<!std::is_trivially_copyable_v<T>> set(tag_type i, data&, T const&);
 		template<typename U, typename T>
-		RELEASE_INLINE static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data&, T) {
-#ifdef _DEBUG
-			assert(false);
-#else
-			__assume(0);
-#endif
-		}
+		RELEASE_INLINE static std::enable_if_t<std::is_trivially_copyable_v<T>> set(tag_type i, data&, T);
 		RELEASE_INLINE static void clear(tag_type i, data&) {}
 
 		template<typename ... CONTEXT>

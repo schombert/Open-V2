@@ -144,6 +144,13 @@ namespace current_state {
 		void toggle_pause();
 		void increase_speed();
 		void decrease_speed();
+
+		GET_SET(province_s)
+		GET_SET(culture_s)
+		GET_SET(military_s)
+		ARRAY_BACKING(culture_s)
+		ARRAY_BACKING(province_s)
+		ARRAY_BACKING(military_s)
 	};
 }
 
@@ -151,6 +158,34 @@ class world_state {
 public:
 	current_state::state w;
 	scenario::scenario_manager s;
+
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto add_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
+		::add_item(w.array_backing<value_type>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto add_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
+		::add_item(w.array_backing<value_type>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto remove_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
+		::remove_item(w.array_backing<value_type>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto remove_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
+		::remove_item(w.array_backing<value_type>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto contains_item(index_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, bool> {
+		::contains_item(w.array_backing<value_type>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto contains_item(index_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, bool> {
+		::contains_item(w.array_backing<value_type>(), i, v);
+	}
+
+	GET_SET(w)
+	GET_SET(s)
 };
 
 void world_state_non_ai_update(world_state & ws);

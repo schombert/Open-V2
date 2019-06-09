@@ -28,6 +28,11 @@ namespace provinces {
 	};
 }
 
+namespace state_region {
+	struct name;
+	struct provinces;
+}
+
 namespace province {
 	struct is_sea;
 	struct is_coastal;
@@ -39,6 +44,9 @@ namespace province {
 	struct climate;
 	struct state_id;
 
+	struct demographics;
+	struct same_type_adjacency;
+	struct coastal_adjacency;
 
 	using container =
 		variable_layout_contiguous_tagged_vector<
@@ -244,6 +252,13 @@ namespace provinces {
 		modifiers::provincial_modifier_tag south_america_modifier;
 		modifiers::provincial_modifier_tag africa_modifier;
 		modifiers::provincial_modifier_tag oceania_modifier;
+
+		GET_SET(province_state_container)
+		GET_SET_TFV(province::demographics, province_demographics)
+		ARRAY_BACKING_BASE(core_arrays)
+		ARRAY_BACKING_BASE(static_modifier_arrays)
+		ARRAY_BACKING_BASE(timed_modifier_arrays)
+		ARRAY_BACKING_BASE(province_arrays)
 	};
 
 	class province_manager {
@@ -281,6 +296,12 @@ namespace provinces {
 				f(province_tag(province_tag::value_base_t(i)));
 			}
 		}
+
+		GET_SET(province_container)
+		GET_SET_TV(state_region::name, state_names)
+		GET_SET_TFV(state_region::provinces, states_to_province_index)
+		GET_SET_TFV(province::same_type_adjacency, same_type_adjacency)
+		GET_SET_TFV(province::coastal_adjacency, coastal_adjacency)
 	};
 
 	struct color_to_terrain_map {

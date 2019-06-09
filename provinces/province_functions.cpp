@@ -27,28 +27,24 @@ namespace provinces {
 		s.province_arrays.reset();
 	}
 
-	void add_core(current_state::state& ws, province_tag prov, cultures::national_tag tag) {
-		add_item(ws.province_s.core_arrays, ws.province_s.province_state_container.get<province_state::cores>(prov), tag);
-		add_item(ws.province_s.province_arrays, ws.culture_s.national_tags_state[tag].core_provinces, prov);
+	void add_core(world_state& ws, province_tag prov, cultures::national_tag tag) {
+		ws.add_item(ws.get<province_state::cores>(prov), tag);
+		ws.add_item(ws.get<nation_tag::core_provinces>(tag), prov);
 	}
-	void remove_core(current_state::state& ws, province_tag prov, cultures::national_tag tag) {
-		remove_item(ws.province_s.core_arrays, ws.province_s.province_state_container.get<province_state::cores>(prov), tag);
-		remove_item(ws.province_s.province_arrays, ws.culture_s.national_tags_state[tag].core_provinces, prov);
+	void remove_core(world_state& ws, province_tag prov, cultures::national_tag tag) {
+		ws.remove_item(ws.get<province_state::cores>(prov), tag);
+		ws.remove_item(ws.get<nation_tag::core_provinces>(tag), prov);
 	}
-	bool province_has_core(current_state::state& ws, province_tag prov, cultures::national_tag tag) {
-		return contains_item(ws.province_s.core_arrays, ws.province_s.province_state_container.get<province_state::cores>(prov), tag);
+	bool province_has_core(world_state& ws, province_tag prov, cultures::national_tag tag) {
+		return ws.contains_item(ws.get<province_state::cores>(prov), tag);
 	}
 
 	void add_province_modifier(world_state& ws, provinces::province_tag p, modifiers::provincial_modifier_tag t) {
-		add_item(ws.w.province_s.static_modifier_arrays,
-			ws.w.province_s.province_state_container.get<province_state::static_modifiers>(p),
-			t);
+		ws.add_item(ws.get<province_state::static_modifiers>(p), t);
 	}
 
 	void add_timed_province_modifier(world_state& ws, provinces::province_tag p, modifiers::provincial_modifier_tag t, date_tag d) {
-		add_item(ws.w.province_s.timed_modifier_arrays,
-			ws.w.province_s.province_state_container.get<province_state::timed_modifiers>(p),
-			timed_provincial_modifier{ d, t });
+		ws.add_item(ws.get<province_state::timed_modifiers>(p), timed_provincial_modifier{ d, t });
 	}
 
 	void init_province_state(world_state& ws) {

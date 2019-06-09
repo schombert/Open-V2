@@ -146,10 +146,12 @@ namespace military {
 	using cb_type_tag = tag_type<uint8_t, std::true_type, struct cb_type_tag_type>;
 	using leader_trait_tag = tag_type<uint8_t, std::true_type, struct leader_trait_tag_type>;
 	using army_tag = tag_type<uint16_t, std::true_type, struct army_tag_type>;
+	using strategic_hq_tag = tag_type<uint16_t, std::true_type, struct strategic_hq_tag_type>;
 	using leader_tag = tag_type<uint16_t, std::true_type, struct leader_tag_type>;
 	using fleet_tag = tag_type<uint16_t, std::true_type, struct fleet_tag_type>;
 	using war_tag = tag_type<uint16_t, std::true_type, struct war_tag_type>;
 	using army_orders_tag = tag_type<uint16_t, std::true_type, struct army_orders_tag_type>;
+	using army_composition_tag = tag_type<uint8_t, std::true_type, struct army_composition_tag_tag_type>;
 
 	struct war_identifier {
 		war_tag war_id;
