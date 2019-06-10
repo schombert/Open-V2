@@ -3,6 +3,7 @@
 #include "common\\common.h"
 #include "common\\shared_tags.h"
 #include "concurrency_tools\\concurrency_tools.hpp"
+#include "concurrency_tools\variable_layout.h"
 
 namespace economy {
 	class economic_scenario;
@@ -147,75 +148,6 @@ STRUCT_MEMBER(cb_type::truce_months, truce_months)
 END_STRUCT
 
 namespace military {
-	/*
-	using unit_attribute_type = float;
-
-	namespace unit_attribute {
-		constexpr int32_t defense = 0;
-		constexpr int32_t hull = 0;
-		constexpr int32_t attack = 1;
-		constexpr int32_t gun_power = 1;
-		constexpr int32_t reconnaissance = 2;
-		constexpr int32_t fire_range = 2;
-		constexpr int32_t support = 3;
-		constexpr int32_t torpedo_attack = 3;
-		constexpr int32_t maneuver = 4;
-		constexpr int32_t evasion = 4;
-		constexpr int32_t speed = 5;
-		constexpr int32_t organization = 6;
-		constexpr int32_t build_time = 7;
-		constexpr int32_t supply_consumption = 8;
-		constexpr int32_t strength = 9;
-		constexpr int32_t siege = 10;
-		constexpr int32_t discipline = 11;
-		constexpr int32_t enabled = 12;
-
-		constexpr int32_t count = 13;
-		constexpr static size_t aligned_32_size = ((sizeof(unit_attribute_type) * count + 31ui64) & ~31ui64) / sizeof(unit_attribute_type);
-	}
-
-	using unit_attribute_vector = Eigen::Matrix<unit_attribute_type, unit_attribute::aligned_32_size, 1>;
-
-	struct alignas(32) unit_type {
-		unit_attribute_vector base_attributes = unit_attribute_vector::Zero();
-
-		static constexpr uint8_t primary_culture = 0x10;
-		static constexpr uint8_t cant_build_overseas = 0x20;
-		static constexpr uint8_t is_sail = 0x40;
-
-		static constexpr uint8_t class_mask = 0x0F;
-
-		static constexpr uint8_t class_infantry = 0x00;
-		static constexpr uint8_t class_cavalry = 0x01;
-		static constexpr uint8_t class_special = 0x02;
-		static constexpr uint8_t class_support = 0x03;
-		static constexpr uint8_t class_big_ship = 0x04;
-		static constexpr uint8_t class_light_ship = 0x05;
-		static constexpr uint8_t class_transport = 0x06;
-
-		text_data::text_tag name; // 2 bytes
-
-		//sound::effect_tag select_sound; // 3 bytes
-		//sound::effect_tag move_sound; // 4 bytes
-
-		int8_t limit_per_port = -1i8; // 3 bytes
-		uint8_t supply_consumption_score = 0ui8; // 4 bytes
-		uint8_t icon = 0ui8; // 5 bytes
-		uint8_t naval_icon = 0ui8; // 6 bytes
-		uint8_t colonial_points = 0ui8; // 7 bytes
-		uint8_t min_port_level = 0ui8; // 8 bytes
-
-		uint8_t flags = 0ui8; // 9 bytes
-
-		unit_type_tag id; // 10 bytes
-
-		unit_type() {
-			base_attributes[unit_attribute::enabled] = unit_attribute_type(1);
-		}
-	};
-
-	const size_t type_size = sizeof(unit_type);
-	*/
 
 	namespace traits {
 		constexpr int32_t organisation = 0;
@@ -231,14 +163,6 @@ namespace military {
 
 		using value_type = float;
 	}
-
-	/*
-	struct ship {
-		float hull = 1.0f;
-		float org = 1.0f;
-		unit_type_tag type;
-	};
-	*/
 
 	enum class army_orders_type : uint8_t {
 		garrison = 0,
@@ -353,6 +277,7 @@ namespace army {
 	struct priority;
 	struct composition;
 	struct arrival_time;
+	struct owner;
 
 	constexpr int32_t container_size = 6000;
 
@@ -361,6 +286,7 @@ namespace army {
 		hq, military::strategic_hq_tag,
 		order, military::army_orders_tag,
 		location, provinces::province_tag,
+		owner, nations::country_tag,
 		current_soldiers, float,
 		target_solders, float,
 		readiness, float,
@@ -464,82 +390,11 @@ namespace war {
 }
 
 namespace military {
-	class military_state {
-	public:
-		army::container armies;
-		war::container wars;
-		fleet::container fleets;
-		army_order::container army_orders;
-		strategic_hq::container strategic_hqs;
-		military_leader::container leaders;
-
-		// stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
-		// stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
-		// stable_2d_vector<economy::goods_qnty_type, fleet_tag, economy::goods_tag, 1024, 16> fleet_supplies;
-
-		stable_variable_vector_storage_mk_2<leader_tag, 4, 8192> leader_arrays;
-		// stable_variable_vector_storage_mk_2<ship, 2, 8192> ship_arrays;
-		stable_variable_vector_storage_mk_2<army_tag, 4, 8192> army_arrays;
-		stable_variable_vector_storage_mk_2<army_orders_tag, 4, 8192> orders_arrays;
-		stable_variable_vector_storage_mk_2<fleet_tag, 4, 8192> fleet_arrays;
-		stable_variable_vector_storage_mk_2<war_identifier, 1, 8192> war_arrays;
-		stable_variable_vector_storage_mk_2<war_goal, 1, 8192> war_goal_arrays;
-		stable_variable_vector_storage_mk_2<pending_cb, 1, 8192> cb_arrays;
-
-		stable_variable_vector_storage_mk_2<fleet_presence, 4, 8192> fleet_presence_arrays;
-		stable_variable_vector_storage_mk_2<naval_control, 32, 8192> naval_control_arrays;
-
-		GET_SET(armies)
-		GET_SET(wars)
-		GET_SET(fleets)
-		GET_SET(army_orders)
-		GET_SET(strategic_hqs)
-		GET_SET(leaders)
-
-		ARRAY_BACKING_BASE(fleet_presence_arrays)
-		ARRAY_BACKING_BASE(naval_control_arrays)
-		ARRAY_BACKING_BASE(cb_arrays)
-		ARRAY_BACKING_BASE(war_goal_arrays)
-		ARRAY_BACKING_BASE(war_arrays)
-		ARRAY_BACKING_BASE(fleet_arrays)
-		ARRAY_BACKING_BASE(orders_arrays)
-		ARRAY_BACKING_BASE(army_arrays)
-		ARRAY_BACKING_BASE(leader_arrays)
-	};
-
 	constexpr unit_type_tag army_unit_base(0);
 	constexpr unit_type_tag naval_unit_base(1);
 
 	struct leader_trait_name;
 	struct leader_trait_values;
-
-	class military_manager {
-	public:
-		tagged_vector<cb_type, cb_type_tag> cb_types;
-		// tagged_vector<unit_type, unit_type_tag> unit_types;
-
-		tagged_vector<text_data::text_tag, leader_trait_tag> leader_traits;
-		tagged_fixed_blocked_2dvector<traits::value_type, leader_trait_tag, uint32_t, aligned_allocator_32<traits::value_type>> leader_trait_definitions;
-
-		std::vector<leader_trait_tag> personality_traits;
-		std::vector<leader_trait_tag> background_traits;
-		constexpr static leader_trait_tag no_personality_trait = leader_trait_tag(0);
-		constexpr static leader_trait_tag no_background_trait = leader_trait_tag(1);
-
-		boost::container::flat_map<text_data::text_tag, unit_type_tag> named_unit_type_index;
-		boost::container::flat_map<text_data::text_tag, cb_type_tag> named_cb_type_index;
-		boost::container::flat_map<text_data::text_tag, leader_trait_tag> named_leader_trait_index;
-
-		tagged_vector<float, cb_type_tag, padded_aligned_allocator_64<float>, true> cb_type_to_speed;
-
-		// tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_build_costs;
-		// tagged_fixed_blocked_2dvector<economy::goods_qnty_type, unit_type_tag, economy::goods_tag, aligned_allocator_32<economy::goods_qnty_type>> unit_base_supply_costs;
-
-		// uint32_t unit_types_count = 2ui32;
-
-		GET_SET(cb_types)
-		GET_SET_TV(leader_trait_name, leader_traits)
-		GET_SET_TFV(leader_trait_values, leader_trait_definitions)
-		GET_SET_TV(::cb_type::speed, cb_type_to_speed)
-	};
+	struct personality_traits;
+	struct background_traits;
 }

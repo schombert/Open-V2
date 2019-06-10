@@ -446,5 +446,17 @@ namespace nations {
 		stable_2d_vector<float, state_tag, population::demo_tag, 512, 16> state_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_demographics;
 		stable_2d_vector<float, country_tag, population::demo_tag, 512, 16> nation_colonial_demographics;
+
+		GET_SET(nations)
+		GET_SET(states)
+
+		ARRAY_BACKING_BASE(static_modifier_arrays)
+		ARRAY_BACKING_BASE(timed_modifier_arrays)
+		ARRAY_BACKING_BASE(state_arrays)
+		ARRAY_BACKING_BASE(influence_arrays)
+		ARRAY_BACKING_BASE(nations_arrays)
+		ARRAY_BACKING_BASE(state_tag_arrays)
+		ARRAY_BACKING_BASE(relations_arrays)
+		ARRAY_BACKING_BASE(truce_arrays)
 	};
 }

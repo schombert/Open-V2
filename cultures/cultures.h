@@ -179,6 +179,8 @@ namespace cultures {
 		ARRAY_BACKING_BASE(culture_arrays)
 	};
 
+	struct leader_pictures;
+
 	class culture_manager {
 	public:
 		tagged_vector<culture_group, culture_group_tag> culture_groups;
@@ -191,7 +193,7 @@ namespace cultures {
 
 		tagged_vector<national_tag_object, national_tag> national_tags;
 
-		std::vector<graphics::texture_tag> leader_pictures;
+		tagged_vector<graphics::texture_tag, int32_t> leader_pictures;
 		std::vector<char16_t> name_data;
 		v_vector<vector_backed_string<char16_t>, culture_tag> first_names_by_culture;
 		v_vector<vector_backed_string<char16_t>, culture_tag> last_names_by_culture;
@@ -245,6 +247,7 @@ namespace cultures {
 		GET_SET_TFV(::culture::first_names, first_names_by_culture)
 		GET_SET_TFV(::culture::last_names, last_names_by_culture)
 		GET_SET_TFV(::culture_group::cultures, culture_by_culture_group)
+		GET_SET_TV(::cultures::leader_pictures, leader_pictures)
 	};
 
 	struct tag_as_text {

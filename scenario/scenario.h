@@ -10,7 +10,7 @@
 #include "technologies\\technologies.h"
 #include "text_data\\text_data.h"
 #include "variables\\variables.h"
-#include "military\\military.h"
+#include "military\\military_containers.h"
 #include "events\\events.h"
 #include "triggers\\triggers.h"
 #include "gui\\gui.h"

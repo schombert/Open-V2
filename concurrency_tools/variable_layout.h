@@ -380,6 +380,10 @@ public:
 	int32_t size() const {
 		return size_used;
 	}
+	template<typename UNUSED>
+	int32_t size() const {
+		return size_used;
+	}
 	uint32_t vector_size() const {
 		return ve::to_vector_size(uint32_t(size_used));
 	}
@@ -469,6 +473,10 @@ public:
 		size_used = size;
 	}
 
+	int32_t size() const {
+		return size_used;
+	}
+	template<typename UNUSED>
 	int32_t size() const {
 		return size_used;
 	}

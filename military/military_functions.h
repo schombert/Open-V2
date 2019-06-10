@@ -6,6 +6,8 @@
 class world_state;
 
 namespace military {
+	class military_state;
+
 	void init_military_state(world_state& ws);
 	void reset_state(military_state& s);
 	leader_tag make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general);
@@ -13,7 +15,6 @@ namespace military {
 	void calculate_leader_traits(world_state& ws, leader_tag l);
 	army_tag make_army(world_state& ws, nations::country_tag n, provinces::province_tag location);
 	fleet_tag make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location);
-	void immediate_add_pop_to_army(world_state& ws, army_tag target_army, population::pop_tag p);
 	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target);
 	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target);
 	float base_cb_infamy(world_state const& ws, cb_type_tag cb);
@@ -27,10 +28,6 @@ namespace military {
 	bool in_war_against(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_against); // against = on opposing side of
 	void update_at_war_with_and_against(world_state& ws, nations::country_tag this_nation);
 
-	void update_army_attributes(world_state& ws, nations::country_tag owning_nation, army_tag this_army);
-	void update_fleet_attributes(world_state& ws, nations::country_tag owning_nation, fleet_tag this_fleet);
-	void update_all_unit_attributes(world_state& ws, nations::country_tag owning_nation);
-	void reset_unit_stats(world_state& ws, nations::country_tag nation_for);
 
 	bool has_units_in_province(world_state const& ws, nations::country_tag this_nation, provinces::province_tag this_province);
 	

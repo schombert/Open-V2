@@ -235,7 +235,9 @@ void restore_world_state(world_state& ws) {
 			}
 		}
 		if(auto orders = container.get<province_state::orders>(p); is_valid_index(orders))
-			add_item(ws.w.province_s.province_arrays, ws.w.military_s.army_orders_container[orders].involved_provinces, p);
+			ws.add_item(ws.get<army_order::province_set>(orders), p);
+		if(auto hq = container.get<province_state::strat_hq>(p); hq)
+			ws.add_item(ws.get<strategic_hq::province_set>(hq), p);
 		if(is_valid_index(owner))
 			add_item(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(owner), p);
 		if(auto controller = container.get<province_state::controller>(p); is_valid_index(controller))
@@ -244,10 +246,12 @@ void restore_world_state(world_state& ws) {
 		//	add_item(ws.w.province_s.province_arrays, ws.w.population_s.rebel_factions.get<rebel_faction::controlled_provinces>(rebel_controller), p);
 	});
 
-	ws.w.military_s.armies.for_each([&ws](military::army& a) {
-		if(a.current_orders)
-			add_item(ws.w.military_s.army_arrays, a.current_orders->involved_armies, a.id);
-		add_item(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(a.owner), a.id);
+	ws.w.military_s.armies.for_each([&ws](military::army_tag a) {
+		if(auto orders = ws.get<army::order>(a); orders)
+			ws.add_item(ws.get<army_order::army_set>(orders), a);
+		if(auto hq = ws.get<army::hq>(a); hq)
+			ws.add_item(ws.get<strategic_hq::army_set>(hq), a);
+		ws.add_item(ws.w.nation_s.nations.get<nation::armies>(ws.get<army::owner>(a)), a);
 	});
 
 	ws.w.nation_s.states.for_each([&ws](nations::state_tag s) {
@@ -260,11 +264,6 @@ void restore_world_state(world_state& ws) {
 	});
 
 	ws.w.population_s.pops.for_each([&ws](population::pop_tag p) {
-		if(auto parmy = ws.w.population_s.pops.get<pop::associated_army>(p); is_valid_index(parmy)) {
-			auto& a = ws.w.military_s.armies[parmy];
-			add_item(ws.w.population_s.pop_arrays, a.backing_pops, p);
-			a.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
-		}
 		if(auto loc = ws.w.population_s.pops.get<pop::location>(p); is_valid_index(loc)) {
 			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(loc), p);
 

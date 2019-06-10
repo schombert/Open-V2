@@ -37,7 +37,6 @@ namespace pop {
 	struct consciousness;
 	struct location;
 	struct culture;
-	struct associated_army;
 	struct religion;
 	struct type;
 	struct political_interest;
@@ -54,7 +53,6 @@ namespace pop {
 
 		type, population::pop_type_tag,
 		religion, cultures::religion_tag,
-		associated_army, military::army_tag,
 		culture, cultures::culture_tag,
 		location, provinces::province_tag,
 

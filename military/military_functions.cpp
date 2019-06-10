@@ -6,20 +6,15 @@
 #include "provinces\\province_functions.h"
 #include "economy\\economy_functions.h"
 #include "world_state\\messages.h"
+#include "military_internals.hpp"
 
 namespace military {
 	void init_military_state(world_state& ws) {
-		if(ws.w.military_s.army_supplies.inner_size != ws.s.economy_m.aligned_32_goods_count)
-			ws.w.military_s.army_supplies.reset(ws.s.economy_m.aligned_32_goods_count);
-		if(ws.w.military_s.fleet_supplies.inner_size != ws.s.economy_m.aligned_32_goods_count)
-			ws.w.military_s.fleet_supplies.reset(ws.s.economy_m.aligned_32_goods_count);
-		if(ws.w.military_s.unit_type_composition.inner_size != uint32_t(ws.s.military_m.unit_types.size()))
-			ws.w.military_s.unit_type_composition.reset(uint32_t(ws.s.military_m.unit_types.size()));
+		
 	}
 
 	void reset_state(military_state& s) {
 		s.leader_arrays.reset();
-		s.ship_arrays.reset();
 		s.army_arrays.reset();
 		s.orders_arrays.reset();
 		s.fleet_arrays.reset();
@@ -30,228 +25,66 @@ namespace military {
 		s.cb_arrays.reset();
 	}
 
-	military_leader& make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
-		military_leader& new_leader = ws.w.military_s.leaders.get_new();
-		auto& culture_obj = ws.s.culture_m.culture_container[culture];
-		auto& cgroup = ws.s.culture_m.culture_groups[culture_obj.group];
+	inline leader_tag new_leader_fn(world_state& ws) {
+		return ws.w.military_s.leaders.get_new();
+	}
 
-		auto& local_generator = get_local_generator();
-
-		if(is_general) {
-			std::uniform_int_distribution<int32_t> r(0, int32_t(cgroup.leader_pictures.general_size) - 1);
-			new_leader.portrait = ws.s.culture_m.leader_pictures[size_t(cgroup.leader_pictures.general_offset + r(local_generator))];
-		} else {
-			std::uniform_int_distribution<int32_t> r(0, int32_t(cgroup.leader_pictures.admiral_size) - 1);
-			new_leader.portrait = ws.s.culture_m.leader_pictures[size_t(cgroup.leader_pictures.admiral_offset + r(local_generator))];
-		}
-
-		auto first_name_range = ws.s.culture_m.first_names_by_culture.get_row(culture);
-		auto last_name_range = ws.s.culture_m.first_names_by_culture.get_row(culture);
-
-		std::uniform_int_distribution<int32_t> fn(0, int32_t(first_name_range.second - first_name_range.first) - 1);
-		std::uniform_int_distribution<int32_t> ln(0, int32_t(last_name_range.second - last_name_range.first) - 1);
-
-		new_leader.first_name = *(first_name_range.first + fn(local_generator));
-		new_leader.last_name = *(last_name_range.first + ln(local_generator));
-
-		return new_leader;
+	leader_tag make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
+		return internal_make_empty_leader<new_leader_fn>(ws, culture, is_general);
 	}
 
 	leader_tag make_auto_leader(world_state& ws, cultures::culture_tag culture, bool is_general, date_tag creation_date) {
-		military_leader& new_leader = make_empty_leader(ws, culture, is_general);
-		new_leader.creation_date = creation_date;
-		
-		std::uniform_int_distribution<int32_t> br(0, int32_t(ws.s.military_m.background_traits.size()) - 1);
-		std::uniform_int_distribution<int32_t> pr(0, int32_t(ws.s.military_m.personality_traits.size()) - 1);
-
-		auto& local_generator = get_local_generator();
-
-		
-		new_leader.background = ws.s.military_m.background_traits[size_t(br(local_generator))];
-		new_leader.personality = ws.s.military_m.personality_traits[size_t(pr(local_generator))];
-
-		calculate_leader_traits(ws, new_leader);
-
-		return new_leader.id;
+		return internal_make_auto_leader<make_empty_leader, calculate_leader_traits>(ws, culture, is_general, creation_date);
 	}
 
-	void calculate_leader_traits(world_state& ws, military_leader& l) {
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> dest_vec(l.leader_traits);
-
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_a(ws.s.military_m.leader_trait_definitions.get_row(l.background).data());
-		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_b(ws.s.military_m.leader_trait_definitions.get_row(l.personality).data());
-
-		dest_vec = source_a + source_b;
+	void calculate_leader_traits(world_state& ws, leader_tag l) {
+		internal_calculate_leader_traits(ws, l);
 	}
 
-	void reset_unit_stats(world_state& ws, nations::country_tag nation_for) {
-		auto unit_type_count = ws.s.military_m.unit_types_count;
-		for(uint32_t i = 0; i < unit_type_count; ++i) {
-			ws.w.nation_s.unit_stats.get(nation_for, unit_type_tag(static_cast<unit_type_tag::value_base_t>(i))) = ws.s.military_m.unit_types[unit_type_tag(static_cast<unit_type_tag::value_base_t>(i))].base_attributes;
-		}
+	inline army_tag new_army_fn(world_state& ws) {
+		return ws.w.military_s.armies.get_new();
 	}
 
-	void update_army_attributes(world_state& ws, nations::country_tag owning_nation, army& this_army) {
-		auto counts = ws.w.military_s.unit_type_composition.get_row(this_army.id);
-		auto nation_id = owning_nation;
-
-		this_army.total_attributes = unit_attribute_vector::Zero();
-		auto unit_type_count = ws.s.military_m.unit_types_count;
-		for(int32_t i = to_index(naval_unit_base) + 1; i < int32_t(unit_type_count); ++i) {
-			auto unit_tag = unit_type_tag(static_cast<unit_type_tag::value_base_t>(i));
-			this_army.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, unit_tag) * unit_attribute_type(counts[unit_tag]);
-		}
+	army_tag make_army(world_state& ws, nations::country_tag n, provinces::province_tag location) {
+		return internal_make_army<new_army_fn>(ws, n, location);
 	}
 
-	void update_fleet_attributes(world_state& ws, nations::country_tag owning_nation, fleet& this_fleet) {
-		auto nation_id = owning_nation;
-
-		this_fleet.total_attributes = unit_attribute_vector::Zero();
-
-		auto ship_range = get_range(ws.w.military_s.ship_arrays, this_fleet.ships);
-		for(auto& s : ship_range) {
-			this_fleet.total_attributes += ws.w.nation_s.unit_stats.get(nation_id, s.type);
-		}
+	inline fleet_tag new_fleet_fn(world_state& ws) {
+		return ws.w.military_s.fleets.get_new();
 	}
 
-	void update_all_unit_attributes(world_state& ws, nations::country_tag owning_nation) {
-		auto armies_range = get_range(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(owning_nation));
-		for(auto a : armies_range) {
-			update_army_attributes(ws, owning_nation, ws.w.military_s.armies[a]);
-		}
-		auto fleets_range = get_range(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(owning_nation));
-		for(auto f : fleets_range) {
-			update_fleet_attributes(ws, owning_nation, ws.w.military_s.fleets[f]);
-		}
-	}
 
-	army& make_army(world_state& ws, nations::country_tag n, provinces::province_tag location) {
-		army& new_army = ws.w.military_s.armies.get_new();
-		new_army.base = location;
-		new_army.owner = n;
-		add_item(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(n), new_army.id);
-		ws.w.military_s.army_supplies.ensure_capacity(to_index(new_army.id));
-		ws.w.military_s.unit_type_composition.ensure_capacity(to_index(new_army.id));
-		return new_army;
-	}
-
-	void immediate_add_pop_to_army(world_state& ws, army& target_army, population::pop_tag p) {
-		target_army.total_soldiers += uint32_t(ws.w.population_s.pop_demographics.get(p, population::total_population_tag));
-		ws.w.population_s.pops.set<pop::associated_army>(p, target_army.id);
-		add_item(ws.w.population_s.pop_arrays, target_army.backing_pops, p);
-	}
-
-	fleet& make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location) {
-		fleet& new_fleet = ws.w.military_s.fleets.get_new();
-		new_fleet.base = location;
-		add_item(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(n), new_fleet.id);
-		ws.w.military_s.fleet_supplies.ensure_capacity(to_index(new_fleet.id));
-		return new_fleet;
+	fleet_tag make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location) {
+		return internal_make_fleet<new_fleet_fn>(ws, n, location);
 	}
 
 	bool in_war_with(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_with) {
-		return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::allies_in_war>(this_nation), nation_with);
+		return internal_in_war_with(ws, this_nation, nation_with);
 	}
 
 	bool in_war_against(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_against) {
-		return contains_item(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::opponents_in_war>(this_nation), nation_against);
+		return internal_in_war_against(ws, this_nation, nation_against);
+	}
+
+	inline bool check_war_tag(world_state const& ws, war_tag wid) {
+		return ws.w.military_s.wars.is_valid_index(wid);
 	}
 
 	void update_at_war_with_and_against(world_state& ws, nations::country_tag this_nation) {
-		auto& allies_in_war = ws.w.nation_s.nations.get<nation::allies_in_war>(this_nation);
-		auto& opponents_in_war = ws.w.nation_s.nations.get<nation::opponents_in_war>(this_nation);
+		internal_update_at_war_with_and_against<check_war_tag>(ws, this_nation);
+	}
 
-		resize(ws.w.nation_s.nations_arrays, allies_in_war, 0ui32);
-		resize(ws.w.nation_s.nations_arrays, opponents_in_war, 0ui32);
-
-		auto owner_wars = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(this_nation));
-		ws.w.nation_s.nations.set<nation::is_at_war>(this_nation, owner_wars.first != owner_wars.second);
-		for(auto iwar = owner_wars.first; iwar != owner_wars.second; ++iwar) {
-			if(auto warid = iwar->war_id; ws.w.military_s.wars.is_valid_index(warid)) {
-				if(iwar->is_attacker) {
-					auto attacker_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].attackers);
-					for(auto d : attacker_range)
-						add_item(ws.w.nation_s.nations_arrays, allies_in_war, d);
-					auto defender_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].defenders);
-					for(auto d : defender_range)
-						add_item(ws.w.nation_s.nations_arrays, opponents_in_war, d);
-				} else {
-					auto attacker_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].attackers);
-					for(auto d : attacker_range)
-						add_item(ws.w.nation_s.nations_arrays, opponents_in_war, d);
-					auto defender_range = get_range(ws.w.nation_s.nations_arrays, ws.w.military_s.wars[warid].defenders);
-					for(auto d : defender_range)
-						add_item(ws.w.nation_s.nations_arrays, allies_in_war, d);
-				}
-			}
-		}
+	inline bool test_cb_trigger(world_state const& ws, triggers::trigger_tag can_use, nations::country_tag nation_target, nations::country_tag nation_by) {
+		return is_valid_index(can_use)
+			&& triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(can_use), ws, nation_target, nation_by, triggers::const_parameter());
 	}
 
 	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
-		auto pending_range = get_range(ws.w.military_s.cb_arrays, ws.w.nation_s.nations.get<nation::active_cbs>(nation_by));
-		for(auto& c : pending_range) {
-			if(c.target == nation_target)
-				return true;
-		}
-		for(auto& c : ws.s.military_m.cb_types) {
-			if((c.flags & cb_type::is_not_triggered_only) == 0 &&
-				is_valid_index(c.can_use) &&
-				triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.can_use), ws, nation_target, nation_by, triggers::const_parameter()))
-				return true;
-		}
-		auto vassal_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(nation_target));
-		for(auto v : vassal_range) {
-			if(can_use_cb_against(ws, nation_by, nation_target))
-				return true;
-		}
-		return false;
+		return internal_can_use_cb_against<test_cb_trigger>(ws, nation_by, nation_target);
 	}
 
-	bool inner_test_cb_conditions(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target, const cb_type& c) {
-		if(is_valid_index(c.allowed_countries)) {
-			if((c.flags & cb_type::po_release_puppet) != 0) {
-				auto vassal_range_b = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::vassals>(nation_target));
-				const auto any_vassal = [&ws, t = c.allowed_countries, vassal_range_b, nation_target, nation_by]() {
-					for(auto v : vassal_range_b) {
-						if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, nation_target, nation_by, v))
-							return true;
-					}
-					return false;
-				}();
-				if(!any_vassal)
-					return false;
-			} else if((c.flags & cb_type::po_take_from_sphere) != 0) {
-				auto sm_range = get_range(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(nation_target));
-				const auto any_sphere_member = [&ws, t = c.allowed_countries, sm_range, nation_target, nation_by]() {
-					for(auto v : sm_range) {
-						if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, nation_target, nation_by, v))
-							return true;
-					}
-					return false;
-				}();
-				if(!any_sphere_member)
-					return false;
-			} else if((c.flags & cb_type::po_liberate) != 0) {
-				return nations::owns_releasable_core(ws, nation_target);
-			} else {
-				if(!triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(c.allowed_countries), ws, nation_target, nation_by, nation_target))
-					return false;
-			}
-		}
-		if(is_valid_index(c.allowed_states)) {
-			const auto any_state = [&ws, t = c.allowed_states, nation_target, nation_by]() {
-				auto target_state_range = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(nation_target));
-				for(auto p : target_state_range) {
-					if(triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, p.state, nation_by, nation_target))
-						return true;
-				}
-				return false;
-			}();
-			if(!any_state)
-				return false;
-		}
-
-		return true;
+	inline bool generic_test_trigger(world_state const& ws, triggers::trigger_tag t, triggers::const_parameter a, triggers::const_parameter b, triggers::const_parameter c) {
+		return triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, a, b, c);
 	}
 
 	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target) {
@@ -266,7 +99,7 @@ namespace military {
 				return false;
 		}
 		
-		return inner_test_cb_conditions(ws, nation_by, nation_target, c);
+		return internal_test_cb_conditions<generic_test_trigger, nations::owns_releasable_core>(ws, nation_by, nation_target, cb);
 	}
 
 	void init_player_cb_state(world_state& ws) {

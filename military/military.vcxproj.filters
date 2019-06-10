@@ -33,6 +33,15 @@
     <ClInclude Include="military_gui.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="military_io.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="military_internals.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="military_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp">

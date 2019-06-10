@@ -21,5 +21,8 @@
     <ClInclude Include="shared_tags.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="testing_world_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

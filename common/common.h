@@ -239,6 +239,7 @@ using zero_is_null_of = typename zero_is_null_of_s<T>::type;
 template<typename T>
 using individuator_of = typename individuator_of_s<T>::type;
 
+
 template<typename individuator, typename index_type, bool padding>
 struct array_tag : public tag_type<uint32_t, std::false_type, individuator> {};
 
@@ -250,6 +251,9 @@ constexpr uint32_t to_index(array_tag<individuator, index_type, padding> in) { r
 
 template<typename individuator, typename index_type, bool padding>
 constexpr bool is_valid_index(array_tag<individuator, index_type, padding> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+
+template<typename individuator, typename index_type, bool padding>
+struct individuator_of_s<array_tag<individuator, index_type, padding>> { using type = individuator; };
 
 
 template<typename individuator>
@@ -264,6 +268,9 @@ constexpr uint32_t to_index(set_tag<individuator> in) { return in.value; }
 template<typename individuator>
 constexpr bool is_valid_index(set_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
 
+template<typename individuator>
+struct individuator_of_s<set_tag<individuator>> { using type = individuator; };
+
 
 template<typename individuator>
 struct multiset_tag : public tag_type<uint32_t, std::false_type, individuator> {};
@@ -276,6 +283,10 @@ constexpr uint32_t to_index(multiset_tag<individuator> in) { return in.value; }
 
 template<typename individuator>
 constexpr bool is_valid_index(multiset_tag<individuator> in) { return in.value != std::numeric_limits<uint32_t>::max(); }
+
+template<typename individuator>
+struct individuator_of_s<multiset_tag<individuator>> { using type = individuator; };
+
 
 
 template<typename tag_base>
@@ -497,6 +508,10 @@ template<typename INDEX> \
 RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void>, decltype(container_name.get_row<INDEX>())> { \
 	return container_name.get_row<INDEX>(); \
 } \
+template<typename INDEX> \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void> && !std::is_same_v<decltype(container_name.size<INDEX>()), void>, int32_t> { \
+	return int32_t(container_name.size<INDEX>()); \
+} \
 template<typename INDEX, typename tag_type, typename inner_tag_type> \
 RELEASE_INLINE auto get(tag_type t, inner_tag_type u) noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, decltype(container_name.get<INDEX>(t,u))> { \
 	return container_name.get<INDEX>(t,u); \
@@ -520,7 +535,11 @@ RELEASE_INLINE auto get_row(tag_type t) noexcept -> std::enable_if_t<!std::is_sa
 template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>(t)), void>, decltype(container_name.get_row<INDEX>(t))> { \
 	return container_name.get_row<INDEX>(t); \
-}
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>(t)), void>, decltype(container_name.size(t))> { \
+	return container_name.size(t); \
+} 
 
 #define GET_SET_TV(index_name, container_name) \
 template<typename INDEX, typename tag_type> \
@@ -540,12 +559,16 @@ RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable
 	return container_name.set(t, v); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.view()), void>, decltype(container_name.view())> { \
+RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(container_name.view())> { \
 	return container_name.view(); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.view()), void>, decltype(container_name.view())> { \
+RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(container_name.view())> { \
 	return container_name.view(); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.size()))> { \
+	return int32_t(container_name.size()); \
 }
 
 #define GET_SET_TFV(index_name, container_name) \
@@ -572,6 +595,10 @@ RELEASE_INLINE auto get_row(tag_type t) noexcept -> std::enable_if_t<std::is_sam
 template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, decltype(container_name.get_row(t))> { \
 	return container_name.get_row(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, int32_t> { \
+	return int32_t(container_name.size(t)); \
 }
 
 #define ARRAY_BACKING(container_name) \
@@ -599,6 +626,10 @@ class tagged_vector {
 private:
 	std::vector<value_type, allocator> storage;
 public:
+	tagged_vector() {
+		if constexpr(padded)
+			storage.resize(1);
+	}
 	const value_type& operator[](tag_type t) const {
 		return *(storage.data() + to_index(t) + int32_t(padded));
 	}
@@ -626,7 +657,8 @@ public:
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin() + int32_t(padded); }
 	auto end() { return storage.end(); }
-	size_t size() const { return storage.size(); }
+	template<typename = void>
+	int32_t size() const { return int32_t(storage.size()) - int32_t(padded); }
 	void resize(size_t size) { storage.resize(size + size_t(padded)); }
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
@@ -751,6 +783,7 @@ public:
 		_inner_size = new_inner_size != 0 ? new_inner_size : 1;
 	}
 	size_t size() const { return storage.size(); }
+	int32_t size(variable_tag_type) const { return int32_t(_inner_size); }
 	size_t outer_size() const { return storage.size() / _inner_size; }
 	uint32_t inner_size() const { return _inner_size; }
 	auto data() const { return storage.data(); }
@@ -815,6 +848,7 @@ public:
 		_inner_size = (new_inner_size * sizeof(value_type) + (block_size - 1)) / block_size;
 	}
 	size_t size() const { return storage.size(); }
+	int32_t size(variable_tag_type) const { return int32_t(observable_inner_size); }
 	size_t outer_size() const { return storage.size() / _inner_size; }
 	uint32_t inner_size() const { return observable_inner_size; }
 	auto data() const { return storage.data(); }
@@ -1611,6 +1645,11 @@ public:
 			p.second = elements.data() + elements.size();
 		}
 		return p;
+	}
+
+	int32_t size(I i) const {
+		auto const r = get_row(i);
+		return int32_t(r.second - r.first);
 	}
 
 	T& get(I x, uint32_t y) {

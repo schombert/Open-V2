@@ -71,6 +71,7 @@ namespace province_state {
 	struct rebel_controller;
 	struct state_instance;
 	struct orders;
+	struct strat_hq;
 	struct total_population;
 	struct nationalism;
 	struct siege_progress;
@@ -178,8 +179,8 @@ namespace province_state {
 		controller, nations::country_tag,
 		rebel_controller, population::rebel_faction_tag,
 		state_instance, nations::state_tag,
-		orders, military::army_orders_tag
-
+		orders, military::army_orders_tag,
+		strat_hq, military::strategic_hq_tag
 		> ;
 
 	 void initialize(container& c, provinces::province_tag);

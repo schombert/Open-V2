@@ -7,7 +7,7 @@
 #include "economy\\economy.h"
 #include "population\\population.h"
 #include "variables\\variables.h"
-#include "military\\military.h"
+#include "military\\military_containers.h"
 #include "gui\\gui.h"
 #include "ideologies\\ideologies.h"
 #include "nations\\nations_gui.h"
@@ -148,9 +148,11 @@ namespace current_state {
 		GET_SET(province_s)
 		GET_SET(culture_s)
 		GET_SET(military_s)
+		GET_SET(nation_s)
 		ARRAY_BACKING(culture_s)
 		ARRAY_BACKING(province_s)
 		ARRAY_BACKING(military_s)
+		ARRAY_BACKING(nation_s)
 	};
 }
 
@@ -161,27 +163,52 @@ public:
 
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto add_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
-		::add_item(w.array_backing<value_type>(), i, v);
+		::add_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto add_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
-		::add_item(w.array_backing<value_type>(), i, v);
+		::add_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto remove_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
-		::remove_item(w.array_backing<value_type>(), i, v);
+		::remove_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto remove_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
-		::remove_item(w.array_backing<value_type>(), i, v);
+		::remove_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	RELEASE_INLINE auto contains_item(index_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(w.array_backing<value_type>(), i, v);
+	RELEASE_INLINE auto contains_item(index_tag i, value_type v) const -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, bool> {
+		::contains_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	RELEASE_INLINE auto contains_item(index_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(w.array_backing<value_type>(), i, v);
+	RELEASE_INLINE auto contains_item(index_tag i, value_type const& v) const -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, bool> {
+		::contains_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+	}
+	template<typename index_tag>
+	RELEASE_INLINE auto resize(index_tag& i, uint32_t sz) -> void {
+		::resize(w.array_backing<individuator_of<index_tag>>(), i, sz);
+	}
+	template<typename index_tag>
+	RELEASE_INLINE auto get_range(index_tag i) const -> decltype(::get_range(w.array_backing<individuator_of<index_tag>>(), i)) {
+		return ::get_range(w.array_backing<individuator_of<index_tag>>(), i);
+	}
+
+	template<typename tag_type, typename F>
+	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> for_each(F const& f) const {
+		int32_t const cmax = int32_t(s.military_m.cb_types.size());
+		for(int32_t i = 0; i < cmax; ++i) {
+			f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
+		}
+	}
+	template<typename tag_type, typename F>
+	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> if_any(F const& f) const {
+		int32_t const cmax = int32_t(s.military_m.cb_types.size());
+		for(int32_t i = 0; i < cmax; ++i) {
+			if(f(military::cb_type_tag(military::cb_type_tag::value_base_t(i))))
+				return true;
+		}
+		return false;
 	}
 
 	GET_SET(w)
