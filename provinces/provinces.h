@@ -13,7 +13,6 @@ namespace modifiers {
 
 namespace military {
 	struct fleet_presence;
-	struct army_orders;
 }
 
 class world_state;

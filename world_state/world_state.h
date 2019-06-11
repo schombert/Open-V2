@@ -64,6 +64,8 @@ namespace current_state {
 		nations::state_tag state;
 	};
 
+	struct player_cb_state;
+
 	class state {
 	public:
 		graphics::map_display map;
@@ -145,6 +147,7 @@ namespace current_state {
 		void increase_speed();
 		void decrease_speed();
 
+		GET_SET_TV(player_cb_state, local_player_data.triggered_cb_state)
 		GET_SET(province_s)
 		GET_SET(culture_s)
 		GET_SET(military_s)
@@ -186,12 +189,24 @@ public:
 		::contains_item(w.array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag>
-	RELEASE_INLINE auto resize(index_tag& i, uint32_t sz) -> void {
+	RELEASE_INLINE void resize(index_tag& i, uint32_t sz) {
 		::resize(w.array_backing<individuator_of<index_tag>>(), i, sz);
 	}
 	template<typename index_tag>
 	RELEASE_INLINE auto get_range(index_tag i) const -> decltype(::get_range(w.array_backing<individuator_of<index_tag>>(), i)) {
 		return ::get_range(w.array_backing<individuator_of<index_tag>>(), i);
+	}
+	template<typename index_tag>
+	RELEASE_INLINE auto get_size(index_tag i) const -> decltype(::get_size(w.array_backing<individuator_of<index_tag>>(), i)) {
+		return ::get_size(w.array_backing<individuator_of<index_tag>>(), i);
+	}
+	template<typename index_tag, typename FN>
+	RELEASE_INLINE void remove_item_if(index_tag& i, const FN& f) const {
+		::remove_item_if(w.array_backing<individuator_of<index_tag>>(), i, f);
+	}
+	template<typename index_tag>
+	RELEASE_INLINE void clear(index_tag& i) {
+		::clear(w.array_backing<individuator_of<index_tag>>(), i);
 	}
 
 	template<typename tag_type, typename F>
@@ -201,6 +216,13 @@ public:
 			f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
 		}
 	}
+	template<typename tag_type, typename F, typename partitioner_t = concurrency::auto_partitioner>
+	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> par_for_each(F const& f, partitioner_t&& p = concurrency::auto_partitioner()) const {
+		int32_t const cmax = int32_t(s.military_m.cb_types.size());
+		conccurrency::parallel_for(0, cmax, [&f](int32_t i) {
+			f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
+		}, p);
+	}
 	template<typename tag_type, typename F>
 	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> if_any(F const& f) const {
 		int32_t const cmax = int32_t(s.military_m.cb_types.size());
@@ -209,6 +231,11 @@ public:
 				return true;
 		}
 		return false;
+	}
+
+	template<typename tag_type, typename F>
+	std::enable_if_t<std::is_same_v<tag_type, nations::country_tag>> for_each(F const& f) const {
+		w.nation_s.nations.for_each(f);
 	}
 
 	GET_SET(w)

@@ -384,6 +384,9 @@ public:
 	int32_t size() const {
 		return size_used;
 	}
+	template<typename UNUSED>
+	void resize(int32_t size);
+
 	uint32_t vector_size() const {
 		return ve::to_vector_size(uint32_t(size_used));
 	}
@@ -469,6 +472,10 @@ public:
 		_aligned_free(ptr);
 	}
 
+	void resize(int32_t size) {
+		size_used = size;
+	}
+	template<typename UNUSED>
 	void resize(int32_t size) {
 		size_used = size;
 	}

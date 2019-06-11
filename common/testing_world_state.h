@@ -35,9 +35,12 @@ public:
 };
 
 template<typename T>
+using test_vector_type = tagged_vector<T, int32_t, padded_aligned_allocator_64<T>>;
+
+template<typename T>
 class type_erased_vector : public type_erased_vector_base {
 public:
-	std::vector<T> vec;
+	test_vector_type<T> vec;
 
 	type_erased_vector() {
 		vec.resize(16);
@@ -56,7 +59,7 @@ public:
 template<typename T>
 class type_erased_storage : public type_erased_storage_base {
 public:
-	stable_variable_vector_storage_mk_2<T, 4, 2048> storage;
+	stable_variable_vector_storage_mk_2<T, 8, 2048, alignment_type::padded_cache_aligned> storage;
 
 	virtual void* ptr() { return &storage; };
 	virtual ~type_erased_storage() {}
@@ -80,7 +83,7 @@ public:
 	mutable std::unordered_map<uint64_t, int32_t> tag_count;
 
 	template<typename val_type>
-	std::vector<val_type>& get_vector(index_tuple key) const {
+	test_vector_type<val_type>& get_vector(index_tuple key) const {
 		std::unordered_map<index_tuple, std::unique_ptr<type_erased_vector_base>>::iterator v_location = [_this = this]() {
 			if(auto it = _this->stored_values.find(key); it != stored_values.end()) {
 				return it;
@@ -88,11 +91,11 @@ public:
 				return _this->stored_values.emplace(key, std::make_unique<type_erased_vector<val_type>>());
 			}
 		}();
-		return *((std::vector<val_type>*)(v_location->second->ptr()));
+		return *((test_vector_type<val_type>*)(v_location->second->ptr()));
 	}
 
 	template<typename val_type>
-	stable_variable_vector_storage_mk_2<val_type, 4, 2048>& get_storage() const {
+	stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>& get_storage() const {
 		auto v_location = [_this = this]() {
 			if(auto it = _this->stored_values.find(detail::addr_struct<val_type>::value()); it != stored_values.end()) {
 				return it;
@@ -100,13 +103,18 @@ public:
 				return _this->stored_values.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>());
 			}
 		}();
-		return *((stable_variable_vector_storage_mk_2<val_type, 4, 2048>*)(v_location->second->ptr()));
+		return *((stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
 	}
 
 	template<typename index, typename tag_type>
-	auto get(tag_type t) const -> decltype(std::declval<imitation_type&>().get<index>(t)) {
+	auto get(tag_type t) const -> decltype(std::declval<imitation_type&>().get<index>(t)) { 
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
+
+		static val_type bad_value = val_type();
+		if(!is_valid_index(t))
+			return bad_value;
+
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 
 		if(v.size() <= to_index(t))
 			v.resize(to_index(t) + 1);
@@ -115,8 +123,9 @@ public:
 	}
 	template<typename index, typename tag_type, typename value_type>
 	auto set(tag_type t, value_type const& v) -> decltype(std::declval<imitation_type&>().set<index>(t, v)) {
+		assert(is_valid_index(t));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
-		std::vector<val_type>& vec = get_vector<val_type>(get_index_tuple<index>());
+		test_vector_type<val_type>& vec = get_vector<val_type>(get_index_tuple<index>());
 
 		if(vec.size() <= to_index(t))
 			vec.resize(to_index(t) + 1);
@@ -128,7 +137,7 @@ public:
 		using row_type = decltype(std::declval<imitation_type&>().get_row<index>());
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
 
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 
 		return row_type(v.data(), int32_t(v.size()));
 	}
@@ -136,15 +145,24 @@ public:
 	template<typename index>
 	int32_t size() const {
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 		
 		return int32_t(v.size());
 	}
 
+	template<typename index>
+	void resize(int32_t sz) const {
+		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
+
+		return v.resize(sz);
+	}
+
 	template<typename index, typename tag_type, typename inner_type>
 	auto get(tag_type t, inner_type u) const -> decltype(std::declval<imitation_type&>().get<index>(t, u)) {
+		assert(is_valid_index(t) && is_valid_index(u));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		if(v.size() <= to_index(u))
 			v.resize(to_index(u) + 1);
@@ -154,8 +172,9 @@ public:
 
 	template<typename index, typename tag_type, typename inner_type, typename value_type>
 	auto set(tag_type t, inner_type u, value_type const& v) -> decltype(std::declval<imitation_type&>().set<index>(t, u, v)) {
+		assert(is_valid_index(t) && is_valid_index(u));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
-		std::vector<val_type>& vec = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+		test_vector_type<val_type>& vec = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		if(vec.size() <= to_index(u))
 			vec.resize(to_index(u) + 1);
@@ -164,17 +183,19 @@ public:
 	}
 	template<typename index, typename tag_type>
 	auto get_row(tag_type t) const -> decltype(std::declval<imitation_type&>().get_row<index>(t)) {
+		assert(is_valid_index(t));
 		using row_type = decltype(std::declval<imitation_type&>().get_row<index>(t));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
 
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		return row_type(v.data(), int32_t(v.size()));
 	}
 	template<typename index, typename tag_type>
 	int32_t size(tag_type t) const {
+		assert(is_valid_index(t));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
-		std::vector<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		return int32_t(v.size());
 	}
@@ -186,6 +207,13 @@ public:
 
 	template<typename tag_type, typename fn>
 	void for_each(fn const& f) {
+		int32_t const cmax = tag_count[detail::addr_struct<tag_type>::value()];
+		for(int32_t i = 0; i < cmax; ++i) {
+			f(tag_type(typename tag_type::value_base_t(i)));
+		}
+	}
+	template<typename tag_type, typename fn, typename pt = int32_t>
+	void par_for_each(fn const& f, pt&& p = 0) {
 		int32_t const cmax = tag_count[detail::addr_struct<tag_type>::value()];
 		for(int32_t i = 0; i < cmax; ++i) {
 			f(tag_type(typename tag_type::value_base_t(i)));
@@ -220,5 +248,17 @@ public:
 	template<typename index_tag>
 	auto get_range(index_tag i) const -> decltype(::get_range(get_storage<individuator_of<index_tag>>(), i)) {
 		return ::get_range(get_storage<individuator_of<index_tag>>(), i);
+	}
+	template<typename index_tag>
+	auto get_size(index_tag i) const -> decltype(::get_size(get_storage<individuator_of<index_tag>>(), i)) {
+		return ::get_size(get_storage<individuator_of<index_tag>>(), i);
+	}
+	template<typename index_tag, typename FN>
+	void remove_item_if(index_tag& i, const FN& f) {
+		::remove_item_if(get_storage<individuator_of<index_tag>>(), i, f);
+	}
+	template<typename index_tag>
+	void clear(index_tag& i) {
+		::clear(get_storage<individuator_of<index_tag>>(), i);
 	}
 };

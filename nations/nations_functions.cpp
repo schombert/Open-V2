@@ -215,23 +215,27 @@ namespace nations {
 		auto order_range = get_range(ws.w.military_s.orders_arrays, active_orders);
 		for(auto o : order_range) {
 			military::partial_destroy_orders(ws, ws.w.military_s.army_orders_container[o]);
-			ws.w.military_s.army_orders_container.remove(o);
 		}
 		clear(ws.w.military_s.orders_arrays, active_orders);
 
 		auto& armies = ws.w.nation_s.nations.get<nation::armies>(new_nation);
 		auto army_range = get_range(ws.w.military_s.army_arrays, armies);
 		for(auto a : army_range) {
-			military::partial_destroy_army(ws, ws.w.military_s.armies[a]);
-			ws.w.military_s.armies.remove(a);
+			military::partial_destroy_army(ws, a);
+		}
+		clear(ws.w.military_s.army_arrays, armies);
+
+		auto& hq = ws.get<nation::strategic_hqs>(new_nation);
+		auto hq_range = ws.get_range(hq);
+		for(auto h : hq_range) {
+			military::partial_destroy_hq(ws, h);
 		}
 		clear(ws.w.military_s.army_arrays, armies);
 
 		auto& fleets = ws.w.nation_s.nations.get<nation::fleets>(new_nation);
 		auto fleet_range = get_range(ws.w.military_s.fleet_arrays, fleets);
 		for(auto f : fleet_range) {
-			military::partial_destroy_fleet(ws, ws.w.military_s.fleets[f]);
-			ws.w.military_s.fleets.remove(f);
+			military::partial_destroy_fleet(ws, f);
 		}
 		clear(ws.w.military_s.fleet_arrays, fleets);
 

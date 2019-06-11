@@ -44,20 +44,20 @@ namespace military {
 	void add_to_war(world_state& ws, war_tag this_war, bool attacker, nations::country_tag to_add);
 	war_tag get_war_between(world_state& ws, nations::country_tag a, nations::country_tag b);
 
-	void destroy_army(world_state& ws, army_tag a, nations::country_tag owner);
-	void destroy_fleet(world_state& ws, fleet_tag f, nations::country_tag owner);
+	void destroy_army(world_state& ws, army_tag a);
+	void destroy_fleet(world_state& ws, fleet_tag f);
 	void partial_destroy_fleet(world_state& ws, fleet_tag f); // does not remove from nation
 	void partial_destroy_army(world_state& ws, army_tag a); // does not remove from orders or nation
 	void destroy_orders(world_state& ws, army_orders_tag o, nations::country_tag owner);
 	void partial_destroy_orders(world_state& ws, army_orders_tag o); // does not remove armies or from nation
+	void destroy_hq(world_state& ws, strategic_hq_tag o, nations::country_tag owner);
+	void partial_destroy_hq(world_state& ws, strategic_hq_tag o);
 	void destroy_admiral(world_state& ws, leader_tag l, nations::country_tag owner);
 	void destroy_general(world_state& ws, leader_tag l, nations::country_tag owner);
 
 	void destroy_war(world_state& ws, war_tag this_war);
-	uint32_t calculate_minimum_soldiers(world_state const& ws, army_tag a);
 	void rebuild_fleet_presence(world_state& ws, nations::country_tag owner);
 
-	bool is_naval_unit(military::unit_type_tag t, world_state const& ws);
 	float calculate_base_war_score_cost(world_state const& ws, war_goal const& wg); // great war modifiers not applied
 	float single_state_war_score(world_state const& ws, nations::state_tag si, float owner_total_pop);
 	float total_attacker_demands_war_score(world_state const& ws, war_tag w);

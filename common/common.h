@@ -512,6 +512,10 @@ template<typename INDEX> \
 RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void> && !std::is_same_v<decltype(container_name.size<INDEX>()), void>, int32_t> { \
 	return int32_t(container_name.size<INDEX>()); \
 } \
+template<typename INDEX> \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void> && !std::is_same_v<decltype(container_name.resize<INDEX>(sz)), char>, void> { \
+	int32_t(container_name.resize<INDEX>(sz)); \
+} \
 template<typename INDEX, typename tag_type, typename inner_tag_type> \
 RELEASE_INLINE auto get(tag_type t, inner_tag_type u) noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, decltype(container_name.get<INDEX>(t,u))> { \
 	return container_name.get<INDEX>(t,u); \
@@ -567,8 +571,12 @@ RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<std::is_same_v<
 	return container_name.view(); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.size()))> { \
-	return int32_t(container_name.size()); \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.size<INDEX>()))> { \
+	return int32_t(container_name.size<INDEX>()); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.resize<INDEX>(sz)))> { \
+	return container_name.resize<INDEX>(sz); \
 }
 
 #define GET_SET_TFV(index_name, container_name) \
@@ -660,6 +668,8 @@ public:
 	template<typename = void>
 	int32_t size() const { return int32_t(storage.size()) - int32_t(padded); }
 	void resize(size_t size) { storage.resize(size + size_t(padded)); }
+	template<typename = void>
+	void resize(int32_t size) { storage.resize(size_t(size + int32_t(padded))); }
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
 	tagged_array_view<value_type, tag_type> view() {
@@ -728,7 +738,9 @@ public:
 	auto end() const { return storage.end(); }
 	auto begin() { return storage.begin() + int32_t(padded); }
 	auto end() { return storage.end(); }
-	size_t size() const { return storage.size() - int32_t(padded) * sizeof(bitfield_type) * 8; }
+	template<typename = void>
+	size_t size() const { return (storage.size() - int32_t(padded)) * sizeof(bitfield_type) * 8; }
+	template<typename = void>
 	void resize(size_t size) { storage.resize((size + 7) / 8 + size_t(padded)); }
 
 	tagged_array_view<value_type, tag_type> view() {

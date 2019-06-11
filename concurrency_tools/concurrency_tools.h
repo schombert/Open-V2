@@ -498,6 +498,7 @@ public:
 	void clear_row(outer_index_type i); // single thread only
 	void clear_all(); // single thread only
 
+	int32_t size(outer_index_type) const { return int32_t(inner_size); }
 
 	tagged_array_view<const object_type, inner_index_type> get_row(outer_index_type i) const; // safe from any thread
 	tagged_array_view<object_type, inner_index_type> get_row(outer_index_type i); // safe from any thread

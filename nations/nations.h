@@ -182,6 +182,7 @@ namespace nation {
 	struct armies;
 	struct fleets;
 	struct active_orders;
+	struct strategic_hqs;
 	struct active_cbs;
 	struct wars_involved_in;
 	struct opponents_in_war;
@@ -200,6 +201,9 @@ namespace nation {
 
 	struct total_core_population;
 	struct player_importance;
+
+	struct demographics;
+	struct colonial_demographics;
 
 	constexpr int32_t container_size = 400;
 
@@ -258,6 +262,7 @@ namespace nation {
 		armies, array_tag<military::army_tag, int32_t, false>,
 		fleets, array_tag<military::fleet_tag, int32_t, false>,
 		active_orders, array_tag<military::army_orders_tag, int32_t, false>,
+		strategic_hqs, array_tag<military::strategic_hq_tag, int32_t, false>,
 		active_cbs, array_tag<military::pending_cb, int32_t, false>,
 		wars_involved_in, set_tag<military::war_identifier>,
 		opponents_in_war, set_tag<nations::country_tag>,
@@ -359,6 +364,8 @@ namespace state {
 	struct is_colonial;
 	struct is_protectorate;
 
+	struct demographics;
+
 	constexpr int32_t factories_count = 8;
 	constexpr int32_t colonizers_count = 4;
 
@@ -449,6 +456,9 @@ namespace nations {
 
 		GET_SET(nations)
 		GET_SET(states)
+		GET_SET_TFV(nation::demographics, nation_demographics)
+		GET_SET_TFV(state::demographics, state_demographics)
+		GET_SET_TFV(nation::colonial_demographics, nation_colonial_demographics)
 
 		ARRAY_BACKING_BASE(static_modifier_arrays)
 		ARRAY_BACKING_BASE(timed_modifier_arrays)

@@ -5,9 +5,9 @@
 #include "concurrency_tools\\ve.h"
 
 namespace nations {
-	template<typename F>
-	void for_each_state(world_state const& ws, nations::country_tag n, F&& f) {
-		auto mrange = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
+	template<typename world_state_t, typename F>
+	void for_each_state(world_state_t const& ws, nations::country_tag n, F&& f) {
+		auto mrange = ws.get_range(ws.get<nation::member_states>(n));
 		for(auto s = mrange.first; s != mrange.second; ++s) {
 			auto state = s->state;
 			if(bool(state))
@@ -15,40 +15,40 @@ namespace nations {
 		}
 	}
 
-	template<typename F>
-	void for_each_province(world_state const& ws, state_tag s, F&& f) {
-		auto region = ws.w.nation_s.states.get<state::region_id>(s);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t const& ws, state_tag s, F&& f) {
+		auto region = ws.get<state::region_id>(s);
 		auto prange = is_valid_index(region)
 			? ws.s.province_m.states_to_province_index.get_row(region)
 			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
 		for(auto p : prange) {
-			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s)
+			if(ws.get<province_state::state_instance>(p) == s)
 				f(p);
 		}
 	}
 
-	template<typename F>
-	void for_each_province(world_state const& ws, nations::country_tag n, F&& f) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t const& ws, nations::country_tag n, F&& f) {
+		auto owned_range = ws.get_range(ws.get<nation::owned_provinces>(n));
 		for(auto p : owned_range) {
 			if(is_valid_index(p))
 				f(p);
 		}
 	}
-	template<typename F>
-	void for_each_pop(world_state const& ws, state_tag s, F&& f) {
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t const& ws, state_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
-			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
+			auto pop_range = ws.get_range(ws.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
 					f(po);
 			}
 		});
 	}
-	template<typename F>
-	void for_each_pop(world_state const& ws, nations::country_tag s, F&& f) {
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t const& ws, nations::country_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
-			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
+			auto pop_range = ws.get_range(ws.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
 					f(po);
@@ -57,9 +57,9 @@ namespace nations {
 	}
 
 
-	template<typename F>
-	void for_each_state(world_state& ws, nations::country_tag n, F&& f) {
-		auto mrange = get_range(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(n));
+	template<typename world_state_t, typename F>
+	void for_each_state(world_state_t& ws, nations::country_tag n, F&& f) {
+		auto mrange = ws.get_range(ws.get<nation::member_states>(n));
 		for(auto s = mrange.first; s != mrange.second; ++s) {
 			auto state = s->state;
 			if(bool(state))
@@ -67,41 +67,41 @@ namespace nations {
 		}
 	}
 
-	template<typename F>
-	void for_each_province(world_state& ws, state_tag s, F&& f) {
-		auto region = ws.w.nation_s.states.get<state::region_id>(s);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t& ws, state_tag s, F&& f) {
+		auto region = ws.get<state::region_id>(s);
 		auto prange = is_valid_index(region)
 			? ws.s.province_m.states_to_province_index.get_row(region)
 			: std::pair<provinces::province_tag*, provinces::province_tag*>(nullptr, nullptr);
 
 		for(auto p : prange) {
-			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s)
+			if(ws.get<province_state::state_instance>(p) == s)
 				f(p);
 		}
 	}
 
-	template<typename F>
-	void for_each_province(world_state& ws, nations::country_tag n, F&& f) {
-		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(n));
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t& ws, nations::country_tag n, F&& f) {
+		auto owned_range = ws.get_range(ws.get<nation::owned_provinces>(n));
 		for(auto p : owned_range) {
 			if(is_valid_index(p))
 				f(p);
 		}
 	}
-	template<typename F>
-	void for_each_pop(world_state& ws, state_tag s, F&& f) {
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t& ws, state_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
-			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
+			auto pop_range = ws.get_range(ws.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
 					f(po);
 			}
 		});
 	}
-	template<typename F>
-	void for_each_pop(world_state& ws, nations::country_tag s, F&& f) {
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t& ws, nations::country_tag s, F&& f) {
 		for_each_province(ws, s, [&ws, &f](provinces::province_tag p) {
-			auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(p));
+			auto pop_range = ws.get_range(ws.get<province_state::pops>(p));
 			for(auto po : pop_range) {
 				if(is_valid_index(po))
 					f(po);

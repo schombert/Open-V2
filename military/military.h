@@ -214,14 +214,16 @@ namespace army_order {
 	struct province_set;
 	struct army_set;
 	struct target;
+	struct leader;
 		
 	constexpr int32_t container_size = 4000;
 
-	using container = variable_layout_tagged_vector< military::army_orders_tag, container_size,
+	using container = variable_layout_tagged_vector < military::army_orders_tag, container_size,
 		type, military::army_orders_type,
 		province_set, set_tag<provinces::province_tag>,
 		army_set, set_tag<military::army_tag>,
-		target, provinces::province_tag
+		target, provinces::province_tag,
+		leader, military::leader_tag
 		> ;
 }
 
