@@ -1557,30 +1557,33 @@ namespace nations {
 	template<typename window_type>
 	void war_name::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
+			military::war_tag this_war = win.war;
+			auto const first_adj = ws.get<war::first_adj>(this_war);
+			auto const second = ws.get<war::second>(this_war);
+			auto const state_name = ws.get<war::state_name>(this_war);
 
 			text_data::text_replacement repl[7] = {
 				text_data::text_replacement{text_data::value_type::order, u""},
 				text_data::text_replacement{text_data::value_type::first,
-					is_valid_index(this_war.first_adj) ? text_data::replacement_data_variant(this_war.first_adj) : text_data::replacement_data_variant(u"")
+					is_valid_index(first_adj) ? text_data::replacement_data_variant(first_adj) : text_data::replacement_data_variant(u"")
 					},
 				text_data::text_replacement{text_data::value_type::second,
-					is_valid_index(this_war.second) ? text_data::replacement_data_variant(this_war.second) : text_data::replacement_data_variant(u"")
+					is_valid_index(second) ? text_data::replacement_data_variant(second) : text_data::replacement_data_variant(u"")
 					},
 				text_data::text_replacement{text_data::value_type::state,
-					is_valid_index(this_war.state_name) ? text_data::replacement_data_variant(this_war.state_name) : text_data::replacement_data_variant(u"")
+					is_valid_index(state_name) ? text_data::replacement_data_variant(state_name) : text_data::replacement_data_variant(u"")
 					},
 				text_data::text_replacement{text_data::value_type::second_country,
-					is_valid_index(this_war.second) ? text_data::replacement_data_variant(this_war.second) : text_data::replacement_data_variant(u"")
+					is_valid_index(second) ? text_data::replacement_data_variant(second) : text_data::replacement_data_variant(u"")
 					},
 				text_data::text_replacement{text_data::value_type::country,
-					is_valid_index(this_war.second) ? text_data::replacement_data_variant(this_war.second) : text_data::replacement_data_variant(u"")
+					is_valid_index(second) ? text_data::replacement_data_variant(second) : text_data::replacement_data_variant(u"")
 					},
 				text_data::text_replacement{text_data::value_type::country_adj,
-					is_valid_index(this_war.second) ? text_data::replacement_data_variant(this_war.second) : text_data::replacement_data_variant(u"")
+					is_valid_index(second) ? text_data::replacement_data_variant(second) : text_data::replacement_data_variant(u"")
 					}
 			};
-			ui::add_text(ui::xy_pair{ 0,0 }, this_war.war_name, fmt, ws, box, lm, repl, 7);
+			ui::add_text(ui::xy_pair{ 0,0 }, ws.get<war::name>(this_war), fmt, ws, box, lm, repl, 7);
 			lm.finish_current_line();
 		}
 	}
@@ -1589,8 +1592,7 @@ namespace nations {
 	void attacker_strength::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		war = win.war;
 		if(is_valid_index(war)) {
-			auto& this_war = ws.w.military_s.wars[war];
-			auto r = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+			auto r = get_range(ws.w.nation_s.nations_arrays, ws.get<::war::attackers>(war));
 
 			int32_t total = 0;
 			for(auto a : r) {
@@ -1606,8 +1608,7 @@ namespace nations {
 	void defender_strength::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		war = win.war;
 		if(is_valid_index(war)) {
-			auto& this_war = ws.w.military_s.wars[war];
-			auto r = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+			auto r = get_range(ws.w.nation_s.nations_arrays, ws.get<::war::defenders>(war));
 
 			int32_t total = 0;
 			for(auto a : r) {
@@ -1622,8 +1623,7 @@ namespace nations {
 	template<typename window_type>
 	void war_score_progress_bar::windowed_update(ui::progress_bar<war_score_progress_bar>& bar, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			bar.set_fraction((this_war.current_war_score + 1.0f) / 2.0f);
+			bar.set_fraction((ws.get<war::current_war_score>(win.war) + 1.0f) / 2.0f);
 		}
 	}
 
@@ -1635,8 +1635,7 @@ namespace nations {
 	template<typename window_type>
 	void attacker_wg_marker::windowed_update(ui::dynamic_icon<attacker_wg_marker>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			float total_ws = std::min(military::total_attacker_demands_war_score(ws, this_war), 1.0f);
+			float total_ws = std::min(military::total_attacker_demands_war_score(ws, win.war), 1.0f);
 
 			int32_t x_off = 192 + (216 / 2) + int32_t((216 / 2) * total_ws) - self.associated_object->size.x / 2;
 			self.associated_object->position.x = int16_t(x_off);
@@ -1646,8 +1645,7 @@ namespace nations {
 	template<typename window_type>
 	void defender_wg_marker::windowed_update(ui::dynamic_icon<defender_wg_marker>& self, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			float total_ws = std::min(military::total_defender_demands_war_score(ws, this_war), 1.0f);
+			float total_ws = std::min(military::total_defender_demands_war_score(ws, win.war), 1.0f);
 
 			int32_t x_off = 192 + (216 / 2) - int32_t((216 / 2) * total_ws) - self.associated_object->size.x / 2;
 			self.associated_object->position.x = int16_t(x_off);
@@ -1657,8 +1655,7 @@ namespace nations {
 	template<typename window_type>
 	void war_score_text_box::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ this_war.current_war_score }, fmt, ws, box, lm);
+			ui::add_text(ui::xy_pair{ 0,0 }, text_data::percent{ ws.get<war::current_war_score>(win.war) }, fmt, ws, box, lm);
 		}
 	}
 
@@ -1692,8 +1689,7 @@ namespace nations {
 	template<typename lb_type, typename window_type>
 	void defenders_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			auto r = get_range(ws.w.nation_s.nations_arrays, this_war.defenders);
+			auto r = get_range(ws.w.nation_s.nations_arrays, ws.get<war::defenders>(win.war));
 			for(auto n : r) {
 				lb.add_item(ws, n);
 			}
@@ -1703,8 +1699,7 @@ namespace nations {
 	template<typename lb_type, typename window_type>
 	void attackers_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			auto r = get_range(ws.w.nation_s.nations_arrays, this_war.attackers);
+			auto r = get_range(ws.w.nation_s.nations_arrays, ws.get<war::attackers>(win.war));
 			for(auto n : r) {
 				lb.add_item(ws, n);
 			}
@@ -1714,10 +1709,9 @@ namespace nations {
 	template<typename lb_type, typename window_type>
 	void defenders_wg_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			auto r = get_range(ws.w.military_s.war_goal_arrays, this_war.war_goals);
+			auto r = get_range(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(win.war));
 			for(auto& i : r) {
-				if(contains_item(ws.w.nation_s.nations_arrays, this_war.defenders, i.from_country))
+				if(contains_item(ws.w.nation_s.nations_arrays, ws.get<war::defenders>(win.war), i.from_country))
 					lb.add_item(ws, i);
 			}
 		}
@@ -1726,10 +1720,9 @@ namespace nations {
 	template<typename lb_type, typename window_type>
 	void attackers_wg_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
 		if(is_valid_index(win.war)) {
-			military::war& this_war = ws.w.military_s.wars[win.war];
-			auto r = get_range(ws.w.military_s.war_goal_arrays, this_war.war_goals);
+			auto r = get_range(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(win.war));
 			for(auto& i : r) {
-				if(contains_item(ws.w.nation_s.nations_arrays, this_war.attackers, i.from_country))
+				if(contains_item(ws.w.nation_s.nations_arrays, ws.get<war::attackers>(win.war), i.from_country))
 					lb.add_item(ws, i);
 			}
 		}
@@ -1738,9 +1731,8 @@ namespace nations {
 	template<typename lb_type>
 	void war_lb::populate_list(lb_type& lb, world_state& ws) {
 		boost::container::small_vector<military::war_tag, 16, concurrent_allocator<military::war_tag>> data;
-		ws.w.military_s.wars.for_each([&data, &ws](military::war const& w) {
-			if(auto id = w.id; ws.w.military_s.wars.is_valid_index(id))
-				data.push_back(id);
+		ws.w.military_s.wars.for_each([&data, &ws](military::war_tag w) {
+			data.push_back(w);
 		});
 		lb.new_list(data.begin().get_ptr(), data.end().get_ptr());
 	}
@@ -2471,7 +2463,7 @@ namespace nations {
 			auto wrange = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(player));
 			for(auto i = wrange.first; i != wrange.second; ++i) {
 				if(auto wid = i->war_id; ws.w.military_s.wars.is_valid_index(wid)) {
-					auto wg_range = get_range(ws.w.military_s.war_goal_arrays, ws.w.military_s.wars[wid].war_goals);
+					auto wg_range = get_range(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(wid));
 					for(auto& j : wg_range) {
 						if(j.from_country == player && j.target_country == ws.w.diplomacy_w.selected_nation)
 							lb.add_item(ws, j);

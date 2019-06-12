@@ -2844,9 +2844,9 @@ namespace triggers {
 		sub_unit_effect(effect_parsing_environment& e) : env(e) {}
 
 		void set_type(const token_and_type& t) {
-			type = tag_from_text(
-				env.s.military_m.named_unit_type_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
+			//type = tag_from_text(
+			//	env.s.military_m.named_unit_type_index,
+			//	text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 		void set_value(const token_and_type& t) {
 			if (is_fixed_token_ci(t, "this"))

@@ -58,4 +58,8 @@ public:
 			serialize_size(obj.named_national_variables) +
 			serialize_size(obj.named_national_flags);
 	}
+	template<typename T>
+	static size_t size(variables::variables_manager const& obj, T const&) {
+		return size(obj);
+	}
 };

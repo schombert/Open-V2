@@ -318,7 +318,7 @@ namespace technologies {
 
 		if(is_valid_index(tech.rebel_adjustment)) {
 			auto org_row = ws.s.technology_m.rebel_org_gain.get_row(tech.rebel_adjustment);
-			for(uint32_t i = 0; i < ws.s.population_m.rebel_types.size(); ++i) {
+			for(int32_t i = 0; i < ws.s.population_m.rebel_types.size(); ++i) {
 				population::rebel_type_tag tag(static_cast<population::rebel_type_tag::value_base_t>(i));
 				if(org_row[tag] != 0.0f) {
 					cursor_in = ui::add_text(cursor_in, ws.s.population_m.rebel_types[tag].name, fmt, ws, container, lm);
@@ -434,6 +434,7 @@ namespace technologies {
 			lm.finish_current_line();
 		}
 
+		/*
 		if(is_valid_index(tech.unit_adjustment)) {
 			for(uint32_t i = 0; i < ws.s.military_m.unit_types_count; ++i) {
 				military::unit_type_tag tag(static_cast<military::unit_type_tag::value_base_t>(i));
@@ -533,9 +534,13 @@ namespace technologies {
 					lm.finish_current_line();
 				}
 			}
+			
+
 			cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);
 			lm.finish_current_line();
 		}
+		*/
+
 		/*
 		triggers::trigger_tag allow;
 		*/

@@ -202,6 +202,10 @@ public:
 			serialize_size(obj.first_sea_province) +
 			serialize_size(obj.borders);;
 	}
+	template<typename T>
+	static size_t size(provinces::province_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace provinces {

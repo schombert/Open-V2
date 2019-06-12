@@ -440,6 +440,69 @@ public:
 };
 
 template<typename index_type>
+struct tagged_array_view<void, index_type> {
+private:
+public:
+#ifdef _DEBUG
+	int32_t size = 0;
+#endif
+
+	constexpr tagged_array_view(void* p, int32_t s) noexcept
+#ifdef _DEBUG
+		: size(s)
+#endif
+	{}
+
+	void operator[](index_type i) const noexcept {
+	}
+	void begin() const noexcept {
+	}
+#ifdef _DEBUG
+	void debug_end() const noexcept {
+	}
+#endif
+	void data() const noexcept {
+	}
+	explicit operator bool() const noexcept {
+		return false;
+	}
+	constexpr operator tagged_array_view<const void, index_type>() const noexcept {
+		return tagged_array_view<const void, index_type>(nullptr,
+#ifdef _DEBUG
+			size
+#else
+			0
+#endif
+			);
+	}
+};
+
+template<typename index_type>
+struct tagged_array_view<const void, index_type> {
+private:
+public:
+#ifdef _DEBUG
+	int32_t size = 0;
+#endif
+
+	constexpr tagged_array_view(void* p, int32_t s) noexcept
+#ifdef _DEBUG
+		: size(s)
+#endif
+	{}
+
+	void operator[](index_type i) const noexcept {}
+	void begin() const noexcept {}
+#ifdef _DEBUG
+	void debug_end() const noexcept {}
+#endif
+	void data() const noexcept {}
+	explicit operator bool() const noexcept {
+		return false;
+	}
+};
+
+template<typename index_type>
 void bit_vector_set(tagged_array_view<bitfield_type, index_type> v, index_type index, bool value) {
 	bit_vector_set(v.data(), to_index(index), value);
 }
@@ -468,6 +531,21 @@ struct struct_wrapper<struct_name> { \
 	using _struct_type = struct_name ; \
 
 #define END_STRUCT };
+
+#define START_INT_MAPPING(mapping_name) \
+template<typename T> \
+struct mapping_name { \
+	constexpr static int32_t value = -1;\
+};
+
+#define MAP_INT(mapping_name, tag_name, int_value) \
+struct tag_name; \
+template<> \
+struct mapping_name<tag_name> { \
+	constexpr static int32_t value = int_value; \
+};
+
+#define END_INT_MAPPING
 
 template<typename A, typename B, typename ... C>
 struct _supports_get : std::false_type {};
@@ -575,9 +653,44 @@ RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<std::is_same_v<IND
 	return int32_t(container_name.size<INDEX>()); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.resize<INDEX>(sz)))> { \
+RELEASE_INLINE auto resize(int32_t sz) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.resize<INDEX>(sz)))> { \
 	return container_name.resize<INDEX>(sz); \
 }
+
+#define GET_SET_MAPPED(map_name, container_name) \
+template<typename index_name, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) noexcept -> std::enable_if_t<map_name<index_name>::value != -1, decltype(container_name.get<map_name<index_name>::value>(t))> { \
+	return container_name.get<map_name<index_name>::value>(t); \
+} \
+template<typename index_name, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) const noexcept -> std::enable_if_t<map_name<index_name>::value != -1, decltype(container_name.get<map_name<index_name>::value>(t))> { \
+	return container_name.get<map_name<index_name>::value>(t); \
+} \
+template<typename index_name, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type v) noexcept -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && map_name<index_name>::value != -1, decltype(container_name.set<map_name<index_name>::value>(t, v))> { \
+	return container_name.set<map_name<index_name>::value>(t, v); \
+} \
+template<typename index_name, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && map_name<index_name>::value != -1, decltype(container_name.set<map_name<index_name>::value>(t, v))> { \
+	return container_name.set<map_name<index_name>::value>(t, v); \
+} \
+template<typename index_name> \
+RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<map_name<index_name>::value != -1, decltype(container_name.get_row<map_name<index_name>::value>())> { \
+	return container_name.get_row<map_name<index_name>::value>(); \
+} \
+template<typename index_name> \
+RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<map_name<index_name>::value != -1, decltype(container_name.get_row<map_name<index_name>::value>())> { \
+	return container_name.get_row<map_name<index_name>::value>(); \
+} \
+template<typename index_name> \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<map_name<index_name>::value != -1, int32_t> { \
+	return container_name.size(); \
+} \
+template<typename index_name> \
+RELEASE_INLINE auto resize(int32_t sz) noexcept -> std::enable_if_t<map_name<index_name>::value != -1, void> { \
+}
+
+
 
 #define GET_SET_TFV(index_name, container_name) \
 template<typename INDEX, typename tag_type, typename inner_tag_type> \
@@ -657,8 +770,8 @@ public:
 	void set(tag_type t, value_type v) {
 		*(storage.data() + to_index(t) + int32_t(padded)) = v;
 	}
-	auto data() const { return storage.data(); }
-	auto data() { return storage.data(); }
+	auto data() const { return storage.data() + int32_t(padded); }
+	auto data() { return storage.data() + int32_t(padded); }
 	auto array() const { return storage.data() + int32_t(padded); }
 	auto array() { return storage.data() + int32_t(padded); }
 	auto begin() const { return storage.begin() + int32_t(padded); }
@@ -672,6 +785,7 @@ public:
 	void resize(int32_t size) { storage.resize(size_t(size + int32_t(padded))); }
 	void reserve(size_t size) { storage.reserve(size + size_t(padded)); }
 	void pop_back() { storage.pop_back(); }
+	void push_back(value_type v) { storage.push_back(v); }
 	tagged_array_view<value_type, tag_type> view() {
 		return tagged_array_view<value_type, tag_type>(storage.data() + int32_t(padded),
 #ifdef _DEBUG
@@ -807,6 +921,7 @@ public:
 	void resize(size_t outer_size) { storage.resize(outer_size * _inner_size); }
 	void reserve(size_t outer_size) { storage.reserve(outer_size * _inner_size); }
 };
+
 
 template<typename value_type, typename variable_tag_type, typename fixed_tag_type, typename allocator>
 class tagged_fixed_blocked_2dvector {

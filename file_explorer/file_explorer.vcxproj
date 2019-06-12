@@ -23,7 +23,7 @@
     <ProjectGuid>{63EBBF20-3ABD-4FAF-A2EC-95265A837A3E}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>fileexplorer</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">

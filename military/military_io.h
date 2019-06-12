@@ -17,6 +17,8 @@ template<>
 class serialization::serializer<military::naval_control> : public serialization::memcpy_serializer<military::war_goal> {};
 template<>
 class serialization::serializer<military::cb_type> : public serialization::memcpy_serializer<military::cb_type> {};
+template<>
+class serialization::serializer<military::army_orders_type> : public serialization::memcpy_serializer<military::army_orders_type> {};
 
 
 
@@ -59,7 +61,16 @@ public:
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
 };
+template<typename T>
+class serialization::tagged_serializer<war::war_goals, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
 
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
+};
 
 template<>
 class serialization::serializer<military::military_state> {
@@ -123,6 +134,10 @@ public:
 			serialize_size(obj.personality_traits) +
 			serialize_size(obj.background_traits);
 	}
+	template<typename T>
+	static size_t size(military::military_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace military {
@@ -137,20 +152,20 @@ namespace military {
 		~parsing_state();
 	};
 
-	void pre_parse_unit_types(
-		parsing_state& state,
-		const directory& source_directory);
+	//void pre_parse_unit_types(
+	//	parsing_state& state,
+	//	const directory& source_directory);
 	void pre_parse_cb_types(
 		parsing_state& state,
 		const directory& source_directory);
 	void read_leader_traits(parsing_state& state,
 		const directory& source_directory);
-	void read_unit_types(
-		parsing_state& state,
-		military_manager& military_m,
-		economy::economic_scenario& economy_m,
-		sound::sound_manager& sound_m,
-		text_data::text_sequences& text_m);
+	//void read_unit_types(
+	//	parsing_state& state,
+	//	military_manager& military_m,
+	//	economy::economic_scenario& economy_m,
+	//	sound::sound_manager& sound_m,
+	//	text_data::text_sequences& text_m);
 	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
 	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_group const* start, token_group const* end);
 	void read_wars(world_state& ws, date_tag target_date, const directory& root);

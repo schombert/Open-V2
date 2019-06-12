@@ -1419,7 +1419,7 @@ namespace economy {
 		categories.resize(ws.s.economy_m.good_type_names.size());
 		production_details.resize(ws.s.economy_m.goods_count);
 
-		for(uint32_t i = 0; i < ws.s.economy_m.good_type_names.size(); ++i) {
+		for(int32_t i = 0; i < ws.s.economy_m.good_type_names.size(); ++i) {
 			goods_type_tag this_category(static_cast<goods_type_tag::value_base_t>(i));
 
 			ui::move_to_front(ws.w.gui_m, ui::create_static_element(

@@ -21,4 +21,8 @@ public:
 		return serialize_size(obj.trigger_data) +
 			serialize_size(obj.effect_data);
 	}
+	template<typename T>
+	static size_t size(triggers::trigger_manager const& obj, T const&) {
+		return size(obj);
+	}
 };

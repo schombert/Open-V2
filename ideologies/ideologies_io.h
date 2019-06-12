@@ -69,6 +69,10 @@ public:
 			serialize_size(obj.ideology_container) +
 			serialize_size(obj.conservative_ideology);
 	}
+	template<typename T>
+	static size_t size(ideologies::ideologies_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace ideologies {

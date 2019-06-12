@@ -76,6 +76,10 @@ public:
 			serialize_size(obj.options) +
 			serialize_size(obj.jingoism);
 	}
+	template<typename T>
+	static size_t size(issues::issues_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace issues {

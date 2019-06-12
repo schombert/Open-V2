@@ -34,6 +34,10 @@ public:
 			serialize_size(obj.graphics_object_definitions) +
 			serialize_size(obj.text_data_sequences);
 	}
+	template<typename T>
+	static size_t size(ui::gui_static const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace ui {

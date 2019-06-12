@@ -172,11 +172,6 @@ namespace cultures {
 		tagged_fixed_2dvector<graphics::texture_tag, national_tag, governments::government_tag> country_flags_by_government;
 
 		stable_variable_vector_storage_mk_2<culture_tag, 4, 8192> culture_arrays;
-
-		GET_SET(national_tags_state)
-		GET_SET_TV(::nation_tag::holder, tags_to_holders)
-		GET_SET_TFV(::nation_tag::flags, country_flags_by_government)
-		ARRAY_BACKING_BASE(culture_arrays)
 	};
 
 	struct leader_pictures;
@@ -234,20 +229,6 @@ namespace cultures {
 				f(cultures::culture_group_tag(cultures::culture_group_tag::value_base_t(i)));
 			}
 		}
-
-		GET_SET(culture_groups)
-		GET_SET(religions)
-		GET_SET(culture_container)
-		GET_SET(national_tags)
-		GET_SET_TV(::culture::union_tag, cultures_to_tags)
-		GET_SET_TV(::culture::group_direct, cultures_to_groups)
-		GET_SET_TV(::culture_group::union_tag_direct, groups_to_tags)
-		GET_SET_TV(::nation_tag::culture_group, tags_to_groups)
-		GET_SET_TFV(::nation_tag::government_names, country_names_by_government)
-		GET_SET_TFV(::culture::first_names, first_names_by_culture)
-		GET_SET_TFV(::culture::last_names, last_names_by_culture)
-		GET_SET_TFV(::culture_group::cultures, culture_by_culture_group)
-		GET_SET_TV(::cultures::leader_pictures, leader_pictures)
 	};
 
 	struct tag_as_text {

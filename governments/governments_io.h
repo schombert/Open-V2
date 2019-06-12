@@ -53,6 +53,10 @@ public:
 			serialize_size(obj.parties) +
 			serialize_size(obj.party_issues);
 	}
+	template<typename T>
+	static size_t size(governments::governments_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace governments {

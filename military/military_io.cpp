@@ -190,10 +190,10 @@ namespace military {
 
 		parsed_ship(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
-		unit_type_tag type;
+		//unit_type_tag type;
 		void discard(int) {}
 		void set_type(token_and_type const& t) {
-			type = tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
+			// type = tag_from_text(ws.s.military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, t.start, t.end));
 		}
 	};
 
@@ -203,34 +203,40 @@ namespace military {
 
 		leader_tag set_leader;
 		provinces::province_tag location;
-		std::vector<provinces::province_tag> regiment_sources;
-		std::vector<unit_type_tag> ship_types;
+
+		// std::vector<provinces::province_tag> regiment_sources;
+		// std::vector<unit_type_tag> ship_types;
+		
+		int32_t ship_count = 0;
+		int32_t regiment_count = 0;
 
 		parsed_army_or_navy(world_state& w, nations::country_tag n) : ws(w), this_nation(n) {}
 
 		void add_leader(parsed_leader const& l) {
-			auto& new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
-			new_leader.background = l.background;
-			new_leader.personality = l.personality;
-			new_leader.creation_date = l.creation_date;
+			auto new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
+			ws.set<military_leader::background>(new_leader, l.background);
+			ws.set<military_leader::personality>(new_leader, l.personality);
+			ws.set<military_leader::creation_date>(new_leader, l.creation_date);
 
 			calculate_leader_traits(ws, new_leader);
 
 			if(l.is_general)
-				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(this_nation), new_leader.id);
+				ws.add_item(ws.get<nation::generals>(this_nation), new_leader);
 			else
-				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation), new_leader.id);
+				ws.add_item(ws.get<nation::admirals>(this_nation), new_leader);
 
-			set_leader = new_leader.id;
+			set_leader = new_leader;
 		}
 		void set_location(uint16_t p) {
 			location = provinces::province_tag(p);
 		}
 		void add_regiment(parsed_regiment const & r) {
-			regiment_sources.push_back(r.home);
+			++regiment_count;
+			// regiment_sources.push_back(r.home);
 		}
 		void add_ship(parsed_ship const & s) {
-			ship_types.push_back(s.type);
+			++ship_count;
+			// ship_types.push_back(s.type);
 		}
 		void discard(int) {}
 	};
@@ -250,42 +256,37 @@ namespace military {
 				nations::set_influence(ws, this_nation, other_nation, float(p.second.influence_value), p.second.level);
 		}
 		void add_leader(parsed_leader const& l) {
-			auto& new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
-			new_leader.background = l.background;
-			new_leader.personality = l.personality;
-			new_leader.creation_date = l.creation_date;
+			auto new_leader = make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(this_nation), l.is_general);
+			ws.set<military_leader::background>(new_leader, l.background);
+			ws.set<military_leader::personality>(new_leader, l.personality);
+			ws.set<military_leader::creation_date>(new_leader, l.creation_date);
 
 			calculate_leader_traits(ws, new_leader);
 
 			if(l.is_general)
-				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(this_nation), new_leader.id);
+				ws.add_item(ws.get<nation::generals>(this_nation), new_leader);
 			else
-				add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation), new_leader.id);
+				ws.add_item(ws.get<nation::admirals>(this_nation), new_leader);
 		}
 		void add_army(parsed_army_or_navy&& a) {
 			if(!is_valid_index(a.location))
-				a.location = ws.w.nation_s.nations.get<nation::current_capital>(this_nation);
+				a.location = ws.get<nation::current_capital>(this_nation);
 
-			auto& new_army = make_army(ws, this_nation, a.location);
+			auto new_army = make_army(ws, this_nation, a.location);
 			if(is_valid_index(a.set_leader)) {
-				new_army.leader = &ws.w.military_s.leaders.get(a.set_leader);
-				new_army.leader->attached = true;
+				ws.set<army::leader>(new_army, a.set_leader);
+				ws.set<military_leader::is_attached>(a.set_leader, true);
 			}
 
-			for(auto p : a.regiment_sources) {
-				auto found_pop = population::get_unassigned_soldier_in_province(ws, p);
-				if(found_pop)
-					immediate_add_pop_to_army(ws, new_army, found_pop);
-			}
+			ws.set<army::target_solders>(new_army, 1000.0f * a.regiment_count);
 		}
 		void add_navy(parsed_army_or_navy const& n) {
-			auto& new_fleet = make_fleet(ws, this_nation, n.location);
+			auto new_fleet = make_fleet(ws, this_nation, n.location);
 			if(is_valid_index(n.set_leader)) {
-				new_fleet.leader = &ws.w.military_s.leaders.get(n.set_leader);
-				new_fleet.leader->attached = true;
+				ws.set<fleet::leader>(new_fleet, n.set_leader);
+				ws.set<military_leader::is_attached>(n.set_leader, true);
 			}
-			for(auto s : n.ship_types)
-				add_item(ws.w.military_s.ship_arrays, new_fleet.ships, ship{ 1.0f, 1.0f, s });
+			ws.set<fleet::size>(new_fleet, float(n.ship_count));
 		}
 	};
 
@@ -295,8 +296,8 @@ namespace military {
 		military_manager& manager;
 
 		parsed_data cb_file;
-		std::vector<parsed_data> unit_type_files;
-		std::vector<std::tuple<unit_type_tag, token_group const*, token_group const*>> pending_unit_parse;
+		// std::vector<parsed_data> unit_type_files;
+		// std::vector<std::tuple<unit_type_tag, token_group const*, token_group const*>> pending_unit_parse;
 		std::vector<std::tuple<cb_type_tag, token_group const*, token_group const*>> pending_cb_parse;
 
 		parsing_environment(text_data::text_sequences& tl, military_manager& m) :
@@ -507,7 +508,7 @@ namespace military {
 		void discard(int) {}
 	};
 
-
+	/*
 	struct unit_file {
 		parsing_environment& env;
 		unit_file(parsing_environment& e) : env(e) {}
@@ -525,6 +526,7 @@ namespace military {
 
 		return 0;
 	}
+	*/
 
 	inline int register_cb_type(token_group const* start, token_group const* end, token_and_type const& t, parsing_environment& env) {
 		const auto name = text_data::get_thread_safe_text_handle(env.text_lookup, t.start, t.end);
@@ -655,7 +657,7 @@ namespace military {
 		return std::pair<token_and_type, trait>(t, r);
 	}
 
-	struct unit_type_env {
+	/*struct unit_type_env {
 		military_manager& military_m;
 		economy::economic_scenario& econ_m;
 		sound::sound_manager& sound_m;
@@ -690,11 +692,12 @@ namespace military {
 				env.military_m.unit_base_supply_costs.get(env.unit.id, good_tag) = p.second;
 		}
 	};
+	*/
 
 	inline std::pair<token_and_type, economy::goods_qnty_type> get_econ_value(const token_and_type& l, association_type, const token_and_type& r) {
 		return std::pair<token_and_type, economy::goods_qnty_type>(l, token_to<economy::goods_qnty_type>(r));
 	}
-
+	/*
 	struct unit_type_reader {
 		unit_type_env& env;
 
@@ -798,6 +801,7 @@ namespace military {
 		}
 		void discard(int) {}
 	};
+	*/
 }
 
 MEMBER_FDEF(military::war_goal_reader, set_actor, "actor");
@@ -888,7 +892,7 @@ MEMBER_FDEF(military::single_cb, set_po_destroy_naval_bases, "po_destroy_naval_b
 MEMBER_FDEF(military::cb_file, add_cb, "add_cb");
 MEMBER_FDEF(military::cb_file, accept_peace_order, "peace_order");
 MEMBER_FDEF(military::peace_order, add_cb, "add_cb");
-MEMBER_FDEF(military::unit_file, add_unit, "add_unit");
+//MEMBER_FDEF(military::unit_file, add_unit, "add_unit");
 MEMBER_DEF(military::trait, organisation, "organisation");
 MEMBER_DEF(military::trait, morale, "morale");
 MEMBER_DEF(military::trait, attack, "attack");
@@ -904,6 +908,7 @@ MEMBER_FDEF(military::backgrounds, add_no_background, "no_background");
 MEMBER_FDEF(military::traits_file, add_personalities, "personality");
 MEMBER_FDEF(military::traits_file, add_backgrounds, "background");
 
+/*
 MEMBER_FDEF(military::unit_build_cost, set_value, "value");
 MEMBER_FDEF(military::unit_supply_cost, set_value, "value");
 MEMBER_FDEF(military::unit_type_reader, discard, "discard");
@@ -934,6 +939,7 @@ MEMBER_FDEF(military::unit_type_reader, set_naval_icon, "naval_icon");
 MEMBER_FDEF(military::unit_type_reader, set_min_port_level, "min_port_level");
 MEMBER_FDEF(military::unit_type_reader, set_limit_per_port, "limit_per_port");
 MEMBER_FDEF(military::unit_type_reader, set_supply_consumption_score, "supply_consumption_score");
+*/
 
 namespace military {
 	BEGIN_DOMAIN(war_file_domain)
@@ -1051,6 +1057,7 @@ namespace military {
 		END_TYPE
 		END_DOMAIN;
 
+	/*
 	BEGIN_DOMAIN(unit_type_parsing)
 		BEGIN_TYPE(unit_build_cost)
 		MEMBER_VARIABLE_ASSOCIATION("value", accept_all, get_econ_value)
@@ -1113,6 +1120,7 @@ namespace military {
 		MEMBER_VARIABLE_TYPE_EXTERN("add_unit", accept_all, int, register_unit_type)
 		END_TYPE
 		END_DOMAIN;
+	*/
 
 	BEGIN_DOMAIN(cb_types_pre_parsing_domain)
 		BEGIN_TYPE(cb_file)
@@ -1181,45 +1189,47 @@ namespace military {
 				auto result = parse_object<war_file, war_file_domain>(parse_results.data(), parse_results.data() + parse_results.size(), ws, target_date);
 
 				if(result.attacker.size() != 0 && result.defender.size() != 0) {
-					auto& new_war = ws.w.military_s.wars.get_new();
-					new_war.primary_attacker = result.attacker[0];
-					new_war.primary_defender = result.defender[0];
+					auto new_war = ws.w.military_s.wars.get_new();
+					ws.set<war::primary_attacker>(new_war, result.attacker[0]);
+					ws.set<war::primary_defender>(new_war, result.defender[0]);
 					for(auto i : result.attacker) {
-						add_item(ws.w.nation_s.nations_arrays, new_war.attackers, i);
-						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(i), war_identifier{ new_war.id, true });
+						ws.add_item(ws.get<war::attackers>(new_war), i);
+						ws.add_item(ws.get<nation::wars_involved_in>(i), war_identifier{ new_war, true });
 					}
 					for(auto i : result.defender) {
-						add_item(ws.w.nation_s.nations_arrays, new_war.defenders, i);
-						add_item(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(i), war_identifier{ new_war.id, false });
+						ws.add_item(ws.get<war::defenders>(new_war), i);
+						ws.add_item(ws.get<nation::wars_involved_in>(i), war_identifier{ new_war, false });
 					}
 					for(auto& wg : result.war_goals) {
-						add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals, wg);
+						ws.add_item(ws.get<war::war_goals>(new_war), wg);
 					}
 					for(auto& wg : result.war_goals) {
-						if(wg.target_country == new_war.primary_defender && wg.from_country == new_war.primary_attacker) {
-							new_war.war_name = ws.s.military_m.cb_types[wg.cb_type].war_name;
+						if(wg.target_country == ws.get<war::primary_defender>(new_war)
+							&& wg.from_country == ws.get<war::primary_attacker>(new_war)) {
 
-							new_war.first_adj = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_attacker);
-							new_war.second = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_defender);
+							ws.set<war::name>(new_war, ws.s.military_m.cb_types[wg.cb_type].war_name);
+
+							ws.set<war::first_adj>(new_war, ws.get<nation::adjective>(ws.get<war::primary_attacker>(new_war)));
+							ws.set<war::second>(new_war, ws.get<nation::adjective>(ws.get<war::primary_defender>(new_war)));
 
 							if(is_valid_index(wg.target_state))
-								new_war.state_name = ws.w.nation_s.states.get<state::name>(wg.target_state);
+								ws.set<war::state_name>(new_war, ws.get<state::name>(wg.target_state));
 
 							auto& cbt = ws.s.military_m.cb_types[wg.cb_type];
 							if((cbt.flags & (cb_type::po_annex | cb_type::po_make_puppet | cb_type::po_gunboat)) != 0)
-								new_war.second = ws.w.nation_s.nations.get<nation::name>(new_war.primary_defender);
+								ws.set<war::second>(new_war, ws.get<nation::name>(ws.get<war::primary_defender>(new_war)));
 							else if((cbt.flags & cb_type::po_liberate) != 0 && is_valid_index(wg.liberation_target))
-								new_war.second = ws.w.nation_s.nations.get<nation::adjective>(wg.liberation_target);
+								ws.set<war::second>(new_war, ws.get<nation::adjective>(wg.liberation_target));
 							else if((cbt.flags & cb_type::po_take_from_sphere) != 0 && is_valid_index(wg.liberation_target))
-								new_war.second = ws.w.nation_s.nations.get<nation::adjective>(wg.liberation_target);
+								ws.set<war::second>(new_war, ws.get<nation::adjective>(wg.liberation_target));
 
 							break;
 						}
 					}
-					if(!is_valid_index(new_war.war_name)) {
-						new_war.war_name = text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME");
-						new_war.first_adj = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_attacker);
-						new_war.second = ws.w.nation_s.nations.get<nation::adjective>(new_war.primary_defender);
+					if(!is_valid_index(ws.get<war::name>(new_war))) {
+						ws.set<war::name>(new_war, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME"));
+						ws.set<war::first_adj>(new_war, ws.get<nation::adjective>(ws.get<war::primary_attacker>(new_war)));
+						ws.set<war::second>(new_war, ws.get<nation::adjective>(ws.get<war::primary_defender>(new_war)));
 					}
 					
 				}
@@ -1227,6 +1237,7 @@ namespace military {
 		}
 	}
 
+	/*
 	void read_unit_types(
 		parsing_state& state,
 		military_manager& military_m,
@@ -1300,6 +1311,7 @@ namespace military {
 
 		env.manager.unit_types_count = uint32_t(env.manager.unit_types.size());
 	}
+	*/
 
 	void pre_parse_cb_types(
 		parsing_state& state,

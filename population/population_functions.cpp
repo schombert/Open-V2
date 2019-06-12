@@ -175,14 +175,6 @@ namespace population {
 			|| contains_item(ws.w.culture_s.culture_arrays, ws.w.nation_s.nations.get<nation::accepted_cultures>(n), p_culture);
 	}
 
-	pop_tag get_unassigned_soldier_in_province(world_state const& ws, provinces::province_tag prov) {
-		auto pop_range = get_range(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(prov));
-		for(auto i : pop_range) {
-			if(!is_valid_index(ws.w.population_s.pops.get<pop::associated_army>(i)) & (ws.w.population_s.pops.get<pop::type>(i) == ws.s.population_m.soldier))
-				return i;
-		}
-		return pop_tag();
-	}
 	void set_militancy_direct(world_state& ws, pop_tag p, float v) {
 		ws.w.population_s.pops.set<pop::militancy>(p, std::clamp(v, 0.0f, 10.0f) / 10.0f);
 	}
@@ -2147,9 +2139,9 @@ namespace population {
 					{
 						std::lock_guard guard(release_lock);
 
-						if(auto a = ws.w.population_s.pops.get<pop::associated_army>(pop_j); a) {
-							remove_item(ws.w.population_s.pop_arrays, ws.w.military_s.armies[a].backing_pops, pop_j);
-						}
+						//if(auto a = ws.w.population_s.pops.get<pop::associated_army>(pop_j); a) {
+						//	remove_item(ws.w.population_s.pop_arrays, ws.w.military_s.armies[a].backing_pops, pop_j);
+						//}
 						ws.w.population_s.pops.release(pop_j);
 					}
 				}

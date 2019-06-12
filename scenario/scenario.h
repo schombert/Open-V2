@@ -883,10 +883,6 @@ namespace scenario {
 		std::vector<text_data::text_tag> fixed_ui_text;
 
 		scenario_manager() {}
-
-		GET_SET(province_m)
-		GET_SET(culture_m)
-		GET_SET(military_m)
 	};
 
 	void ready_scenario(scenario_manager& s, const directory& root);

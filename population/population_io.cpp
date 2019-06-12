@@ -665,11 +665,11 @@ namespace population {
 		poptype_rebels(single_poptype_environment& e) : env(e) {}
 
 		void add_rebel(const std::pair<token_and_type, float>& p) {
-			const auto utype_tag = tag_from_text(
-				env.s.military_m.named_unit_type_index,
-				text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
-			if(is_valid_index(utype_tag))
-				env.s.population_m.rebel_units.get(env.pt.id, utype_tag) = p.second;
+			//const auto utype_tag = tag_from_text(
+			//	env.s.military_m.named_unit_type_index,
+			//	text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end));
+			//if(is_valid_index(utype_tag))
+			//	env.s.population_m.rebel_units.get(env.pt.id, utype_tag) = p.second;
 		}
 	};
 
@@ -1186,8 +1186,8 @@ namespace population {
 		s.population_m.luxury_needs.reset(goods_count);
 		s.population_m.luxury_needs.resize(s.population_m.count_poptypes);
 
-		s.population_m.rebel_units.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
-		s.population_m.rebel_units.resize(s.population_m.count_poptypes);
+		// s.population_m.rebel_units.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
+		// s.population_m.rebel_units.resize(s.population_m.count_poptypes);
 		s.population_m.issue_inclination.reset(static_cast<uint32_t>(s.issues_m.options.size()));
 		s.population_m.issue_inclination.resize(s.population_m.count_poptypes);
 		s.population_m.ideological_inclination.reset(static_cast<uint32_t>(s.ideologies_m.ideology_container.size()));

@@ -37,6 +37,9 @@ public:
 	static void serialize_object(std::byte* &output, current_state::state const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, current_state::state& obj, uint64_t version, world_state& ws);
 	static size_t size(current_state::state const& obj, world_state const& ws);
+	static size_t size(current_state::state const& obj, uint64_t version, world_state const& ws) {
+		return size(obj, ws);
+	}
 };
 
 void restore_world_state(world_state& ws);

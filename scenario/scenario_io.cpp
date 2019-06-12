@@ -25,7 +25,7 @@ namespace scenario {
 		auto const government_names = governments::read_governments(s.governments_m, root, s.gui_m.text_data_sequences, s.ideologies_m);
 
 		military::parsing_state military_state(s.gui_m.text_data_sequences, s.military_m);
-		military::pre_parse_unit_types(military_state, root);
+		// military::pre_parse_unit_types(military_state, root);
 		military::pre_parse_cb_types(military_state, root);
 		military::read_leader_traits(military_state, root);
 
@@ -72,7 +72,7 @@ namespace scenario {
 
 		issues::read_issue_options(issues_state, s, ecm);
 
-		military::read_unit_types(military_state, s.military_m, s.economy_m, s.sound_m, s.gui_m.text_data_sequences);
+		// military::read_unit_types(military_state, s.military_m, s.economy_m, s.sound_m, s.gui_m.text_data_sequences);
 		military::read_cb_types(military_state, s, ecm);
 
 		modifiers::read_crimes(modifiers_state, s);

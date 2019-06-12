@@ -45,7 +45,7 @@ namespace military {
 	war_tag get_war_between(world_state& ws, nations::country_tag a, nations::country_tag b);
 
 	void destroy_army(world_state& ws, army_tag a);
-	void destroy_fleet(world_state& ws, fleet_tag f);
+	void destroy_fleet(world_state& ws, fleet_tag f, nations::country_tag owner);
 	void partial_destroy_fleet(world_state& ws, fleet_tag f); // does not remove from nation
 	void partial_destroy_army(world_state& ws, army_tag a); // does not remove from orders or nation
 	void destroy_orders(world_state& ws, army_orders_tag o, nations::country_tag owner);

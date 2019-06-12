@@ -132,6 +132,8 @@ class serialization::tagged_serializer<nation::statewise_tariff_mask, T> : publi
 template<typename T>
 class serialization::tagged_serializer<nation::armies, T> : public serialization::discard_serializer<T> {};
 template<typename T>
+class serialization::tagged_serializer<nation::strategic_hqs, T> : public serialization::discard_serializer<T> {};
+template<typename T>
 class serialization::tagged_serializer<nation::opponents_in_war, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<nation::allies_in_war, T> : public serialization::discard_serializer<T> {};

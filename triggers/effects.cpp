@@ -1582,16 +1582,14 @@ namespace triggers {
 			if(holder) {
 				auto war_between = military::get_war_between(ws, to_nation(primary_slot), holder);
 				if(war_between) {
-					military::destroy_war(ws, *war_between);
-					ws.w.military_s.wars.remove(war_between->id);
+					military::destroy_war(ws, war_between);
 				}
 			}
 		}
 		void ef_end_war_this_nation(EFFECT_PARAMTERS) {
 			auto war_between = military::get_war_between(ws, to_nation(primary_slot), to_nation(this_slot));
 			if(war_between) {
-				military::destroy_war(ws, *war_between);
-				ws.w.military_s.wars.remove(war_between->id);
+				military::destroy_war(ws, war_between);
 			}
 		}
 		void ef_end_war_this_province(EFFECT_PARAMTERS) {
@@ -1602,8 +1600,7 @@ namespace triggers {
 		void ef_end_war_from_nation(EFFECT_PARAMTERS) {
 			auto war_between = military::get_war_between(ws, to_nation(primary_slot), to_nation(from_slot));
 			if(war_between) {
-				military::destroy_war(ws, *war_between);
-				ws.w.military_s.wars.remove(war_between->id);
+				military::destroy_war(ws, war_between);
 			}
 		}
 		void ef_end_war_from_province(EFFECT_PARAMTERS) {
@@ -2319,7 +2316,7 @@ namespace triggers {
 		void ef_war_tag(EFFECT_PARAMTERS) {
 			auto target = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(target) {
-				auto& new_war = military::create_war(ws, to_nation(primary_slot), target, true);
+				auto new_war = military::create_war(ws, to_nation(primary_slot), target, true);
 
 				auto attacker_wg_count = tval[3];
 				uint32_t payload_index = 4;
@@ -2331,7 +2328,7 @@ namespace triggers {
 
 					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+					ws.add_item(ws.get<war::war_goals>(new_war),
 						military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
@@ -2346,7 +2343,7 @@ namespace triggers {
 
 					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+					ws.add_item(ws.get<war::war_goals>(new_war),
 						military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
@@ -2355,7 +2352,7 @@ namespace triggers {
 		void ef_war_this_nation(EFFECT_PARAMTERS) {
 			auto target = to_nation(this_slot);
 
-			auto& new_war = military::create_war(ws, to_nation(primary_slot), target, true);
+			auto new_war = military::create_war(ws, to_nation(primary_slot), target, true);
 
 			auto attacker_wg_count = tval[2];
 			uint32_t payload_index = 3;
@@ -2367,7 +2364,7 @@ namespace triggers {
 
 				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+				add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 					military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
@@ -2382,7 +2379,7 @@ namespace triggers {
 
 				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+				add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 					military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
@@ -2409,7 +2406,7 @@ namespace triggers {
 		void ef_war_no_ally_tag(EFFECT_PARAMTERS) {
 			auto target = ws.w.culture_s.tags_to_holders[trigger_payload(tval[2]).tag];
 			if(target) {
-				auto& new_war = military::create_war(ws, to_nation(primary_slot), target, false);
+				auto new_war = military::create_war(ws, to_nation(primary_slot), target, false);
 
 				auto attacker_wg_count = tval[3];
 				uint32_t payload_index = 4;
@@ -2421,7 +2418,7 @@ namespace triggers {
 
 					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+					add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 						military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
@@ -2436,7 +2433,7 @@ namespace triggers {
 
 					auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-					add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+					add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 						military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 					payload_index += 3;
 				}
@@ -2445,7 +2442,7 @@ namespace triggers {
 		void ef_war_no_ally_this_nation(EFFECT_PARAMTERS) {
 			nations::country_tag target = to_nation(this_slot);
 
-			auto& new_war = military::create_war(ws, to_nation(primary_slot), target, false);
+			auto new_war = military::create_war(ws, to_nation(primary_slot), target, false);
 
 			auto attacker_wg_count = tval[2];
 			uint32_t payload_index = 3;
@@ -2457,7 +2454,7 @@ namespace triggers {
 
 				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+				add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 					military::war_goal{ ws.w.current_date, 0.0f, to_nation(primary_slot), state, target, bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
@@ -2472,7 +2469,7 @@ namespace triggers {
 
 				auto lib_holder = ws.w.culture_s.tags_to_holders[liberate_country_tag];
 
-				add_item(ws.w.military_s.war_goal_arrays, new_war.war_goals,
+				add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(new_war),
 					military::war_goal{ ws.w.current_date, 0.0f, target, state, to_nation(primary_slot), bool(lib_holder) ? lib_holder : nations::country_tag(), cb_type });
 				payload_index += 3;
 			}
@@ -2928,22 +2925,22 @@ namespace triggers {
 				ws.w.nation_s.national_stockpiles.get(owner, trigger_payload(tval[2]).small.values.good) += economy::goods_qnty_type(read_float_from_payload(tval + 3));
 		}
 		void ef_define_general(EFFECT_PARAMTERS) {
-			auto& new_leader = military::make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot)), true);
-			new_leader.creation_date = ws.w.current_date;
-			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
-			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
+			auto new_leader = military::make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot)), true);
+			ws.set<military_leader::creation_date>(new_leader, ws.w.current_date);
+			ws.set<military_leader::personality>(new_leader, trigger_payload(tval[3]).small.values.leader_trait);
+			ws.set<military_leader::background>(new_leader, trigger_payload(tval[4]).small.values.leader_trait);
 			military::calculate_leader_traits(ws, new_leader);
 
-			add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(to_nation(primary_slot)), new_leader.id);
+			add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(to_nation(primary_slot)), new_leader);
 		}
 		void ef_define_admiral(EFFECT_PARAMTERS) {
-			auto& new_leader = military::make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot)), false);
-			new_leader.creation_date = ws.w.current_date;
-			new_leader.personality = trigger_payload(tval[3]).small.values.leader_trait;
-			new_leader.background = trigger_payload(tval[4]).small.values.leader_trait;
+			auto new_leader = military::make_empty_leader(ws, ws.w.nation_s.nations.get<nation::primary_culture>(to_nation(primary_slot)), false);
+			ws.set<military_leader::creation_date>(new_leader, ws.w.current_date);
+			ws.set<military_leader::personality>(new_leader, trigger_payload(tval[3]).small.values.leader_trait);
+			ws.set<military_leader::background>(new_leader, trigger_payload(tval[4]).small.values.leader_trait);
 			military::calculate_leader_traits(ws, new_leader);
 
-			add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(to_nation(primary_slot)), new_leader.id);
+			add_item(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(to_nation(primary_slot)), new_leader);
 		}
 		void ef_dominant_issue(EFFECT_PARAMTERS) {
 			auto opt = trigger_payload(tval[2]).small.values.option;
@@ -2976,7 +2973,7 @@ namespace triggers {
 		}
 		void ef_add_war_goal(EFFECT_PARAMTERS) {
 			if(auto w = military::get_war_between(ws, to_nation(primary_slot), to_nation(from_slot)); w) {
-				add_item(ws.w.military_s.war_goal_arrays, w->war_goals,
+				add_item(ws.w.military_s.war_goal_arrays, ws.get<war::war_goals>(w),
 					military::war_goal{
 						ws.w.current_date,
 						0.0f,

@@ -54,7 +54,7 @@ public:
 		serialize(output, obj.technologies_container);
 		serialize(output, obj.inventions);
 		serialize(output, obj.production_adjustments);
-		serialize(output, obj.unit_type_adjustments);
+		// serialize(output, obj.unit_type_adjustments);
 		serialize(output, obj.rebel_org_gain);
 		serialize(output, obj.tech_modifier_names);
 	}
@@ -64,7 +64,7 @@ public:
 		deserialize(input, obj.technologies_container);
 		deserialize(input, obj.inventions);
 		deserialize(input, obj.production_adjustments);
-		deserialize(input, obj.unit_type_adjustments);
+		// deserialize(input, obj.unit_type_adjustments);
 		deserialize(input, obj.rebel_org_gain);
 		deserialize(input, obj.tech_modifier_names);
 
@@ -76,7 +76,7 @@ public:
 		deserialize(input, obj.technologies_container);
 		deserialize(input, obj.inventions);
 		deserialize(input, obj.production_adjustments);
-		deserialize(input, obj.unit_type_adjustments);
+		// deserialize(input, obj.unit_type_adjustments);
 		deserialize(input, obj.rebel_org_gain);
 		deserialize(input, obj.tech_modifier_names);
 
@@ -89,9 +89,13 @@ public:
 			serialize_size(obj.technologies_container) +
 			serialize_size(obj.inventions) +
 			serialize_size(obj.production_adjustments) +
-			serialize_size(obj.unit_type_adjustments) +
+			// serialize_size(obj.unit_type_adjustments) +
 			serialize_size(obj.rebel_org_gain) + 
 			serialize_size(obj.tech_modifier_names);
+	}
+	template<typename T>
+	static size_t size(technologies::technologies_manager const& obj, T const&) {
+		return size(obj);
 	}
 };
 

@@ -39,17 +39,17 @@ public:
 
 	static void serialize_object(std::byte* &output, cultures::cultures_state const& obj, world_state const& ws) {
 		serialize(output, obj.national_tags_state, ws);
-		serialization::serialize_array(output, obj.tags_to_holders.data() + 1, obj.national_tags_state.size());
+		serialize(output, obj.tags_to_holders);
 		serialize(output, obj.country_flags_by_government);
 	}
 	static void deserialize_object(std::byte const* &input, cultures::cultures_state& obj, world_state& ws) {
 		deserialize(input, obj.national_tags_state, ws);
-		obj.tags_to_holders.resize(obj.national_tags_state.size());
-		serialization::deserialize_array(input, obj.tags_to_holders.data() + 1, obj.national_tags_state.size());
+		deserialize(input, obj.tags_to_holders);
 		deserialize(input, obj.country_flags_by_government);
 	}
 	static size_t size(cultures::cultures_state const& obj, world_state const& ws) {
-		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.country_flags_by_government);
+		return serialize_size(obj.national_tags_state, ws) + serialize_size(obj.tags_to_holders) +
+			serialize_size(obj.country_flags_by_government);
 	}
 };
 
@@ -138,6 +138,10 @@ public:
 			serialize_size(obj.first_names_by_culture) +
 			serialize_size(obj.last_names_by_culture) +
 			serialize_size(obj.country_names_by_government);
+	}
+	template<typename T>
+	static size_t size(cultures::culture_manager const& obj, T const&) {
+		return size(obj);
 	}
 };
 

@@ -108,6 +108,10 @@ public:
 			serialize_size(	obj.on_crisis_declare_interest) +
 			serialize_size(obj.events_by_id);
 	}
+	template<typename T>
+	static size_t size(events::event_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 

@@ -415,7 +415,7 @@ namespace provinces {
 			if(total_pop != 0.0f) {
 				const auto ptype_offset = to_index(population::to_demo_tag(ws, population::pop_type_tag(0)));
 
-				for(uint32_t i = 0ui32; i < ws.s.population_m.pop_types.size(); ++i) {
+				for(int32_t i = 0; i < ws.s.population_m.pop_types.size(); ++i) {
 					if(*(demo_row.data() + ptype_offset + i) != 0) {
 						float fraction = *(demo_row.data() + ptype_offset + i) / total_pop;
 						pie.add_entry(

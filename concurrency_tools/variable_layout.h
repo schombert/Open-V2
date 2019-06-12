@@ -404,15 +404,19 @@ public:
 	}
 
 	template<typename U>
-	RELEASE_INLINE tagged_array_view<typename container_type::template value_type<U> const, tag_type> get_row() const {
-		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
+	RELEASE_INLINE auto get_row() const {
+		if constexpr(std::is_same_v<typename container_type::template value_type<U>, void> || std::is_same_v<typename container_type::template value_type<U>, const void>)
+			return;
+		else if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U> const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U>
-	RELEASE_INLINE tagged_array_view<typename container_type::template value_type<U>, tag_type> get_row() {
-		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
+	RELEASE_INLINE auto get_row() {
+		if constexpr(std::is_same_v<typename container_type::template value_type<U>, void> || std::is_same_v<typename container_type::template value_type<U>, const void>)
+			return;
+		else if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
@@ -514,14 +518,18 @@ public:
 	}
 	template<typename U>
 	RELEASE_INLINE auto get_row() const {
-		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
+		if constexpr(std::is_same_v<typename container_type::template value_type<U>, void> || std::is_same_v<typename container_type::template value_type<U>, const void>)
+			return;
+		else if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U> const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type const, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type const*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
 	}
 	template<typename U>
 	RELEASE_INLINE auto get_row() {
-		if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
+		if constexpr(std::is_same_v<typename container_type::template value_type<U>, void> || std::is_same_v<typename container_type::template value_type<U>, const void>)
+			return;
+		else if constexpr(!std::is_same_v<typename container_type::template value_type<U>, bitfield_type>)
 			return tagged_array_view<typename container_type::template value_type<U>, tag_type>(container_type::template get_row<U>(*ptr), ve::to_vector_size(uint32_t(size_used)));
 		else
 			return tagged_array_view<bitfield_type, tag_type>(container_type::template get_row<U>(*static_cast<ptr_type*>(ptr)), int32_t(uint32_t(size_used + 7) / 8ui32));
@@ -680,24 +688,56 @@ public:
 		static_assert(index >= 0 && index < inner_size);
 		return ptr[index].values[to_index(t)];
 	}
+	template<int32_t index>
+	RELEASE_INLINE void set(tag_type t, value_type v) {
+		static_assert(index >= 0 && index < inner_size);
+		return ptr[index].values[to_index(t)] = v;
+	}
 	RELEASE_INLINE tagged_array_view<value_type, tag_type> get_row(int32_t index, int32_t size) {
 		return tagged_array_view<value_type, tag_type>(ptr[index].values, size);
 	}
 	RELEASE_INLINE tagged_array_view<const value_type, tag_type> get_row(int32_t index, int32_t size) const {
 		return tagged_array_view<const value_type, tag_type>(ptr[index].values, size);
 	}
-	template<int32_t index>
-	RELEASE_INLINE tagged_array_view<value_type, tag_type> get_row(int32_t size) {
-		static_assert(index >= 0 && index < inner_size);
-		return tagged_array_view<value_type, tag_type>(ptr[index].values, size);
+	RELEASE_INLINE auto get_row(int32_t index) {
+		return tagged_array_view<value_type, tag_type>(ptr[index].values, int32_t(extended_size));
+	}
+	RELEASE_INLINE auto get_row(int32_t index) const {
+		return tagged_array_view<const value_type, tag_type>(ptr[index].values, int32_t(extended_size));
 	}
 	template<int32_t index>
-	RELEASE_INLINE tagged_array_view<const value_type, tag_type> get_row(int32_t size) const {
-		static_assert(index >= 0 && index < inner_size);
-		return tagged_array_view<const value_type, tag_type>(ptr[index].values, size);
+	RELEASE_INLINE auto get_row(int32_t size) {
+		if constexpr(index >= 0 && index < inner_size)
+			return tagged_array_view<value_type, tag_type>(ptr[index].values, size);
+		else
+			return;
+	}
+	template<int32_t index>
+	RELEASE_INLINE auto get_row(int32_t size) const {
+		if constexpr(index >= 0 && index < inner_size)
+			return tagged_array_view<const value_type, tag_type>(ptr[index].values, size);
+		else
+			return;
+	}
+	template<int32_t index>
+	RELEASE_INLINE auto get_row() {
+		if constexpr(index >= 0 && index < inner_size)
+			return tagged_array_view<value_type, tag_type>(ptr[index].values, int32_t(extended_size));
+		else
+			return;
+	}
+	template<int32_t index>
+	RELEASE_INLINE auto get_row() const {
+		if constexpr(index >= 0 && index < inner_size)
+			return tagged_array_view<const value_type, tag_type>(ptr[index].values, int32_t(extended_size));
+		else
+			return;
 	}
 	void reset() {
 		std::uninitialized_value_construct_n(ptr, inner_size);
+	}
+	int32_t size() const {
+		return int32_t(extended_size);
 	}
 };
 

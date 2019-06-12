@@ -20,7 +20,7 @@ namespace military {
 			std::uniform_int_distribution<int32_t> r(0, int32_t(lp.admiral_size) - 1);
 			ws.set<military_leader::portrait>(
 				new_leader,
-				ws.get<cultures::leader_pictures>(size_t(lp.admiral_offset + r(local_generator))));
+				ws.get<cultures::leader_pictures>(lp.admiral_offset + r(local_generator)));
 		}
 
 		auto first_name_range = ws.get_row<culture::first_names>(culture);
@@ -58,7 +58,7 @@ namespace military {
 		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_a(
 			ws.get_row<military::leader_trait_values>(ws.get<military_leader::background>(l)).data());
 		Eigen::Map<Eigen::Matrix<traits::value_type, traits::trait_count, 1>> source_b(
-			ws.get_row<military::leader_trait_values>(ws.get<military_leader::person>(l)).data());
+			ws.get_row<military::leader_trait_values>(ws.get<military_leader::personality>(l)).data());
 
 		Eigen::Matrix<traits::value_type, traits::trait_count, 1> dest_vec = source_a + source_b;
 
@@ -146,7 +146,7 @@ namespace military {
 			if(c.target == nation_target)
 				return true;
 		}
-		if(ws.if_any<cb_type_tag>([&ws, nation_target](cb_type_tag c) {
+		if(ws.any_of<cb_type_tag>([&ws, nation_target, nation_by](cb_type_tag c) {
 			return (ws.get<::cb_type::flags>(c) & cb_type::is_not_triggered_only) == 0 &&
 				test_trigger_fn(ws, ws.get<::cb_type::can_use>(c), nation_target, nation_by);
 		}))
@@ -285,13 +285,11 @@ namespace military {
 	RELEASE_INLINE uint32_t internal_total_units_in_province(world_state_t const& ws, provinces::province_tag ps) {
 		auto orders = ws.get<province_state::orders>(ps);
 		if(orders) {
-			auto& o_obj = ws.w.military_s.army_orders_container[orders];
-
 			float total = 0;
 			const float regiment_size = regiment_sz_fn(ws);
 
-			auto province_size = get_size(ws.get<army_order::province_set>(orders));
-			auto involved_range = get_range(ws.get<army_order::army_set>(orders));
+			auto province_size = ws.get_size(ws.get<army_order::province_set>(orders));
+			auto involved_range = ws.get_range(ws.get<army_order::army_set>(orders));
 
 			if(province_size == 0)
 				return 0ui32;
@@ -311,7 +309,7 @@ namespace military {
 		float total = 0ui32;
 		const float regiment_size = regiment_sz_fn(ws);
 
-		auto army_range = get_range(ws.get<nation::armies>(this_nation));
+		auto army_range = ws.get_range(ws.get<nation::armies>(this_nation));
 		for(auto a : army_range) {
 			total += ws.get<army::current_soldiers>(a);
 		}
@@ -321,7 +319,7 @@ namespace military {
 	template<typename world_state_t>
 	RELEASE_INLINE uint32_t internal_total_active_ships(world_state_t const& ws, nations::country_tag this_nation) {
 		float total = 0;
-		auto fleet_range = get_range(ws.get<nation::fleets>(this_nation));
+		auto fleet_range = ws.get_range(ws.get<nation::fleets>(this_nation));
 		for(auto f : fleet_range) {
 			total += ws.get<fleet::size>(f);
 		}
@@ -338,7 +336,7 @@ namespace military {
 		if(total_soldier_pops <= 0)
 			return 0.0f;
 
-		auto army_range = get_range(ws.get<nation::armies>(this_nation));
+		auto army_range = ws.get_range(ws.get<nation::armies>(this_nation));
 		for(auto a : army_range) {
 			total_soldier_pops_assigned += ws.get<army::current_soldiers>(a);
 		}
@@ -409,12 +407,12 @@ namespace military {
 			ws.add_item(ws.get<war::attackers>(this_war), to_add);
 			ws.add_item(ws.get<nation::wars_involved_in>(to_add), war_identifier{ this_war, true });
 		} else {
-			auto attacker_range = get_range(ws.get<war::attackers>(this_war));
+			auto attacker_range = ws.get_range(ws.get<war::attackers>(this_war));
 			for(auto a : attacker_range) {
 				ws.add_item(opponents_in_war, a);
 				ws.add_item(ws.get<nation::opponents_in_war>(a), to_add);
 			}
-			auto defender_range = get_range(ws.get<war::defenders>(this_war));
+			auto defender_range = ws.get_range(ws.get<war::defenders>(this_war));
 			for(auto a : defender_range) {
 				ws.add_item(allies_in_war, a);
 				ws.add_item(ws.get<nation::allies_in_war>(a), to_add);
@@ -457,9 +455,8 @@ namespace military {
 	}
 
 	template<auto release_fleet_fn, bool remove_from_nation_arrays, typename world_state_t>
-	RELEASE_INLINE void internal_destroy_fleet(world_state_t& ws, fleet_tag f) {
+	RELEASE_INLINE void internal_destroy_fleet(world_state_t& ws, fleet_tag f, nations::country_tag owner) {
 		if constexpr(remove_from_nation_arrays) {
-			auto const owner = ws.get<army::owner>(f);
 			ws.remove_item(ws.get<nation::fleets>(owner), f);
 		}
 
@@ -474,7 +471,7 @@ namespace military {
 	template<auto release_orders_fn, bool remove_from_nation_arrays, typename world_state_t>
 	RELEASE_INLINE void internal_destroy_orders(world_state_t& ws, army_orders_tag o, nations::country_tag owner) {
 		
-		auto army_range = get_range(ws.get<army_order::army_set>(o));
+		auto army_range = ws.get_range(ws.get<army_order::army_set>(o));
 		for(auto a : army_range)
 			ws.set<army::order>(a, army_orders_tag());
 		ws.clear(ws.get<army_order::army_set>(o));
@@ -497,7 +494,7 @@ namespace military {
 
 	template<auto release_hq_fn, auto destroy_army_fn, bool remove_from_nation_arrays, typename world_state_t>
 	RELEASE_INLINE void internal_destroy_hq(world_state_t& ws, strategic_hq_tag o, nations::country_tag owner) {
-		auto army_range = get_range(ws.get<strategic_hq::army_set>(o));
+		auto army_range = ws.get_range(ws.get<strategic_hq::army_set>(o));
 		if constexpr(remove_from_nation_arrays) {
 			for(auto a : army_range) {
 				ws.set<army::hq>(a, strategic_hq_tag());
@@ -530,7 +527,7 @@ namespace military {
 			}
 		}
 
-		release_leader_fn(l);
+		release_leader_fn(ws, l);
 	}
 
 	template<auto release_leader_fn, typename world_state_t>
@@ -563,7 +560,7 @@ namespace military {
 			}();
 		
 		}
-		release_leader_fn(l);
+		release_leader_fn(ws, l);
 	}
 
 	template<auto release_war_fn, typename world_state_t>
@@ -581,7 +578,7 @@ namespace military {
 		ws.clear(ws.get<war::naval_control_set>(this_war));
 		ws.clear(ws.get<war::war_goals>(this_war));
 
-		release_war_fn(this_war);
+		release_war_fn(ws, this_war);
 	}
 
 	template<typename world_state_t>
@@ -618,7 +615,7 @@ namespace military {
 	}
 
 	template<auto count_factories_fn, auto state_is_colonial_fn, typename world_state_t>
-	float internal_single_state_war_score(world_state_t const& ws, nations::state_tag si, float owner_total_pop) {
+	RELEASE_INLINE float internal_single_state_war_score(world_state_t const& ws, nations::state_tag si, float owner_total_pop) {
 		int32_t factory_count = count_factories_fn(ws, si);
 		auto owner_id = ws.get<state::owner>(si);
 
@@ -651,5 +648,229 @@ namespace military {
 			});
 		}
 		return running_total;
+	}
+
+	template<auto get_setting_struct, auto nation_exists_fn, auto single_state_value_fn, auto test_trigger_fn, typename world_state_t>
+	RELEASE_INLINE float internal_calculate_base_war_score_cost(world_state_t const& ws, war_goal const& wg) {
+		auto const this_cb_type = wg.cb_type;
+		auto const cb_flags = ws.get<::cb_type::flags>(this_cb_type);
+
+		if((cb_flags & cb_type::great_war_obligatory) != 0)
+			return 0.0f;
+
+		float total_cost = 0.0f;
+
+		auto const& ss = get_setting_struct(ws);
+
+		if((cb_flags & cb_type::po_gunboat) != 0)
+			total_cost += ss.peace_cost_gunboat;
+		if((cb_flags & cb_type::po_add_to_sphere) != 0)
+			total_cost += ss.peace_cost_add_to_sphere;
+		if((cb_flags & cb_type::po_release_puppet) != 0)
+			total_cost += ss.peace_cost_release_puppet;
+		if((cb_flags & cb_type::po_colony) != 0)
+			total_cost += ss.peace_cost_colony;
+		if((cb_flags & cb_type::po_disarmament) != 0)
+			total_cost += ss.peace_cost_disarmament;
+		if((cb_flags & cb_type::po_destroy_forts) != 0)
+			total_cost += ss.peace_cost_destroy_forts;
+		if((cb_flags & cb_type::po_destroy_naval_bases) != 0)
+			total_cost += ss.peace_cost_destroy_naval_bases;
+		if((cb_flags & cb_type::po_reparations) != 0)
+			total_cost += ss.peace_cost_reparations;
+		if((cb_flags & cb_type::po_remove_prestige) != 0)
+			total_cost += ss.peace_cost_prestige;
+		if((cb_flags & cb_type::po_status_quo) != 0)
+			total_cost += ss.peace_cost_status_quo;
+		if((cb_flags & cb_type::po_annex) != 0)
+			total_cost += ss.peace_cost_annex;
+		if((cb_flags & cb_type::po_install_communist_gov_type) != 0)
+			total_cost += ss.peace_cost_install_communist_gov_type;
+		if((cb_flags & cb_type::po_uninstall_communist_gov_type) != 0)
+			total_cost += ss.peace_cost_uninstall_communist_gov_type;
+		if((cb_flags & cb_type::po_clear_union_sphere) != 0)
+			total_cost += ss.peace_cost_clear_union_sphere * 4;
+
+		// sum province values -- if all allowed states -- find all matching states to sum
+
+		if((cb_flags & (cb_type::po_transfer_provinces | cb_type::po_demand_state)) != 0) {
+			if(auto target = wg.target_country; nation_exists_fn(ws, target)) {
+				auto target_total_pop = ws.get<nation::demographics>(target, population::total_population_tag);
+
+				if((cb_flags & cb_type::all_allowed_states) == 0) {
+					if(auto state = wg.target_state; state)
+						total_cost += single_state_value_fn(ws, state, target_total_pop);
+				} else {
+					auto wg_from = wg.from_country;
+					auto wg_liberation = wg.liberation_target;
+					auto allowed_states = ws.get<::cb_type::allowed_states>(this_cb_type);
+					if(is_valid_index(wg_from) && is_valid_index(allowed_states) && is_valid_index(wg_liberation)) {
+						nations::for_each_state(ws, target, [&ws, wg_from, wg_liberation, allowed_states, tp = target_total_pop, &total_cost](nations::state_tag si) {
+							if(test_trigger_fn(ws, allowed_states, si, wg_from, wg_liberation))
+								total_cost += single_state_value_fn(ws, si, tp);
+						});
+					}
+				}
+			}
+		}
+
+		return std::clamp(total_cost * ws.get<::cb_type::peace_cost_factor>(this_cb_type) / 100.0f, 0.0f, 1.0f);
+	}
+
+	template<auto ws_cost_fn, typename world_state_t>
+	RELEASE_INLINE float internal_total_attacker_demands_war_score(world_state_t const& ws, war_tag w) {
+		float sum = 0.0f;
+		auto wg_range = ws.get_range(ws.get<war::war_goals>(w));
+		for(auto& i : wg_range) {
+			if(ws.contains_item(ws.get<war::attackers>(w), i.from_country))
+				sum += ws_cost_fn(ws, i);
+		}
+		return sum;
+	}
+
+	template<auto ws_cost_fn, typename world_state_t>
+	RELEASE_INLINE float internal_total_defender_demands_war_score(world_state_t const& ws, war_tag w) {
+		float sum = 0.0f;
+		auto wg_range = ws.get_range(ws.get<war::war_goals>(w));
+		for(auto& i : wg_range) {
+			if(ws.contains_item(ws.get<war::defenders>(w), i.from_country))
+				sum += ws_cost_fn(ws, i);
+		}
+		return sum;
+	}
+
+	template<typename world_state_t>
+	RELEASE_INLINE float internal_base_cb_infamy(world_state_t const& ws, cb_type_tag cb) {
+		auto const flags = ws.get<::cb_type::flags>(cb);
+
+		float total = 0.0f;
+		if((flags & cb_type::po_annex) != 0) {
+			total += 10.0f;
+		}
+		if((flags & cb_type::po_demand_state) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_add_to_sphere) != 0) {
+			total += 2.0f;
+		}
+		if((flags & cb_type::po_disarmament) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_reparations) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_transfer_provinces) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_remove_prestige) != 0) {
+			total += 2.0f;
+		}
+		if((flags & cb_type::po_make_puppet) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_release_puppet) != 0) {
+			total += 0.5f;
+		}
+		if((flags & cb_type::po_install_communist_gov_type) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_uninstall_communist_gov_type) != 0) {
+			total += 5.0f;
+		}
+		if((flags & cb_type::po_destroy_forts) != 0) {
+			total += 2.0f;
+		}
+		if((flags & cb_type::po_destroy_naval_bases) != 0) {
+			total += 2.0f;
+		}
+
+		return total * ws.get<::cb_type::badboy_factor>(cb);
+	}
+
+
+	template<auto get_setting_struct, typename world_state_t>
+	RELEASE_INLINE float internal_daily_cb_progress(world_state_t const& ws, nations::country_tag n, cb_type_tag type) {
+		auto const& ss = get_setting_struct(ws);
+		const auto nat_mod =
+			ve::load(n, ws.get_row<nation::cb_generation_speed_modifier>());
+
+		const auto adjusted_mod = nat_mod + 1.0f;
+		const auto cb_speed = ve::load(type, ws.get_row<::cb_type::construction_speed_direct>());
+		const auto base_speed = cb_speed * ss.cb_generation_base_speed * 0.01f;
+		const auto old_value = ve::load(n, ws.get_row<nation::cb_construction_progress>());
+
+		return adjusted_mod * base_speed;
+	}
+
+	template<auto get_setting_struct, auto cb_validity_fn, auto cb_acquired_msg, auto cb_detected_msg, auto cb_invalid_msg, typename world_state_t>
+	RELEASE_INLINE void internal_update_cb_construction(world_state_t& ws) {
+		ve::execute_serial<nations::country_tag>(ve::to_vector_size(ws.size<nation::name>()), [
+			&ws,
+			increment = get_setting_struct(ws).cb_generation_base_speed * 0.01f,
+			mod_row = ws.get_row<nation::cb_generation_speed_modifier>(),
+			cb_type_row = ws.get_row<nation::cb_construction_type>(),
+			progress_row = ws.get_row<nation::cb_construction_progress>()
+		](auto off) {
+				const auto nat_mod = ve::load(off, mod_row);
+				const auto cb_type = ve::load(off, cb_type_row);
+
+				const auto adjusted_mod = nat_mod + 1.0f;
+				const auto cb_speed = ve::load(cb_type, ws.get_row<::cb_type::construction_speed_direct>());
+				const auto base_speed = cb_speed * increment;
+				const auto old_value = ve::load(off, progress_row);
+
+				ve::store(off, progress_row, ve::multiply_and_add(adjusted_mod, base_speed, old_value));
+		});
+
+		auto const base_detection_chance = int32_t(get_setting_struct(ws).cb_detection_chance_base);
+		ws.par_for_each<nations::country_tag>([&ws, base_detection_chance](nations::country_tag n) {
+			auto const cb_type_id = ws.get<nation::cb_construction_type>(n);
+			auto const cb_target = ws.get<nation::cb_construction_target>(n);
+			if(cb_target && cb_type_id) {
+				if(ws.get<nation::cb_construction_progress>(n) >= 1.0f) {
+					if(cb_validity_fn(ws, cb_type_id, n, cb_target)) {
+						// is valid: add
+						auto& cb_array = ws.get<nation::active_cbs>(n);
+						ws.add_item(cb_array, pending_cb{ cb_target, cb_type_id, date_tag() });
+
+						cb_acquired_msg(ws, n, cb_target, cb_type_id);
+					} else {
+						// not valid: post invalid message
+						cb_invalid_msg(ws, n, cb_target, cb_type_id);
+					}
+					// either case: erase
+					ws.set<nation::cb_construction_type>(n, cb_type_tag());
+					ws.set<nation::cb_construction_target>(n, nations::country_tag());
+					ws.set<nation::cb_construction_discovered>(n, false);
+					ws.set<nation::cb_construction_progress>(n, 0.0f);
+				} else {
+					// check for discovery & then validity
+					if(ws.get<nation::cb_construction_discovered>(n) == false) {
+						std::uniform_int_distribution<int32_t> dist(0, 1'000);
+						auto const chance = dist(get_local_generator());
+						auto const defines_probability = base_detection_chance;
+
+						if(chance <= defines_probability) {
+							if(cb_validity_fn(ws, cb_type_id, n, cb_target)) {
+								ws.set<nation::cb_construction_discovered>(n, true);
+								auto const infamy_gain = base_cb_infamy(ws, cb_type_id) * (
+									1.0f - ws.get<nation::cb_construction_progress>(n));
+								ws.get<nation::infamy>(n) += infamy_gain;
+
+								cb_detected_msg(ws, n, cb_target, cb_type_id, infamy_gain);
+							} else {
+								// not valid, erase and post invalid message
+								ws.set<nation::cb_construction_type>(n, cb_type_tag());
+								ws.set<nation::cb_construction_target>(n, nations::country_tag());
+								ws.set<nation::cb_construction_discovered>(n, false);
+								ws.set<nation::cb_construction_progress>(n, 0.0f);
+
+								cb_invalid_msg(ws, n, cb_target, cb_type_id);
+							}
+						}
+					}
+				}
+			}
+		});
 	}
 }

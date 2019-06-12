@@ -127,6 +127,10 @@ public:
 			serialize_size(obj.static_modifiers) +
 			serialize_size(obj.global_defines);
 	}
+	template<typename T>
+	static size_t size(modifiers::modifiers_manager const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace modifiers {

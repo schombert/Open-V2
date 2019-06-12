@@ -101,7 +101,7 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 	//ws.w.nation_s.active_issue_options.ensure_capacity(obj.nations.size());
 	ws.w.nation_s.national_stockpiles.ensure_capacity(obj.nations.size());
 	ws.w.nation_s.national_variables.ensure_capacity(obj.nations.size());
-	ws.w.nation_s.unit_stats.ensure_capacity(obj.nations.size());
+	// ws.w.nation_s.unit_stats.ensure_capacity(obj.nations.size());
 	ws.w.nation_s.rebel_org_gain.ensure_capacity(obj.nations.size());
 	ws.w.nation_s.production_adjustments.ensure_capacity(obj.nations.size());
 
@@ -127,7 +127,7 @@ void serialization::serializer<nations::nations_state>::deserialize_object(std::
 
 	obj.nations.for_each([&ws, &input](nations::country_tag n) {
 		technologies::reset_technologies(ws, n);
-		military::reset_unit_stats(ws, n);
+		// military::reset_unit_stats(ws, n);
 
 		auto active_parties = ws.w.nation_s.active_parties.get_row(n);
 		deserialize_array(input, active_parties.data(), ws.s.ideologies_m.ideologies_count);
@@ -515,12 +515,12 @@ namespace nations {
 			ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.first) = ws.w.culture_s.country_flags_by_government.get(nat_tag_id, ip.second);
 
 		//auto tech_row = ws.w.nation_s.active_technologies.get_row(target_nation);
-		for(uint32_t i = 0; i < ws.s.technology_m.technologies_container.size(); ++i) {
+		for(int32_t i = 0; i < ws.s.technology_m.technologies_container.size(); ++i) {
 			ws.w.nation_s.active_technologies.set(target_nation, technologies::tech_tag(technologies::tech_tag::value_base_t(i)), bit_vector_test(npo.tech_bit_vector.data(), i));
 			//tech_row.data()[i] = npo.tech_bit_vector[i];
 		}
 
-		for(uint32_t i = 0; i < ws.s.issues_m.issues_container.size(); ++i) {
+		for(int32_t i = 0; i < ws.s.issues_m.issues_container.size(); ++i) {
 			auto itag = issues::issue_tag(issues::issue_tag::value_base_t(i));
 			ws.w.nation_s.active_issue_options.get(target_nation, itag) = npo.set_options[i];
 		}

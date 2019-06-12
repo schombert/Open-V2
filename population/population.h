@@ -286,11 +286,11 @@ namespace population {
 			pop_type_tag,
 			economy::goods_tag,
 			aligned_allocator_64<economy::goods_qnty_type>> luxury_needs;
-		tagged_fixed_blocked_2dvector<
-			float,
-			pop_type_tag,
-			military::unit_type_tag,
-			aligned_allocator_32<float>> rebel_units;
+		//tagged_fixed_blocked_2dvector<
+		//	float,
+		//	pop_type_tag,
+		//	military::unit_type_tag,
+		//	aligned_allocator_32<float>> rebel_units;
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, issues::option_tag> issue_inclination;
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, ideologies::ideology_tag> ideological_inclination;
 		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> promote_to;

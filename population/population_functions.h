@@ -34,7 +34,6 @@ namespace population {
 	void default_initialize_world_issues_and_ideology(world_state& ws);
 	void init_pop_demographics(world_state& ws, pop_tag p, float size);
 	bool is_pop_accepted(world_state const& ws, pop_tag p, nations::country_tag n);
-	pop_tag get_unassigned_soldier_in_province(world_state const& ws, provinces::province_tag prov);
 	void set_militancy_direct(world_state& ws, pop_tag p, float v);
 	void set_literacy_direct(world_state& ws, pop_tag p, float v);
 	void set_consciousness_direct(world_state& ws, pop_tag p, float v);

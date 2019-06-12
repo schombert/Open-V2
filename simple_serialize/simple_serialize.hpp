@@ -2,15 +2,37 @@
 #include "simple_serialize.h"
 #include <numeric>
 
+#define CHECK_SERIALIZE_SIZE
+
 namespace serialization {
 	template<typename T, typename ... CONTEXT>
 	void serialize(std::byte* &output, T const& obj, CONTEXT&& ... c) {
+#ifdef _DEBUG
+#ifdef CHECK_SERIALIZE_SIZE
+		std::byte* starting_value = output;
+#endif
+#endif
 		serializer<T>::serialize_object(output, obj, std::forward<CONTEXT>(c)...);
+#ifdef _DEBUG
+#ifdef CHECK_SERIALIZE_SIZE
+		assert(size_t(output - starting_value) == serialize_size(obj, std::forward<CONTEXT>(c)...));
+#endif
+#endif
 	}
 
 	template<typename T, typename ... CONTEXT>
 	void deserialize(std::byte const* &input, T& obj, CONTEXT&& ... c) {
+#ifdef _DEBUG
+#ifdef CHECK_SERIALIZE_SIZE
+		std::byte const* starting_value = input;
+#endif
+#endif
 		serializer<T>::deserialize_object(input, obj, std::forward<CONTEXT>(c)...);
+#ifdef _DEBUG
+#ifdef CHECK_SERIALIZE_SIZE
+		assert(size_t(input - starting_value) == serialize_size(obj, std::forward<CONTEXT>(c)...));
+#endif
+#endif
 	}
 
 	template<typename T, typename ... CONTEXT>
@@ -210,35 +232,39 @@ namespace serialization {
 		}
 	};
 
-	template<typename A, typename B, typename C>
-	class serializer<tagged_vector<A, B, C>> {
+	template<typename A, typename B, typename C, bool d>
+	class serializer<tagged_vector<A, B, C, d>> {
 	public:
 		static constexpr bool has_static_size = false;
 		static constexpr bool has_simple_serialize = false;
 
 		template<typename ... CONTEXT>
-		static void serialize_object(std::byte* &output, tagged_vector<A, B, C> const& obj, CONTEXT&& ... c) {
+		static void serialize_object(std::byte* &output, tagged_vector<A, B, C, d> const& obj, CONTEXT&& ... c) {
 			const uint32_t sz = uint32_t(obj.size());
 			serialize(output, sz);
 
-			if constexpr(serializer<A>::has_simple_serialize)
+			if constexpr(serializer<A>::has_simple_serialize) {
 				serialize_array(output, obj.data(), sz);
-			else
+			} else {
+				assert(obj.end() - obj.begin() == sz);
 				serialize_range(output, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+			}
 		}
 		template<typename ... CONTEXT>
-		static void deserialize_object(std::byte const* &input, tagged_vector<A, B, C>& obj, CONTEXT&& ... c) {
+		static void deserialize_object(std::byte const* &input, tagged_vector<A, B, C, d>& obj, CONTEXT&& ... c) {
 			uint32_t size = 0;
 			deserialize(input, size);
 
 			obj.resize(size);
-			if constexpr(serializer<A>::has_simple_serialize)
+			if constexpr(serializer<A>::has_simple_serialize) {
 				deserialize_array(input, obj.data(), size);
-			else
+			} else {
+				assert(obj.end() - obj.begin() == size);
 				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+			}
 		}
 		template<typename ... CONTEXT>
-		static size_t size(tagged_vector<A, B, C> const& obj, CONTEXT&& ... c) {
+		static size_t size(tagged_vector<A, B, C, d> const& obj, CONTEXT&& ... c) {
 			if constexpr(serializer<A>::has_static_size)
 				return sizeof(uint32_t) + serializer<A>::size() * obj.size();
 			else
@@ -260,10 +286,13 @@ namespace serialization {
 			serialize(output, inner_sz);
 			serialize(output, outer_sz);
 
-			if constexpr(serializer<A>::has_simple_serialize)
+			if constexpr(serializer<A>::has_simple_serialize) {
+				assert(obj.size() == inner_sz * outer_sz);
 				serialize_array(output, obj.data(), obj.size());
-			else
+			} else {
+				assert(obj.end() - obj.begin() == inner_sz * outer_sz);
 				serialize_range(output, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+			}
 		}
 		template<typename ... CONTEXT>
 		static void deserialize_object(std::byte const* &input, tagged_fixed_2dvector<A, B, C, D>& obj, CONTEXT&& ... c) {
@@ -275,10 +304,13 @@ namespace serialization {
 			obj.reset(inner_sz);
 			obj.resize(outer_sz);
 
-			if constexpr(serializer<A>::has_simple_serialize)
+			if constexpr(serializer<A>::has_simple_serialize) {
+				assert(obj.size() == inner_sz * outer_sz);
 				deserialize_array(input, obj.data(), obj.size());
-			else
+			} else {
+				assert(obj.end() - obj.begin() == inner_sz * outer_sz);
 				deserialize_into_range(input, obj.begin(), obj.end(), std::forward<CONTEXT>(c)...);
+			}
 		}
 		template<typename ... CONTEXT>
 		static size_t size(tagged_fixed_2dvector<A, B, C, D> const& obj, CONTEXT&& ... c) {

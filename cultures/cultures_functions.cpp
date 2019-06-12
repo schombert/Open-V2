@@ -61,10 +61,10 @@ namespace cultures {
 		if(ws.w.culture_s.tags_to_holders.size() != ws.s.culture_m.national_tags.size())
 			ws.w.culture_s.tags_to_holders.resize(ws.s.culture_m.national_tags.size());
 
-		for(uint32_t t = 0; t < ws.s.culture_m.national_tags.size(); ++t) {
+		for(int32_t t = 0; t < ws.s.culture_m.national_tags.size(); ++t) {
 			const national_tag ntag(static_cast<value_base_of<national_tag>>(t));
 			const auto& ntag_obj = ws.s.culture_m.national_tags[ntag];
-			for(uint32_t g = 0; g < ws.s.governments_m.governments_container.size(); ++g) {
+			for(int32_t g = 0; g < ws.s.governments_m.governments_container.size(); ++g) {
 				const governments::government_tag gtag(static_cast<value_base_of<governments::government_tag>>(g));
 				switch(ws.s.governments_m.governments_container[gtag].flag) {
 					case governments::flag_type::communist:

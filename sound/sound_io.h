@@ -20,4 +20,8 @@ public:
 	static size_t size(sound::sound_manager const& obj) {
 		return 0;
 	}
+	template<typename T>
+	static size_t size(sound::sound_manager const& obj, T const&) {
+		return size(obj);
+	}
 };

@@ -151,25 +151,25 @@ namespace nations {
 	bool are_states_physically_neighbors(world_state const& ws, state_tag a, state_tag b);
 	boost::container::flat_set<cultures::national_tag, std::less<cultures::national_tag>, concurrent_allocator<cultures::national_tag>> get_owned_cores(world_state const& ws, country_tag n);
 
-	template<typename F>
-	void for_each_province(world_state const& ws, state_tag s, F&& f);
-	template<typename F>
-	void for_each_province(world_state const& ws, nations::country_tag s, F&& f);
-	template<typename F>
-	void for_each_state(world_state const& ws, nations::country_tag s, F&& f);
-	template<typename F>
-	void for_each_pop(world_state const& ws, state_tag s, F&& f);
-	template<typename F>
-	void for_each_pop(world_state const& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t const& ws, state_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t const& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_state(world_state_t const& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t const& ws, state_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t const& ws, nations::country_tag s, F&& f);
 
-	template<typename F>
-	void for_each_province(world_state& ws, state_tag s, F&& f);
-	template<typename F>
-	void for_each_province(world_state& ws, nations::country_tag s, F&& f);
-	template<typename F>
-	void for_each_state(world_state& ws, nations::country_tag s, F&& f);
-	template<typename F>
-	void for_each_pop(world_state& ws, state_tag s, F&& f);
-	template<typename F>
-	void for_each_pop(world_state& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t& ws, state_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_province(world_state_t& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_state(world_state_t& ws, nations::country_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t& ws, state_tag s, F&& f);
+	template<typename world_state_t, typename F>
+	void for_each_pop(world_state_t& ws, nations::country_tag s, F&& f);
 }

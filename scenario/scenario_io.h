@@ -73,7 +73,8 @@ public:
 		deserialize(input, obj.fixed_ui_text, std::forward<CONTEXT>(c) ...);
 		deserialize(input, obj.message_m);
 	}
-	static size_t size(scenario::scenario_manager const& obj) {
+	template<typename ... CONTEXT>
+	static size_t size(scenario::scenario_manager const& obj, CONTEXT&& ... c) {
 		return serialize_size(obj.population_m) +
 			serialize_size(obj.culture_m) +
 			serialize_size(obj.economy_m) +

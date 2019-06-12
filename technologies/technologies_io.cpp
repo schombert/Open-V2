@@ -250,6 +250,8 @@ namespace technologies {
 			}, s, e);
 		return triggers::commit_trigger(env.s.trigger_m, td);
 	}
+
+	/*
 #define MATTRIB(name ) void set_ ## name (military::unit_attribute_type v) { attributes[military::unit_attribute:: name] = v;}
 
 	struct tech_subunit {
@@ -272,7 +274,7 @@ namespace technologies {
 	};
 
 #undef MATTRIB
-
+*/
 	inline std::pair<token_and_type, float> bind_token_float(const token_and_type& l, association_type, const token_and_type& r) {
 		return std::pair<token_and_type, float>(l, token_to<float>(r));
 	}
@@ -317,10 +319,11 @@ namespace technologies {
 			}
 		}
 	};
-
+	/*
 	inline std::pair<token_and_type, tech_subunit> bind_subunit(const token_and_type& l, association_type, tech_subunit&& u) {
 		return std::pair<token_and_type, tech_subunit>(l, std::move(u));
 	}
+	*/
 
 	struct tech_reader;
 
@@ -358,6 +361,7 @@ namespace technologies {
 
 		tech_reader(tech_reading_env& e) : env(e) {}
 
+		/*
 		void add_subunit(const std::pair<token_and_type, tech_subunit>& p) {
 			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, p.first.start, p.first.end);
 			const auto ut = tag_from_text(env.s.military_m.named_unit_type_index, name);
@@ -373,6 +377,7 @@ namespace technologies {
 			}
 			env.s.technology_m.unit_type_adjustments.get(env.under_construction.unit_adjustment, ut) = p.second.attributes;
 		}
+		*/
 		void set_year(uint16_t v) {
 			env.under_construction.year = v;
 		}
@@ -441,6 +446,8 @@ namespace technologies {
 
 		}
 		void discard(int) {}
+
+		/*
 		void activate_unit(const token_and_type& t) {
 			const auto name = text_data::get_thread_safe_existing_text_handle(env.s.gui_m.text_data_sequences, t.start, t.end);
 			const auto ut = tag_from_text(env.s.military_m.named_unit_type_index, name);
@@ -475,6 +482,7 @@ namespace technologies {
 #endif
 			}
 		}
+		*/
 		void set_unciv_military(bool v) {
 			if(v)
 				env.under_construction.flags |= technology::unciv_military;
@@ -733,7 +741,7 @@ MEMBER_FDEF(technologies::invention_reader, set_chance, "chance");
 MEMBER_FDEF(technologies::invention_reader, set_limit, "limit");
 MEMBER_FDEF(technologies::invention_reader, discard, "discard");
 MEMBER_FDEF(technologies::invention_reader, pass_modifier, "modifier");
-MEMBER_FDEF(technologies::tech_reader, add_subunit, "subunit");
+// MEMBER_FDEF(technologies::tech_reader, add_subunit, "subunit");
 MEMBER_FDEF(technologies::tech_reader, set_year, "year");
 MEMBER_FDEF(technologies::tech_reader, set_cost, "cost");
 MEMBER_FDEF(technologies::tech_reader, set_ai_chance, "ai_chance");
@@ -742,8 +750,8 @@ MEMBER_FDEF(technologies::tech_reader, set_enable_crime, "enable_crime");
 MEMBER_FDEF(technologies::tech_reader, set_allow, "allow");
 MEMBER_FDEF(technologies::tech_reader, set_area, "area");
 MEMBER_FDEF(technologies::tech_reader, discard, "discard");
-MEMBER_FDEF(technologies::tech_reader, activate_unit, "activate_unit");
-MEMBER_FDEF(technologies::tech_reader, deactivate_unit, "deactivate_unit");
+// MEMBER_FDEF(technologies::tech_reader, activate_unit, "activate_unit");
+// MEMBER_FDEF(technologies::tech_reader, deactivate_unit, "deactivate_unit");
 MEMBER_FDEF(technologies::tech_reader, set_unciv_military, "unciv_military");
 MEMBER_FDEF(technologies::tech_reader, set_shared_prestige, "shared_prestige");
 MEMBER_FDEF(technologies::tech_reader, set_pop_growth, "pop_growth");
@@ -794,6 +802,7 @@ MEMBER_FDEF(technologies::tech_reader, set_max_naval_base, "max_naval_base");
 MEMBER_FDEF(technologies::tech_reader, set_max_railroad, "max_railroad");
 MEMBER_FDEF(technologies::tech_reader, pass_modifier, "modifier");
 MEMBER_FDEF(technologies::tech_goods_list, add_good, "good");
+/*
 MEMBER_FDEF(technologies::tech_subunit, set_attack, "attack_gun_power");
 MEMBER_FDEF(technologies::tech_subunit, set_evasion, "maneuver_evasion");
 MEMBER_FDEF(technologies::tech_subunit, set_strength, "max_strength");
@@ -806,6 +815,7 @@ MEMBER_FDEF(technologies::tech_subunit, set_fire_range, "reconnaissance_fire_ran
 MEMBER_FDEF(technologies::tech_subunit, set_discipline, "discipline");
 MEMBER_FDEF(technologies::tech_subunit, set_support, "support_torpedo_attack");
 MEMBER_FDEF(technologies::tech_subunit, set_siege, "siege");
+*/
 
 MEMBER_FDEF(technologies::rebel_org_gain, set_faction, "faction");
 MEMBER_DEF(technologies::rebel_org_gain, value, "value");
@@ -822,6 +832,10 @@ MEMBER_FDEF(technologies::inventions_pre_parse_file, add_invention, "invention")
 namespace technologies {
 	using name_mod_pair = std::pair<text_data::text_tag, modifiers::national_modifier_tag>;
 
+	inline int discard_group(const token_group* s, const token_group* e, tech_reading_env& env) {
+		return 0;
+	}
+
 	BEGIN_DOMAIN(tech_content_domain)
 		BEGIN_TYPE(invention_reader)
 		MEMBER_TYPE_ASSOCIATION("effect", "effect", tech_reader)
@@ -837,8 +851,8 @@ namespace technologies {
 		MEMBER_ASSOCIATION("enable_crime", "enable_crime", token_from_rh)
 		MEMBER_ASSOCIATION("area", "area", token_from_rh)
 		MEMBER_ASSOCIATION("discard", "unit", discard_from_rh)
-		MEMBER_ASSOCIATION("activate_unit", "activate_unit", token_from_rh)
-		MEMBER_ASSOCIATION("deactivate_unit", "deactivate_unit", token_from_rh)
+		MEMBER_ASSOCIATION("discard", "activate_unit", discard_from_rh)
+		MEMBER_ASSOCIATION("discard", "deactivate_unit", discard_from_rh)
 		MEMBER_ASSOCIATION("unciv_military", "unciv_military", value_from_rh<bool>)
 		MEMBER_ASSOCIATION("shared_prestige", "shared_prestige", value_from_rh<float>)
 		MEMBER_ASSOCIATION("pop_growth", "pop_growth", value_from_rh<float>)
@@ -878,7 +892,8 @@ namespace technologies {
 		MEMBER_ASSOCIATION("max_fort", "max_fort", value_from_rh<float>)
 		MEMBER_ASSOCIATION("max_naval_base", "max_naval_base", value_from_rh<float>)
 		MEMBER_ASSOCIATION("max_railroad", "max_railroad", value_from_rh<float>)
-		MEMBER_VARIABLE_TYPE_ASSOCIATION("subunit", accept_all, tech_subunit, bind_subunit)
+		//MEMBER_VARIABLE_TYPE_ASSOCIATION("subunit", accept_all, tech_subunit, bind_subunit)
+		MEMBER_TYPE_EXTERN("discard", "subunit", int, discard_group)
 		MEMBER_TYPE_ASSOCIATION("rgo_size", "rgo_size", tech_goods_list)
 		MEMBER_TYPE_ASSOCIATION("factory_goods_output", "factory_goods_output", tech_goods_list)
 		MEMBER_TYPE_ASSOCIATION("factory_goods_input", "factory_goods_input", tech_goods_list)
@@ -900,6 +915,7 @@ namespace technologies {
 		MEMBER_ASSOCIATION("value", "value", value_from_rh<float>)
 		MEMBER_ASSOCIATION("faction", "faction", token_from_rh)
 		END_TYPE
+		/*
 		BEGIN_TYPE(tech_subunit)
 		MEMBER_ASSOCIATION("attack_gun_power", "attack", value_from_rh<float>)
 		MEMBER_ASSOCIATION("attack_gun_power", "gun_power", value_from_rh<float>)
@@ -922,6 +938,7 @@ namespace technologies {
 		MEMBER_ASSOCIATION("support_torpedo_attack", "torpedo_attack", value_from_rh<float>)
 		MEMBER_ASSOCIATION("siege", "siege", value_from_rh<float>)
 		END_TYPE
+		*/
 		END_DOMAIN;
 
 	BEGIN_DOMAIN(tech_parsing_domain)
@@ -957,7 +974,7 @@ namespace technologies {
 	}
 
 	void prepare_technologies_read(scenario::scenario_manager& s) {
-		s.technology_m.unit_type_adjustments.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
+		// s.technology_m.unit_type_adjustments.reset(static_cast<uint32_t>(s.military_m.unit_types.size()));
 		s.technology_m.rebel_org_gain.reset(static_cast<uint32_t>(s.population_m.rebel_types.size()));
 		s.technology_m.production_adjustments.reset(s.economy_m.goods_count * uint32_t(production_adjustment::production_adjustment_count));
 	}

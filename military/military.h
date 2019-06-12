@@ -50,7 +50,7 @@ namespace cb_type {
 	struct months;
 	struct truce_months;
 
-	struct speed;
+	struct construction_speed_direct;
 }
 
 namespace military {
@@ -360,7 +360,7 @@ namespace war {
 	struct naval_control_set;
 	struct start_date;
 	struct current_war_score;
-	struct war_name;
+	struct name;
 	struct first_adj;
 	struct second;
 	struct state_name;
@@ -379,7 +379,7 @@ namespace war {
 		naval_control_set, set_tag<military::naval_control>,
 		start_date, date_tag,
 		current_war_score, float,
-		war_name, text_data::text_tag,
+		name, text_data::text_tag,
 		first_adj, text_data::text_tag,
 		second, text_data::text_tag,
 		state_name, text_data::text_tag,

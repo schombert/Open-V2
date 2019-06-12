@@ -434,7 +434,7 @@ namespace cultures {
 			nt.default_name.name = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base.c_str(), base.c_str() + base.length());
 			nt.default_name.adjective = text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, base_adj.c_str(), base_adj.c_str() + base_adj.length());
 
-			for(uint32_t i = 0; i < s.governments_m.governments_container.size(); ++i) {
+			for(int32_t i = 0; i < s.governments_m.governments_container.size(); ++i) {
 				const auto gtag = governments::government_tag(static_cast<governments::government_tag::value_base_t>(i));
 
 				std::string base_plus = base + "_" + gbase_names[gtag];
@@ -453,7 +453,7 @@ namespace cultures {
 
 		governments::ready_party_issues(s.governments_m, s.issues_m);
 
-		for(uint32_t i = 0; i < v.size(); ++i) {
+		for(int32_t i = 0; i < v.size(); ++i) {
 			const auto this_tag = national_tag(static_cast<national_tag::value_base_t>(i));
 
 			national_tag_object& uc = s.culture_m.national_tags[this_tag];

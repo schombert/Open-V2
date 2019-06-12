@@ -41,6 +41,7 @@ namespace technologies {
 				ws.w.nation_s.rebel_org_gain.get_row(nation_id),
 				ws.s.technology_m.rebel_org_gain.get_row(t.rebel_adjustment), ve::serial_exact());
 		}
+		/*
 		if(is_valid_index(t.unit_adjustment)) {
 			for(uint32_t i = to_index(military::naval_unit_base) + 1ui32; i < ws.s.military_m.unit_types_count; ++i) {
 				military::unit_type_tag this_unit(static_cast<military::unit_type_tag::value_base_t>(i));
@@ -59,7 +60,7 @@ namespace technologies {
 				}
 			}
 		}
-
+		*/
 		if(is_valid_index(t.activate_factory)) {
 			auto good = ws.s.economy_m.factory_types[t.activate_factory].output_good;
 			bit_vector_set(ws.w.nation_s.active_goods.get_row(nation_id), good, true);
@@ -84,8 +85,8 @@ namespace technologies {
 			return;
 
 		apply_technology(ws, this_nation, tech);
-		if(is_valid_index(ws.s.technology_m.technologies_container[tech].unit_adjustment))
-			military::update_all_unit_attributes(ws, this_nation);
+		// if(is_valid_index(ws.s.technology_m.technologies_container[tech].unit_adjustment))
+		//  	military::update_all_unit_attributes(ws, this_nation);
 		ws.w.nation_s.nations.get<nation::base_prestige>(this_nation) += ws.s.technology_m.technologies_container[tech].shared_prestige / float(ws.w.technology_s.discovery_count[tech]);
 		
 		// to be caught by standard update
@@ -139,7 +140,7 @@ namespace technologies {
 			}
 		}
 
-		military::update_all_unit_attributes(ws, this_nation);
+		// military::update_all_unit_attributes(ws, this_nation);
 	}
 
 	

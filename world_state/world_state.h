@@ -147,15 +147,7 @@ namespace current_state {
 		void increase_speed();
 		void decrease_speed();
 
-		GET_SET_TV(player_cb_state, local_player_data.triggered_cb_state)
-		GET_SET(province_s)
-		GET_SET(culture_s)
-		GET_SET(military_s)
-		GET_SET(nation_s)
-		ARRAY_BACKING(culture_s)
-		ARRAY_BACKING(province_s)
-		ARRAY_BACKING(military_s)
-		ARRAY_BACKING(nation_s)
+		
 	};
 }
 
@@ -164,49 +156,117 @@ public:
 	current_state::state w;
 	scenario::scenario_manager s;
 
+	GET_SET(w.culture_s.national_tags_state)
+	GET_SET_TV(::nation_tag::holder, w.culture_s.tags_to_holders)
+	GET_SET_TFV(::nation_tag::flags, w.culture_s.country_flags_by_government)
+	ARRAY_BACKING_BASE(w.culture_s.culture_arrays)
+	GET_SET_TV(current_state::player_cb_state, w.local_player_data.triggered_cb_state)
+	GET_SET(w.province_s.province_state_container)
+	GET_SET_TFV(province::demographics, w.province_s.province_demographics)
+	ARRAY_BACKING_BASE(w.province_s.core_arrays)
+	ARRAY_BACKING_BASE(w.province_s.static_modifier_arrays)
+	ARRAY_BACKING_BASE(w.province_s.timed_modifier_arrays)
+	ARRAY_BACKING_BASE(w.province_s.province_arrays)
+	GET_SET(w.nation_s.nations)
+	GET_SET(w.nation_s.states)
+	GET_SET_TFV(nation::demographics, w.nation_s.nation_demographics)
+	GET_SET_TFV(state::demographics, w.nation_s.state_demographics)
+	GET_SET_TFV(nation::colonial_demographics, w.nation_s.nation_colonial_demographics)
+	GET_SET_MAPPED(nation::nation_modifiers_map, w.nation_s.modifier_values)
+	ARRAY_BACKING_BASE(w.nation_s.static_modifier_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.timed_modifier_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.state_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.influence_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.nations_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.state_tag_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.relations_arrays)
+	ARRAY_BACKING_BASE(w.nation_s.truce_arrays)
+	GET_SET(w.military_s.armies)
+	GET_SET(w.military_s.wars)
+	GET_SET(w.military_s.fleets)
+	GET_SET(w.military_s.army_orders)
+	GET_SET(w.military_s.strategic_hqs)
+	GET_SET(w.military_s.leaders)
+	ARRAY_BACKING_BASE(w.military_s.fleet_presence_arrays)
+	ARRAY_BACKING_BASE(w.military_s.naval_control_arrays)
+	ARRAY_BACKING_BASE(w.military_s.cb_arrays)
+	ARRAY_BACKING_BASE(w.military_s.war_goal_arrays)
+	ARRAY_BACKING_BASE(w.military_s.war_arrays)
+	ARRAY_BACKING_BASE(w.military_s.fleet_arrays)
+	ARRAY_BACKING_BASE(w.military_s.orders_arrays)
+	ARRAY_BACKING_BASE(w.military_s.army_arrays)
+	ARRAY_BACKING_BASE(w.military_s.leader_arrays)
+	ARRAY_BACKING_BASE(w.military_s.hq_arrays)
+	ARRAY_BACKING_BASE(w.population_s.pop_arrays)
+
+	GET_SET(s.culture_m.culture_groups)
+	GET_SET(s.culture_m.religions)
+	GET_SET(s.culture_m.culture_container)
+	GET_SET(s.culture_m.national_tags)
+	GET_SET_TV(::culture::union_tag, s.culture_m.cultures_to_tags)
+	GET_SET_TV(::culture::group_direct, s.culture_m.cultures_to_groups)
+	GET_SET_TV(::culture_group::union_tag_direct, s.culture_m.groups_to_tags)
+	GET_SET_TV(::nation_tag::culture_group, s.culture_m.tags_to_groups)
+	GET_SET_TFV(::nation_tag::government_names, s.culture_m.country_names_by_government)
+	GET_SET_TFV(::culture::first_names, s.culture_m.first_names_by_culture)
+	GET_SET_TFV(::culture::last_names, s.culture_m.last_names_by_culture)
+	GET_SET_TFV(::culture_group::cultures, s.culture_m.culture_by_culture_group)
+	GET_SET_TV(::cultures::leader_pictures, s.culture_m.leader_pictures)
+	GET_SET(s.province_m.province_container)
+	GET_SET_TV(state_region::name, s.province_m.state_names)
+	GET_SET_TFV(state_region::provinces, s.province_m.states_to_province_index)
+	GET_SET_TFV(province::same_type_adjacency, s.province_m.same_type_adjacency)
+	GET_SET_TFV(province::coastal_adjacency, s.province_m.coastal_adjacency)
+	GET_SET(s.military_m.cb_types)
+	GET_SET_TV(military::leader_trait_name, s.military_m.leader_traits)
+	GET_SET_TV(::military::personality_traits, s.military_m.personality_traits)
+	GET_SET_TV(::military::background_traits, s.military_m.background_traits)
+	GET_SET_TFV(military::leader_trait_values, s.military_m.leader_trait_definitions)
+	GET_SET_TV(::cb_type::construction_speed_direct, s.military_m.cb_type_to_speed)
+
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto add_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
-		::add_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::add_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto add_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
-		::add_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::add_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto remove_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
-		::remove_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::remove_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto remove_item(index_tag& i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>> {
-		::remove_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::remove_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto contains_item(index_tag i, value_type v) const -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto contains_item(index_tag i, value_type const& v) const -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(w.array_backing<individuator_of<index_tag>>(), i, v);
+		::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag>
 	RELEASE_INLINE void resize(index_tag& i, uint32_t sz) {
-		::resize(w.array_backing<individuator_of<index_tag>>(), i, sz);
+		::resize(array_backing<individuator_of<index_tag>>(), i, sz);
 	}
 	template<typename index_tag>
-	RELEASE_INLINE auto get_range(index_tag i) const -> decltype(::get_range(w.array_backing<individuator_of<index_tag>>(), i)) {
-		return ::get_range(w.array_backing<individuator_of<index_tag>>(), i);
+	RELEASE_INLINE auto get_range(index_tag i) const -> decltype(::get_range(array_backing<individuator_of<index_tag>>(), i)) {
+		return ::get_range(array_backing<individuator_of<index_tag>>(), i);
 	}
 	template<typename index_tag>
-	RELEASE_INLINE auto get_size(index_tag i) const -> decltype(::get_size(w.array_backing<individuator_of<index_tag>>(), i)) {
-		return ::get_size(w.array_backing<individuator_of<index_tag>>(), i);
+	RELEASE_INLINE auto get_size(index_tag i) const -> decltype(::get_size(array_backing<individuator_of<index_tag>>(), i)) {
+		return ::get_size(array_backing<individuator_of<index_tag>>(), i);
 	}
 	template<typename index_tag, typename FN>
-	RELEASE_INLINE void remove_item_if(index_tag& i, const FN& f) const {
-		::remove_item_if(w.array_backing<individuator_of<index_tag>>(), i, f);
+	RELEASE_INLINE void remove_item_if(index_tag& i, const FN& f) {
+		::remove_item_if(array_backing<individuator_of<index_tag>>(), i, f);
 	}
 	template<typename index_tag>
 	RELEASE_INLINE void clear(index_tag& i) {
-		::clear(w.array_backing<individuator_of<index_tag>>(), i);
+		::clear(array_backing<individuator_of<index_tag>>(), i);
 	}
 
 	template<typename tag_type, typename F>
@@ -219,12 +279,12 @@ public:
 	template<typename tag_type, typename F, typename partitioner_t = concurrency::auto_partitioner>
 	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> par_for_each(F const& f, partitioner_t&& p = concurrency::auto_partitioner()) const {
 		int32_t const cmax = int32_t(s.military_m.cb_types.size());
-		conccurrency::parallel_for(0, cmax, [&f](int32_t i) {
+		concurrency::parallel_for(0, cmax, [&f](int32_t i) {
 			f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
 		}, p);
 	}
 	template<typename tag_type, typename F>
-	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> if_any(F const& f) const {
+	std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>, bool> any_of(F const& f) const {
 		int32_t const cmax = int32_t(s.military_m.cb_types.size());
 		for(int32_t i = 0; i < cmax; ++i) {
 			if(f(military::cb_type_tag(military::cb_type_tag::value_base_t(i))))
@@ -234,12 +294,13 @@ public:
 	}
 
 	template<typename tag_type, typename F>
-	std::enable_if_t<std::is_same_v<tag_type, nations::country_tag>> for_each(F const& f) const {
+	RELEASE_INLINE std::enable_if_t<std::is_same_v<tag_type, nations::country_tag>> for_each(F const& f) const {
 		w.nation_s.nations.for_each(f);
 	}
-
-	GET_SET(w)
-	GET_SET(s)
+	template<typename tag_type, typename F, typename partitioner_t = concurrency::auto_partitioner>
+	RELEASE_INLINE std::enable_if_t<std::is_same_v<tag_type, nations::country_tag>> par_for_each(F const& f, partitioner_t&& p = concurrency::auto_partitioner()) const {
+		w.nation_s.nations.parallel_for_each(f, p);
+	}
 };
 
 void world_state_non_ai_update(world_state & ws);

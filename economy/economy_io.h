@@ -144,6 +144,10 @@ public:
 			serialize_size(obj.artisan_input_goods) +
 			serialize_size(obj.building_costs);
 	}
+	template<typename T>
+	static size_t size(economy::economic_scenario const& obj, T const&) {
+		return size(obj);
+	}
 };
 
 namespace modifiers {

@@ -68,7 +68,7 @@ namespace nations {
 		governments::reset_upper_house(ws, new_nation);
 		issues::reset_active_issues(ws, new_nation);
 		governments::update_current_rules(ws, new_nation);
-		military::reset_unit_stats(ws, new_nation);
+		// military::reset_unit_stats(ws, new_nation);
 
 		Eigen::Map<Eigen::Matrix<economy::goods_qnty_type, -1, 1>, Eigen::Aligned32>(
 			ws.w.nation_s.national_stockpiles.get_row(new_nation).data(),
@@ -208,13 +208,13 @@ namespace nations {
 		auto& wars_involved_in = ws.w.nation_s.nations.get<nation::wars_involved_in>(new_nation);
 		auto war_range = get_range(ws.w.military_s.war_arrays, wars_involved_in);
 		for(auto w = war_range.first; w != war_range.second; ++w)
-			military::silent_remove_from_war(ws, ws.w.military_s.wars[w->war_id], new_nation);
+			military::silent_remove_from_war(ws, w->war_id, new_nation);
 		clear(ws.w.military_s.war_arrays, wars_involved_in);
 
 		auto& active_orders = ws.w.nation_s.nations.get<nation::active_orders>(new_nation);
 		auto order_range = get_range(ws.w.military_s.orders_arrays, active_orders);
 		for(auto o : order_range) {
-			military::partial_destroy_orders(ws, ws.w.military_s.army_orders_container[o]);
+			military::partial_destroy_orders(ws, o);
 		}
 		clear(ws.w.military_s.orders_arrays, active_orders);
 
@@ -242,13 +242,13 @@ namespace nations {
 		auto& generals = ws.w.nation_s.nations.get<nation::generals>(new_nation);
 		auto gen_range = get_range(ws.w.military_s.leader_arrays, generals);
 		for(auto g : gen_range)
-			ws.w.military_s.leaders.remove(g);
+			ws.w.military_s.leaders.release(g);
 		clear(ws.w.military_s.leader_arrays, generals);
 
 		auto& admirals = ws.w.nation_s.nations.get<nation::admirals>(new_nation);
 		auto adm_range = get_range(ws.w.military_s.leader_arrays, admirals);
 		for(auto a : adm_range)
-			ws.w.military_s.leaders.remove(a);
+			ws.w.military_s.leaders.release(a);
 		clear(ws.w.military_s.leader_arrays, admirals);
 
 		auto& national_focus_locations = ws.w.nation_s.nations.get<nation::national_focus_locations>(new_nation);
@@ -394,14 +394,13 @@ namespace nations {
 			auto war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(vassal));
 			boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
 			for(auto w : wars_copy) {
-				auto& this_war = ws.w.military_s.wars[w.war_id];
-				if(!military::is_target_of_war_goal(ws, this_war, vassal))
-					military::remove_from_war(ws, this_war, vassal);
+				if(!military::is_target_of_war_goal(ws, w.war_id, vassal))
+					military::remove_from_war(ws, w.war_id, vassal);
 			}
 
 			auto overlord_war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(overlord));
 			for(auto w = overlord_war_range.first; w != overlord_war_range.second; ++w)
-				military::add_to_war(ws, ws.w.military_s.wars[w->war_id], w->is_attacker, vassal);
+				military::add_to_war(ws, w->war_id, w->is_attacker, vassal);
 
 			governments::silent_set_government(ws, vassal, ws.w.nation_s.nations.get<nation::current_government>(overlord));
 		}
@@ -418,9 +417,8 @@ namespace nations {
 		auto war_range = get_range(ws.w.military_s.war_arrays, ws.w.nation_s.nations.get<nation::wars_involved_in>(vassal));
 		boost::container::small_vector<military::war_identifier, 8> wars_copy(war_range.first, war_range.second);
 		for(auto w : wars_copy) {
-			auto& this_war = ws.w.military_s.wars[w.war_id];
-			if(!military::is_target_of_war_goal(ws, this_war, vassal))
-				military::remove_from_war(ws, this_war, vassal);
+			if(!military::is_target_of_war_goal(ws, w.war_id, vassal))
+				military::remove_from_war(ws, w.war_id, vassal);
 		}
 	}
 
@@ -451,7 +449,7 @@ namespace nations {
 		ws.w.nation_s.national_stockpiles.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.national_variables.ensure_capacity(to_index(new_nation) + 1);
 
-		ws.w.nation_s.unit_stats.ensure_capacity(to_index(new_nation) + 1);
+		// ws.w.nation_s.unit_stats.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.rebel_org_gain.ensure_capacity(to_index(new_nation) + 1);
 		ws.w.nation_s.production_adjustments.ensure_capacity(to_index(new_nation) + 1);
 
@@ -594,7 +592,7 @@ namespace nations {
 		ws.w.nation_s.national_variables.reset(ws.s.variables_m.count_national_variables);
 		ws.w.nation_s.state_purchases.reset(uint32_t(ws.s.economy_m.goods_count));
 
-		ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));
+		// ws.w.nation_s.unit_stats.reset(static_cast<uint32_t>(ws.s.military_m.unit_types.size()));
 		ws.w.nation_s.rebel_org_gain.reset(static_cast<uint32_t>(ws.s.population_m.rebel_types.size()));
 		ws.w.nation_s.production_adjustments.reset(ws.s.economy_m.goods_count * uint32_t(technologies::production_adjustment::production_adjustment_count));
 
@@ -1244,7 +1242,7 @@ namespace nations {
 	}
 
 	int32_t calculate_military_score(world_state const& ws, nations::country_tag this_nation) {
-		float* unit_type_scores = (float*)_alloca(sizeof(float) * ws.s.military_m.unit_types_count);
+		/*float* unit_type_scores = (float*)_alloca(sizeof(float) * ws.s.military_m.unit_types_count);
 		std::fill_n(unit_type_scores, ws.s.military_m.unit_types_count, 0.0f);
 
 		auto unit_attributes_row = ws.w.nation_s.unit_stats.get_row(this_nation);
@@ -1272,14 +1270,15 @@ namespace nations {
 						unit_attributes_row[this_tag][military::unit_attribute::discipline];
 				++land_unit_type_count;
 			}
-		}
+		}*/
+
 		auto disarm_date = ws.w.nation_s.nations.get<nation::disarmed_until>(this_nation);
 		bool is_disarmed = is_valid_index(disarm_date) && ws.w.current_date < disarm_date;
 
 		float total_active_regiments = 0.0f;
 		auto armies = get_range(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(this_nation));
 		for(auto a : armies)
-			total_active_regiments += float(ws.w.military_s.armies[a].total_soldiers);
+			total_active_regiments += ws.get<army::current_soldiers>(a);
 		total_active_regiments /= ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
 		float total_possible_regiments =
@@ -1287,17 +1286,14 @@ namespace nations {
 				ws.w.nation_s.nation_colonial_demographics.get(this_nation, population::to_demo_tag(ws, ws.s.population_m.soldier))) /
 			ws.s.modifiers_m.global_defines.pop_size_per_regiment;
 
-		float total_sum = ((land_uint_score / land_unit_type_count) *
+		float total_sum = (/*(land_uint_score / land_unit_type_count) * */
 			(is_disarmed ? ws.s.modifiers_m.global_defines.disarmament_army_hit : 1.0f) *
 			std::max(0.0f, (ws.w.nation_s.modifier_values.get<modifiers::national_offsets::supply_consumption>(this_nation) + 1.0f)) *
 			std::min(total_active_regiments * 4.0f, total_possible_regiments)) / 7.0f; // = land contribution
 
 		auto fleets = get_range(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(this_nation));
 		for(auto f : fleets) {
-			auto ships = get_range(ws.w.military_s.ship_arrays, ws.w.military_s.fleets[f].ships);
-			for(auto& s : ships) {
-				total_sum += unit_type_scores[to_index(s.type)];
-			}
+			total_sum += ws.get<fleet::size>(f);
 		}
 
 		total_sum += std::min(float(get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(this_nation))

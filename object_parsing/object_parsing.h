@@ -138,10 +138,10 @@ struct _set_member<CT_STRING("this"), CLASS> {
 #define MEMBER_DEF(class_name, member, identifier) \
 template<> \
 struct _set_member<CT_STRING(identifier), class_name>{ \
-    template<typename V>\
-    static void set(class_name& class_passed, V&& v) { \
-        move_to_member( class_passed. member , std::forward<V>(v));\
-    } \
+	template<typename V>\
+	static void set(class_name& class_passed, V&& v) { \
+		move_to_member( class_passed. member , std::forward<V>(v));\
+	} \
 };
 
 #define MEMBER_SAME_DEF(class_name, member) MEMBER_DEF(class_name, member, # member)
@@ -149,10 +149,10 @@ struct _set_member<CT_STRING(identifier), class_name>{ \
 #define MEMBER_FDEF(class_name, member, identifier) \
 template<> \
 struct _set_member<CT_STRING(identifier), class_name>{ \
-    template<typename V>\
-    static void set(class_name& class_passed, V&& v) { \
-        class_passed. member (std::forward<V>(v));\
-    } \
+	template<typename V>\
+	static void set(class_name& class_passed, V&& v) { \
+		class_passed. member (std::forward<V>(v));\
+	} \
 };
 
 template<size_t nth, typename context>

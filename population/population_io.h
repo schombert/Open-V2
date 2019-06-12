@@ -95,7 +95,7 @@ public:
 		serialize(output, obj.life_needs);
 		serialize(output, obj.everyday_needs);
 		serialize(output, obj.luxury_needs);
-		serialize(output, obj.rebel_units);
+		// serialize(output, obj.rebel_units);
 		serialize(output, obj.issue_inclination);
 		serialize(output, obj.ideological_inclination);
 		serialize(output, obj.promote_to);
@@ -129,7 +129,7 @@ public:
 		deserialize(input, obj.life_needs);
 		deserialize(input, obj.everyday_needs);
 		deserialize(input, obj.luxury_needs);
-		deserialize(input, obj.rebel_units);
+		// deserialize(input, obj.rebel_units);
 		deserialize(input, obj.issue_inclination);
 		deserialize(input, obj.ideological_inclination);
 		deserialize(input, obj.promote_to);
@@ -165,7 +165,7 @@ public:
 		deserialize(input, obj.life_needs);
 		deserialize(input, obj.everyday_needs);
 		deserialize(input, obj.luxury_needs);
-		deserialize(input, obj.rebel_units);
+		// deserialize(input, obj.rebel_units);
 		deserialize(input, obj.issue_inclination);
 		deserialize(input, obj.ideological_inclination);
 		deserialize(input, obj.promote_to);
@@ -195,6 +195,7 @@ public:
 
 		tg.run([&obj]() { rebuild_indexes(obj); });
 	}
+	
 	static size_t size(population::population_manager const& obj) {
 		return 
 			serialize_size(obj.pop_types) +
@@ -202,7 +203,7 @@ public:
 			serialize_size(obj.life_needs) +
 			serialize_size(obj.everyday_needs) +
 			serialize_size(obj.luxury_needs) +
-			serialize_size(obj.rebel_units) +
+			// serialize_size(obj.rebel_units) +
 			serialize_size(obj.issue_inclination) +
 			serialize_size(obj.ideological_inclination) +
 			serialize_size(obj.promote_to) +
@@ -229,6 +230,10 @@ public:
 			serialize_size(obj.officer) +
 			serialize_size(obj.farmer) +
 			serialize_size(obj.laborer);
+	}
+	template<typename T>
+	static size_t size(population::population_manager const& obj, T const&) {
+		return size(obj);
 	}
 };
 

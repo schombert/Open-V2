@@ -220,7 +220,7 @@ public:
 		}
 	}
 	template<typename tag_type, typename fn>
-	void if_any(fn const& f) {
+	bool any_of(fn const& f) {
 		int32_t const cmax = tag_count[detail::addr_struct<tag_type>::value()];
 		for(int32_t i = 0; i < cmax; ++i) {
 			if(f(tag_type(typename tag_type::value_base_t(i))))
