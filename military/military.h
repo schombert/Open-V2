@@ -273,7 +273,7 @@ namespace army {
 	struct location;
 	struct order;
 	struct current_soldiers;
-	struct target_solders;
+	struct target_soldiers;
 	struct readiness;
 	struct supply;
 	struct priority;
@@ -290,7 +290,7 @@ namespace army {
 		location, provinces::province_tag,
 		owner, nations::country_tag,
 		current_soldiers, float,
-		target_solders, float,
+		target_soldiers, float,
 		readiness, float,
 		supply, float,
 		priority, int8_t,

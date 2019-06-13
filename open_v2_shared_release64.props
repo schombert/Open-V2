@@ -40,6 +40,7 @@
       <OptimizeReferences>true</OptimizeReferences>
       <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
       <AdditionalLibraryDirectories>$(SolutionDir)..\open_v2_test_data\$(Configuration);$(ProjectDir)..\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(ProjectDir)..\lib</AdditionalLibraryDirectories>

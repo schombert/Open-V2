@@ -520,15 +520,17 @@ auto bit_vector_test(tagged_array_view<T, index_type> v, index_type index) -> st
 	template<typename INDEX> \
 	static auto get_member(_struct_type const& s) noexcept -> std::enable_if_t<std::is_same_v<INDEX, i_type>, std::add_lvalue_reference_t<std::add_const_t<decltype(s. name )>>> { \
 		return s. name ; \
-	} 
+	}
 
 template<typename T>
-struct struct_wrapper {};
+struct struct_wrapper {
+	using _struct_type = T;
+};
 
 #define START_STRUCT( struct_name ) \
 template<> \
 struct struct_wrapper<struct_name> { \
-	using _struct_type = struct_name ; \
+	using _struct_type = struct_name ;
 
 #define END_STRUCT };
 
@@ -563,11 +565,46 @@ constexpr bool supports_get_t1 = _supports_get_t1<A, void, index, C ...>::value;
 
 #define GET_SET(container_name) \
 template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, decltype(container_name)::get_type<INDEX>> { \
+	return container_name.get<INDEX>(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) const noexcept-> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, decltype(container_name)::const_get_type<INDEX>> { \
+	return container_name.get<INDEX>(t); \
+} \
+template<typename INDEX, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type v) noexcept -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && decltype(container_name)::supports_index<INDEX>, void> { \
+	return container_name.set<INDEX>(t, v); \
+} \
+template<typename INDEX, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && decltype(container_name)::supports_index<INDEX>, void> { \
+	return container_name.set<INDEX>(t, v); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, tagged_array_view<typename decltype(container_name)::template value_type<INDEX>, decltype(container_name)::index_type>> { \
+	return container_name.get_row<INDEX>(); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, tagged_array_view<typename decltype(container_name)::template value_type<INDEX> const, decltype(container_name)::index_type>> { \
+	return container_name.get_row<INDEX>(); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, int32_t> { \
+	return int32_t(container_name.size<INDEX>()); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, void> { \
+	int32_t(container_name.resize<INDEX>(sz)); \
+}
+
+
+#define GET_SET_STV(container_name) \
+template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto get(tag_type t) noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t)), void>, decltype(container_name.get<INDEX>(t))> { \
 	return container_name.get<INDEX>(t); \
 } \
 template<typename INDEX, typename tag_type> \
-RELEASE_INLINE auto get(tag_type t) const noexcept-> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t)), void>, decltype(container_name.get<INDEX>(t))> { \
+RELEASE_INLINE auto get(tag_type t) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t)), void>, decltype(container_name.get<INDEX>(t))> { \
 	return container_name.get<INDEX>(t); \
 } \
 template<typename INDEX, typename tag_type, typename value_type> \
@@ -579,49 +616,13 @@ RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable
 	return container_name.set<INDEX>(t, v); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void>, decltype(container_name.get_row<INDEX>())> { \
-	return container_name.get_row<INDEX>(); \
-} \
-template<typename INDEX> \
-RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void>, decltype(container_name.get_row<INDEX>())> { \
-	return container_name.get_row<INDEX>(); \
-} \
-template<typename INDEX> \
-RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void> && !std::is_same_v<decltype(container_name.size<INDEX>()), void>, int32_t> { \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container)::public_tag_type())), void>, int32_t> { \
 	return int32_t(container_name.size<INDEX>()); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>()), void> && !std::is_same_v<decltype(container_name.resize<INDEX>(sz)), char>, void> { \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container)::public_tag_type())), void>, void> { \
 	int32_t(container_name.resize<INDEX>(sz)); \
-} \
-template<typename INDEX, typename tag_type, typename inner_tag_type> \
-RELEASE_INLINE auto get(tag_type t, inner_tag_type u) noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, decltype(container_name.get<INDEX>(t,u))> { \
-	return container_name.get<INDEX>(t,u); \
-} \
-template<typename INDEX, typename tag_type, typename inner_tag_type> \
-RELEASE_INLINE auto get(tag_type t, inner_tag_type u) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, decltype(container_name.get<INDEX>(t,u))> { \
-	return container_name.get<INDEX>(t,u); \
-} \
-template<typename INDEX, typename tag_type, typename inner_tag_type, typename value_type> \
-RELEASE_INLINE auto set(tag_type t, inner_tag_type u, value_type v) noexcept -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && !std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, void> { \
-	return container_name.set<INDEX>(t, u, v); \
-} \
-template<typename INDEX, typename tag_type, typename inner_tag_type, typename value_type> \
-RELEASE_INLINE auto set(tag_type t, inner_tag_type u, value_type const& v) noexcept -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && !std::is_same_v<decltype(container_name.get<INDEX>(t,u)), void>, void> { \
-	return container_name.set<INDEX>(t, u, v); \
-} \
-template<typename INDEX, typename tag_type> \
-RELEASE_INLINE auto get_row(tag_type t) noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>(t)), void>, decltype(container_name.get_row<INDEX>(t))> { \
-	return container_name.get_row<INDEX>(t); \
-} \
-template<typename INDEX, typename tag_type> \
-RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>(t)), void>, decltype(container_name.get_row<INDEX>(t))> { \
-	return container_name.get_row<INDEX>(t); \
-} \
-template<typename INDEX, typename tag_type> \
-RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get_row<INDEX>(t)), void>, decltype(container_name.size(t))> { \
-	return container_name.size(t); \
-} 
+}
 
 #define GET_SET_TV(index_name, container_name) \
 template<typename INDEX, typename tag_type> \
@@ -747,6 +748,9 @@ class tagged_vector {
 private:
 	std::vector<value_type, allocator> storage;
 public:
+	using public_value_type = value_type;
+	using public_tag_type = tag_type;
+
 	tagged_vector() {
 		if constexpr(padded)
 			storage.resize(1);
@@ -817,8 +821,7 @@ public:
 	void set(tag_type t, decltype(struct_wrapper<value_type>::template get_member<i_type>(*(storage.data() + to_index(t) + int32_t(padded)))) j) noexcept {
 		struct_wrapper<value_type>::template get_member<i_type>(*(storage.data() + to_index(t) + int32_t(padded))) = j;
 	}
-	template<typename i_type>
-	void get_row() const;
+
 };
 
 template<typename tag_type, typename allocator, bool padded>

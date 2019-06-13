@@ -3,7 +3,7 @@
 #include "military\military.h"
 
 namespace military {
-	template<auto new_leader_fn, typename world_state_t>
+	template<typename world_state_t, leader_tag (*new_leader_fn)(world_state_t&)>
 	RELEASE_INLINE leader_tag internal_make_empty_leader(world_state_t& ws, cultures::culture_tag culture, bool is_general) {
 		leader_tag new_leader = new_leader_fn(ws);
 		auto cgroup = ws.get<culture::group>(culture);
@@ -12,30 +12,43 @@ namespace military {
 		auto const lp = ws.get<culture_group::leader_pictures>(cgroup);
 
 		if(is_general) {
-			std::uniform_int_distribution<int32_t> r(0, int32_t(lp.general_size) - 1);
-			ws.set<military_leader::portrait>(
-				new_leader,
-				ws.get<cultures::leader_pictures>(lp.general_offset + r(local_generator)));
+			auto const mx = int32_t(lp.general_size) - 1;
+			if(mx > 0) {
+				std::uniform_int_distribution<int32_t> r(0, mx);
+				ws.set<military_leader::portrait>(
+					new_leader,
+					ws.get<cultures::leader_pictures>(lp.general_offset + r(local_generator)));
+			}
 		} else {
-			std::uniform_int_distribution<int32_t> r(0, int32_t(lp.admiral_size) - 1);
-			ws.set<military_leader::portrait>(
-				new_leader,
-				ws.get<cultures::leader_pictures>(lp.admiral_offset + r(local_generator)));
+			auto const mx = int32_t(lp.admiral_size) - 1;
+			if(mx > 0) {
+				std::uniform_int_distribution<int32_t> r(0, mx);
+				ws.set<military_leader::portrait>(
+					new_leader,
+					ws.get<cultures::leader_pictures>(lp.admiral_offset + r(local_generator)));
+			}
 		}
 
 		auto first_name_range = ws.get_row<culture::first_names>(culture);
 		auto last_name_range = ws.get_row<culture::last_names>(culture);
 
-		std::uniform_int_distribution<int32_t> fn(0, int32_t(first_name_range.second - first_name_range.first) - 1);
-		std::uniform_int_distribution<int32_t> ln(0, int32_t(last_name_range.second - last_name_range.first) - 1);
+		if(auto const mx_fn = int32_t(first_name_range.second - first_name_range.first) - 1; mx_fn > 0) {
+			std::uniform_int_distribution<int32_t> fn(0, mx_fn);
+			ws.set<military_leader::first_name>(new_leader, *(first_name_range.first + fn(local_generator)));
+		}
 
-		ws.set<military_leader::first_name>(new_leader, *(first_name_range.first + fn(local_generator)));
-		ws.set<military_leader::last_name>(new_leader, *(last_name_range.first + ln(local_generator)));
+		if(auto const mx_ln = int32_t(last_name_range.second - last_name_range.first) - 1; mx_ln > 0) {
+			std::uniform_int_distribution<int32_t> ln(0, mx_ln);
+			ws.set<military_leader::last_name>(new_leader, *(last_name_range.first + ln(local_generator)));
+		}
 
 		return new_leader;
 	}
 
-	template<auto make_empty_leader_fn, auto calculate_leader_traits_fn, typename world_state_t>
+	template<
+		typename world_state_t,
+		leader_tag(*make_empty_leader_fn)(world_state_t&, cultures::culture_tag, bool),
+		void(*calculate_leader_traits_fn)(world_state_t&, leader_tag)>
 	RELEASE_INLINE leader_tag internal_make_auto_leader(world_state_t& ws, cultures::culture_tag culture, bool is_general, date_tag creation_date) {
 		leader_tag new_leader = make_empty_leader_fn(ws, culture, is_general);
 		ws.set<military_leader::creation_date>(new_leader, creation_date);
@@ -72,7 +85,7 @@ namespace military {
 		ws.set<military_leader::reliability>(l, dest_vec[military::traits::reliability]);
 	}
 
-	template<auto new_army_function, typename world_state_t>
+	template<typename world_state_t, army_tag(*new_army_function)(world_state_t&)>
 	RELEASE_INLINE army_tag internal_make_army(world_state_t& ws, nations::country_tag n, provinces::province_tag location) {
 		army_tag new_army = new_army_function(ws);
 		ws.set<army::location>(new_army, location);
@@ -89,7 +102,7 @@ namespace military {
 		return new_army;
 	}
 
-	template<auto new_fleet_function, typename world_state_t>
+	template<typename world_state_t, fleet_tag(*new_fleet_function)(world_state_t&)>
 	RELEASE_INLINE fleet_tag internal_make_fleet(world_state_t& ws, nations::country_tag n, provinces::province_tag location) {
 		fleet_tag new_fleet = new_fleet_function(ws); // ws.w.military_s.fleets.get_new();
 		ws.set<fleet::location>(new_fleet, location);
@@ -107,7 +120,7 @@ namespace military {
 		return ws.contains_item(ws.get<nation::opponents_in_war>(this_nation), nation_against);
 	}
 
-	template<auto check_war_tag_fn, typename world_state_t>
+	template<typename world_state_t, bool(*check_war_tag_fn)(world_state_t const&, war_tag)>
 	RELEASE_INLINE void internal_update_at_war_with_and_against(world_state_t& ws, nations::country_tag this_nation) {
 		auto& allies_in_war = ws.get<nation::allies_in_war>(this_nation);
 		auto& opponents_in_war = ws.get<nation::opponents_in_war>(this_nation);
@@ -139,7 +152,8 @@ namespace military {
 		}
 	}
 
-	template<auto test_trigger_fn, typename world_state_t>
+	template<typename world_state_t,
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter)>
 	RELEASE_INLINE bool internal_can_use_cb_against(world_state_t const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
 		auto pending_range = ws.get_range(ws.get<nation::active_cbs>(nation_by));
 		for(auto& c : pending_range) {
@@ -147,19 +161,22 @@ namespace military {
 				return true;
 		}
 		if(ws.any_of<cb_type_tag>([&ws, nation_target, nation_by](cb_type_tag c) {
-			return (ws.get<::cb_type::flags>(c) & cb_type::is_not_triggered_only) == 0 &&
-				test_trigger_fn(ws, ws.get<::cb_type::can_use>(c), nation_target, nation_by);
+			return (ws.get<::cb_type::flags>(c) & cb_type::is_not_triggered_only) == 0
+				&& is_valid_index(ws.get<::cb_type::can_use>(c))
+				&&  test_trigger_fn(ws, ws.get<::cb_type::can_use>(c), nation_target, nation_by, triggers::const_parameter());
 		}))
 			return true;
 		auto vassal_range = ws.get_range(ws.get<nation::vassals>(nation_target));
 		for(auto v : vassal_range) {
-			if(internal_can_use_cb_against<test_trigger_fn>(ws, nation_by, nation_target))
+			if(internal_can_use_cb_against<world_state_t, test_trigger_fn>(ws, nation_by, nation_target))
 				return true;
 		}
 		return false;
 	}
 
-	template<auto test_trigger_fn, auto owns_releasable_core_fn, typename world_state_t>
+	template<typename world_state_t,
+		bool(*owns_releasable_core_fn)(world_state_t const&, nations::country_tag),
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter)>
 	RELEASE_INLINE bool internal_test_cb_conditions(world_state_t const& ws, nations::country_tag nation_by, nations::country_tag nation_target, cb_type_tag c) {
 		if(auto const allowed_countries = ws.get<::cb_type::allowed_countries>(c); allowed_countries) {
 			auto const cb_flags = ws.get<::cb_type::flags>(c);
@@ -207,7 +224,9 @@ namespace military {
 		return true;
 	}
 
-	template<auto test_trigger_fn, auto test_cb_conditions_fn, typename world_state_t>
+	template<typename world_state_t,
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter),
+		bool (*test_cb_conditions_fn)(world_state_t const&, nations::country_tag, nations::country_tag, cb_type_tag)>
 	RELEASE_INLINE bool internal_is_cb_construction_valid_against(world_state_t const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target) {
 		auto const cb_flags = ws.get<::cb_type::flags>(cb);
 
@@ -224,7 +243,10 @@ namespace military {
 		return test_cb_conditions_fn(ws, nation_by, nation_target, cb);
 	}
 
-	template<auto nation_exists_fn, auto get_player_fn, auto test_trigger_fn, typename world_state_t>
+	template<typename world_state_t,
+		bool(*nation_exists_fn)(world_state_t const&, nations::country_tag),
+		nations::country_tag(*get_player_fn)(world_state_t const&),
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter)>
 	RELEASE_INLINE void internal_init_player_cb_state(world_state_t& ws) {
 		ws.for_each<cb_type_tag>([&ws](cb_type_tag c){
 			auto const cb_flags = ws.get<::cb_type::flags>(c);
@@ -242,7 +264,11 @@ namespace military {
 		});
 	}
 
-	template<auto nation_exists_fn, auto get_player_fn, auto test_trigger_fn, auto post_msg_fn, typename world_state_t>
+	template<typename world_state_t,
+		bool(*nation_exists_fn)(world_state_t const&, nations::country_tag),
+		nations::country_tag(*get_player_fn)(world_state_t const&),
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter),
+		void (*post_msg_fn)(bool, world_state_t& ws, nations::country_tag, nations::country_tag, cb_type_tag)>
 	RELEASE_INLINE void internal_update_player_cb_state(world_state_t& ws) {
 		if(get_player_fn(ws))
 			return;
@@ -281,7 +307,8 @@ namespace military {
 		return false;
 	}
 
-	template<auto regiment_sz_fn, typename world_state_t>
+	template<typename world_state_t,
+		float (*regiment_sz_fn)(world_state_t const& ws)>
 	RELEASE_INLINE uint32_t internal_total_units_in_province(world_state_t const& ws, provinces::province_tag ps) {
 		auto orders = ws.get<province_state::orders>(ps);
 		if(orders) {
@@ -304,7 +331,8 @@ namespace military {
 		}
 	}
 
-	template<auto regiment_sz_fn, typename world_state_t>
+	template<typename world_state_t,
+		float(*regiment_sz_fn)(world_state_t const& ws)>
 	RELEASE_INLINE uint32_t internal_total_active_divisions(world_state_t const& ws, nations::country_tag this_nation) {
 		float total = 0ui32;
 		const float regiment_size = regiment_sz_fn(ws);
@@ -326,25 +354,31 @@ namespace military {
 		return uint32_t(total + 0.5f);
 	}
 
-	template<auto soldier_demo_index, typename world_state_t>
+	template<typename world_state_t,
+		population::demo_tag (*soldier_demo_index)(world_state_t const&)>
 	RELEASE_INLINE float internal_recruited_pop_fraction(world_state_t const& ws, nations::country_tag this_nation) {
-		float total_soldier_pops =
-			ws.get<nation::demographics>(this_nation, soldier_demo_index(ws))
-			+ ws.get<nation::colonial_demographics>(this_nation, soldier_demo_index(ws));
-		float total_soldier_pops_assigned = 0;
+		if(this_nation) {
+			float total_soldier_pops =
+				ws.get<nation::demographics>(this_nation, soldier_demo_index(ws))
+				+ ws.get<nation::colonial_demographics>(this_nation, soldier_demo_index(ws));
+			float total_soldier_pops_assigned = 0;
 
-		if(total_soldier_pops <= 0)
+			if(total_soldier_pops <= 0)
+				return 0.0f;
+
+			auto army_range = ws.get_range(ws.get<nation::armies>(this_nation));
+			for(auto a : army_range) {
+				total_soldier_pops_assigned += ws.get<army::current_soldiers>(a);
+			}
+
+			return total_soldier_pops_assigned / total_soldier_pops;
+		} else {
 			return 0.0f;
-
-		auto army_range = ws.get_range(ws.get<nation::armies>(this_nation));
-		for(auto a : army_range) {
-			total_soldier_pops_assigned += ws.get<army::current_soldiers>(a);
 		}
-
-		return total_soldier_pops_assigned / total_soldier_pops;
 	}
 
-	template<auto msg_function, typename world_state_t>
+	template<typename world_state_t,
+		void (*msg_function)(world_state_t&, war_tag, nations::country_tag)>
 	RELEASE_INLINE void internal_remove_from_war(world_state_t& ws, war_tag this_war, nations::country_tag to_remove) {
 		msg_function(ws, this_war, to_remove);
 
@@ -386,7 +420,8 @@ namespace military {
 		ws.remove_item(ws.get<nation::wars_involved_in>(to_remove), war_identifier{ this_war, false });
 	}
 
-	template<auto msg_function, typename world_state_t>
+	template<typename world_state_t,
+		void (*msg_function)(world_state_t&, war_tag, bool, nations::country_tag)>
 	RELEASE_INLINE void internal_add_to_war(world_state_t& ws, war_tag this_war, bool attacker, nations::country_tag to_add) {
 		msg_function(ws, this_war, attacker, to_add);
 
@@ -432,7 +467,9 @@ namespace military {
 		return false;
 	}
 
-	template<auto release_army_fn, bool remove_from_nation_arrays, typename world_state_t>
+	template<typename world_state_t,
+		void (*release_army_fn)(world_state_t&, army_tag),
+		bool remove_from_nation_arrays>
 	RELEASE_INLINE void internal_destroy_army(world_state_t& ws, army_tag a) {
 		if constexpr(remove_from_nation_arrays) {
 			auto const owner = ws.get<army::owner>(a);
@@ -454,7 +491,9 @@ namespace military {
 		release_army_fn(ws, a);
 	}
 
-	template<auto release_fleet_fn, bool remove_from_nation_arrays, typename world_state_t>
+	template<typename world_state_t,
+		void(*release_fleet_fn)(world_state_t&, fleet_tag),
+		bool remove_from_nation_arrays>
 	RELEASE_INLINE void internal_destroy_fleet(world_state_t& ws, fleet_tag f, nations::country_tag owner) {
 		if constexpr(remove_from_nation_arrays) {
 			ws.remove_item(ws.get<nation::fleets>(owner), f);
@@ -468,7 +507,9 @@ namespace military {
 	}
 	
 
-	template<auto release_orders_fn, bool remove_from_nation_arrays, typename world_state_t>
+	template<typename world_state_t,
+		void(*release_orders_fn)(world_state_t&, army_orders_tag),
+		bool remove_from_nation_arrays>
 	RELEASE_INLINE void internal_destroy_orders(world_state_t& ws, army_orders_tag o, nations::country_tag owner) {
 		
 		auto army_range = ws.get_range(ws.get<army_order::army_set>(o));
@@ -492,7 +533,10 @@ namespace military {
 		release_orders_fn(ws, o);
 	}
 
-	template<auto release_hq_fn, auto destroy_army_fn, bool remove_from_nation_arrays, typename world_state_t>
+	template<typename world_state_t,
+		void (*release_hq_fn)(world_state_t&, strategic_hq_tag),
+		void (*destroy_army_fn)(world_state_t&, army_tag),
+		bool remove_from_nation_arrays>
 	RELEASE_INLINE void internal_destroy_hq(world_state_t& ws, strategic_hq_tag o, nations::country_tag owner) {
 		auto army_range = ws.get_range(ws.get<strategic_hq::army_set>(o));
 		if constexpr(remove_from_nation_arrays) {
@@ -515,7 +559,8 @@ namespace military {
 		release_hq_fn(ws, o);
 	}
 
-	template<auto release_leader_fn, typename world_state_t>
+	template<typename world_state_t,
+		void(*release_leader_fn)(world_state_t&, leader_tag)>
 	RELEASE_INLINE void internal_destroy_admiral(world_state_t& ws, leader_tag l, nations::country_tag owner) {
 		if(ws.get<military_leader::is_attached>(l)) {
 			auto fr = ws.get_range(ws.get<nation::fleets>(owner));
@@ -530,7 +575,8 @@ namespace military {
 		release_leader_fn(ws, l);
 	}
 
-	template<auto release_leader_fn, typename world_state_t>
+	template<typename world_state_t,
+		void(*release_leader_fn)(world_state_t&, leader_tag)>
 	RELEASE_INLINE void internal_destroy_general(world_state_t& ws, leader_tag l, nations::country_tag owner) {
 		if(ws.get<military_leader::is_attached>(l)) {
 			[&ws, l, owner]() {
@@ -563,7 +609,8 @@ namespace military {
 		release_leader_fn(ws, l);
 	}
 
-	template<auto release_war_fn, typename world_state_t>
+	template<typename world_state_t,
+		void(*release_war_fn)(world_state_t&, war_tag)>
 	RELEASE_INLINE void internal_destroy_war(world_state_t& ws, war_tag this_war) {
 		auto attacker_range = ws.get_range(ws.get<war::attackers>(this_war));
 		for(auto a : attacker_range)
@@ -596,7 +643,9 @@ namespace military {
 		return war_tag();
 	}
 	
-	template<auto allocate_war_fn, auto date_fn, typename world_state_t>
+	template<typename world_state_t,
+		war_tag (*allocate_war_fn)(world_state_t&),
+		date_tag(*date_fn)(world_state_t const&)>
 	RELEASE_INLINE war_tag internal_create_war(world_state_t& ws, nations::country_tag attacker, nations::country_tag defender, bool /*call_willing_attacker_allies*/) {
 		war_tag new_war = allocate_war_fn(ws);
 		ws.set<war::primary_attacker>(new_war, attacker);
@@ -614,7 +663,9 @@ namespace military {
 		return new_war;
 	}
 
-	template<auto count_factories_fn, auto state_is_colonial_fn, typename world_state_t>
+	template<typename world_state_t,
+		int32_t(*count_factories_fn)(world_state_t const&, nations::state_tag),
+		bool(*state_is_colonial_fn)(world_state_t const&, nations::state_tag)>
 	RELEASE_INLINE float internal_single_state_war_score(world_state_t const& ws, nations::state_tag si, float owner_total_pop) {
 		int32_t factory_count = count_factories_fn(ws, si);
 		auto owner_id = ws.get<state::owner>(si);
@@ -650,7 +701,11 @@ namespace military {
 		return running_total;
 	}
 
-	template<auto get_setting_struct, auto nation_exists_fn, auto single_state_value_fn, auto test_trigger_fn, typename world_state_t>
+	template<typename world_state_t,
+		modifiers::defines const& (*get_setting_struct)(world_state_t const&),
+		bool(*nation_exists_fn)(world_state_t const&, nations::country_tag),
+		float (*single_state_value_fn)(world_state_t const&, nations::state_tag, float),
+		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter)>
 	RELEASE_INLINE float internal_calculate_base_war_score_cost(world_state_t const& ws, war_goal const& wg) {
 		auto const this_cb_type = wg.cb_type;
 		auto const cb_flags = ws.get<::cb_type::flags>(this_cb_type);
@@ -717,7 +772,8 @@ namespace military {
 		return std::clamp(total_cost * ws.get<::cb_type::peace_cost_factor>(this_cb_type) / 100.0f, 0.0f, 1.0f);
 	}
 
-	template<auto ws_cost_fn, typename world_state_t>
+	template<typename world_state_t,
+		float (*ws_cost_fn)(world_state_t const&, war_goal const&)>
 	RELEASE_INLINE float internal_total_attacker_demands_war_score(world_state_t const& ws, war_tag w) {
 		float sum = 0.0f;
 		auto wg_range = ws.get_range(ws.get<war::war_goals>(w));
@@ -728,7 +784,8 @@ namespace military {
 		return sum;
 	}
 
-	template<auto ws_cost_fn, typename world_state_t>
+	template<typename world_state_t,
+		float(*ws_cost_fn)(world_state_t const&, war_goal const&)>
 	RELEASE_INLINE float internal_total_defender_demands_war_score(world_state_t const& ws, war_tag w) {
 		float sum = 0.0f;
 		auto wg_range = ws.get_range(ws.get<war::war_goals>(w));
@@ -788,7 +845,8 @@ namespace military {
 	}
 
 
-	template<auto get_setting_struct, typename world_state_t>
+	template<typename world_state_t,
+		modifiers::defines const& (*get_setting_struct)(world_state_t const&)>
 	RELEASE_INLINE float internal_daily_cb_progress(world_state_t const& ws, nations::country_tag n, cb_type_tag type) {
 		auto const& ss = get_setting_struct(ws);
 		const auto nat_mod =
@@ -802,7 +860,12 @@ namespace military {
 		return adjusted_mod * base_speed;
 	}
 
-	template<auto get_setting_struct, auto cb_validity_fn, auto cb_acquired_msg, auto cb_detected_msg, auto cb_invalid_msg, typename world_state_t>
+	template<typename world_state_t,
+		modifiers::defines const& (*get_setting_struct)(world_state_t const&),
+		bool (*cb_validity_fn)(world_state_t const&, cb_type_tag, nations::country_tag, nations::country_tag),
+		void(*cb_acquired_msg)(world_state_t&, nations::country_tag, nations::country_tag, cb_type_tag),
+		void(*cb_detected_msg)(world_state_t&, nations::country_tag, nations::country_tag, cb_type_tag, float),
+		void(*cb_invalid_msg)(world_state_t&, nations::country_tag, nations::country_tag, cb_type_tag)>
 	RELEASE_INLINE void internal_update_cb_construction(world_state_t& ws) {
 		ve::execute_serial<nations::country_tag>(ve::to_vector_size(ws.size<nation::name>()), [
 			&ws,

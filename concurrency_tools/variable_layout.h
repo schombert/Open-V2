@@ -8,6 +8,13 @@ namespace variable_layout_detail {
 	template<typename tag_type, int32_t size, typename ... T>
 	class variable_layout_tagged_vector_impl;
 
+	template<typename index, typename T>
+	struct vlayout_traits {
+		using get_type = void;
+		using const_get_type = void;
+		constexpr static bool supports_index = false;
+	};
+
 	template<typename tag_type, int32_t size>
 	class variable_layout_tagged_vector_impl <tag_type, size> {
 	public:
@@ -40,6 +47,18 @@ namespace variable_layout_detail {
 		template<typename ... CONTEXT>
 		static size_t size_impl(int32_t max, data const& obj, CONTEXT&& ... c) { return 0; }
 
+	};
+
+
+	template<typename index, typename tag_type, int32_t size, typename index_type, typename member_type, typename ... REST>
+	struct vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, index_type, member_type, REST ...>> {
+		using get_type = std::conditional_t<std::is_same_v<index, index_type>,
+			member_type&,
+			typename vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::get_type>;
+		using const_get_type = std::conditional_t<std::is_same_v<index, index_type>,
+			member_type const&,
+			typename vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::const_get_type>;
+		constexpr static bool supports_index = std::is_same_v<index, index_type> || vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::supports_index;
 	};
 
 	template<typename tag_type, int32_t size, typename index_type, typename member_type, typename ... REST>
@@ -193,6 +212,16 @@ namespace variable_layout_detail {
 
 	};
 
+	template<typename index, typename tag_type, int32_t size, typename index_type, typename ... REST>
+	struct vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, index_type, bitfield_type, REST ...>> {
+		using get_type = std::conditional_t<std::is_same_v<index, index_type>,
+			bool,
+			typename vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::get_type>;
+		using const_get_type = std::conditional_t<std::is_same_v<index, index_type>,
+			bool,
+			typename vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::const_get_type>;
+		constexpr static bool supports_index = std::is_same_v<index, index_type> || vlayout_traits<index, variable_layout_tagged_vector_impl<tag_type, size, REST...>>::supports_index;
+	};
 
 	template<typename tag_type, int32_t size, typename index_type, typename ... REST>
 	class variable_layout_tagged_vector_impl<tag_type, size, index_type, bitfield_type, REST ...> {
@@ -309,6 +338,15 @@ private:
 public:
 	using index_type = tag_type;
 
+	template<typename T>
+	using get_type = typename variable_layout_detail::vlayout_traits<T, container_type>::get_type;
+	template<typename T>
+	using const_get_type = typename variable_layout_detail::vlayout_traits<T, container_type>::const_get_type;
+	template<typename T>
+	constexpr static bool supports_index = variable_layout_detail::vlayout_traits<T, container_type>::supports_index;
+	template<typename T>
+	using value_type = typename container_type::template value_type<T>;
+
 	friend class serialization::serializer<variable_layout_tagged_vector<tag_type, container_size, T ...>>;
 
 	variable_layout_tagged_vector() : ptr(static_cast<ptr_type*>(_aligned_malloc(sizeof(ptr_type), 64))) {
@@ -395,11 +433,13 @@ public:
 	}
 
 	template<typename U>
-	RELEASE_INLINE auto get(tag_type i) const -> decltype(container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr))) {
-		return container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr));
+	RELEASE_INLINE auto get(tag_type i) const -> const_get_type<U> {
+		static value_type<U> res;
+		return res;
+		//return container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr));
 	}
 	template<typename U>
-	RELEASE_INLINE auto get(tag_type i) -> decltype(container_type::template get<U>(i, *ptr)) {
+	RELEASE_INLINE auto get(tag_type i) -> get_type<U> {
 		return container_type::template get<U>(i, *ptr);
 	}
 
@@ -465,6 +505,15 @@ private:
 public:
 	using index_type = tag_type;
 
+	template<typename T>
+	using get_type = typename variable_layout_detail::vlayout_traits<T, container_type>::get_type;
+	template<typename T>
+	using const_get_type = typename variable_layout_detail::vlayout_traits<T, container_type>::const_get_type;
+	template<typename T>
+	constexpr static bool supports_index = variable_layout_detail::vlayout_traits<T, container_type>::supports_index;
+	template<typename T>
+	using value_type = typename container_type::template value_type<T>;
+
 	variable_layout_contiguous_tagged_vector() : ptr(static_cast<ptr_type*>(_aligned_malloc(sizeof(ptr_type), 64))) {
 		new (ptr) ptr_type();
 	}
@@ -509,11 +558,11 @@ public:
 	}
 
 	template<typename U>
-	RELEASE_INLINE auto get(tag_type i) const -> decltype(container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr))) {
+	RELEASE_INLINE auto get(tag_type i) const -> const_get_type<U>  {
 		return container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr));
 	}
 	template<typename U>
-	RELEASE_INLINE auto get(tag_type i) -> decltype(container_type::template get<U>(i, *ptr)) {
+	RELEASE_INLINE auto get(tag_type i) -> get_type<U>  {
 		return container_type::template get<U>(i, *ptr);
 	}
 	template<typename U>

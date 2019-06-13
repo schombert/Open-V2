@@ -278,7 +278,7 @@ namespace military {
 				ws.set<military_leader::is_attached>(a.set_leader, true);
 			}
 
-			ws.set<army::target_solders>(new_army, 1000.0f * a.regiment_count);
+			ws.set<army::target_soldiers>(new_army, 1000.0f * a.regiment_count);
 		}
 		void add_navy(parsed_army_or_navy const& n) {
 			auto new_fleet = make_fleet(ws, this_nation, n.location);

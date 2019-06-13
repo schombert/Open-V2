@@ -30,11 +30,11 @@ namespace military {
 	}
 
 	leader_tag make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
-		return internal_make_empty_leader<new_leader_fn>(ws, culture, is_general);
+		return internal_make_empty_leader<world_state, new_leader_fn>(ws, culture, is_general);
 	}
 
 	leader_tag make_auto_leader(world_state& ws, cultures::culture_tag culture, bool is_general, date_tag creation_date) {
-		return internal_make_auto_leader<make_empty_leader, calculate_leader_traits>(ws, culture, is_general, creation_date);
+		return internal_make_auto_leader<world_state, make_empty_leader, calculate_leader_traits>(ws, culture, is_general, creation_date);
 	}
 
 	void calculate_leader_traits(world_state& ws, leader_tag l) {
@@ -46,7 +46,7 @@ namespace military {
 	}
 
 	army_tag make_army(world_state& ws, nations::country_tag n, provinces::province_tag location) {
-		return internal_make_army<new_army_fn>(ws, n, location);
+		return internal_make_army<world_state, new_army_fn>(ws, n, location);
 	}
 
 	inline fleet_tag new_fleet_fn(world_state& ws) {
@@ -55,7 +55,7 @@ namespace military {
 
 
 	fleet_tag make_fleet(world_state& ws, nations::country_tag n, provinces::province_tag location) {
-		return internal_make_fleet<new_fleet_fn>(ws, n, location);
+		return internal_make_fleet<world_state, new_fleet_fn>(ws, n, location);
 	}
 
 	bool in_war_with(world_state const& ws, nations::country_tag this_nation, nations::country_tag nation_with) {
@@ -71,35 +71,35 @@ namespace military {
 	}
 
 	void update_at_war_with_and_against(world_state& ws, nations::country_tag this_nation) {
-		internal_update_at_war_with_and_against<check_war_tag>(ws, this_nation);
-	}
-
-	inline bool test_cb_trigger(world_state const& ws, triggers::trigger_tag can_use, nations::country_tag nation_target, nations::country_tag nation_by) {
-		return is_valid_index(can_use)
-			&& triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(can_use), ws, nation_target, nation_by, triggers::const_parameter());
-	}
-
-	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
-		return internal_can_use_cb_against<test_cb_trigger>(ws, nation_by, nation_target);
+		internal_update_at_war_with_and_against<world_state, check_war_tag>(ws, this_nation);
 	}
 
 	inline bool generic_test_trigger(world_state const& ws, triggers::trigger_tag t, triggers::const_parameter a, triggers::const_parameter b, triggers::const_parameter c) {
 		return triggers::test_trigger(ws.s.trigger_m.trigger_data.data() + to_index(t), ws, a, b, c);
 	}
 
+	bool can_use_cb_against(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target) {
+		return internal_can_use_cb_against<world_state, generic_test_trigger>(ws, nation_by, nation_target);
+	}
+
+	inline bool internal_wrapper(world_state const& ws, nations::country_tag nation_by, nations::country_tag nation_target, cb_type_tag c) {
+		return internal_test_cb_conditions<world_state, nations::owns_releasable_core, generic_test_trigger>(ws, nation_by, nation_target, c);
+	}
+
 	bool is_cb_construction_valid_against(world_state const& ws, cb_type_tag cb, nations::country_tag nation_by, nations::country_tag nation_target) {
 		return internal_is_cb_construction_valid_against<
+			world_state,
 			generic_test_trigger,
-			internal_test_cb_conditions<generic_test_trigger, nations::owns_releasable_core, world_state>>(
+			internal_wrapper>(
 				ws, cb, nation_by, nation_target);
 	}
 
-	inline auto get_player(world_state& ws) {
+	inline auto get_player(world_state const& ws) {
 		return ws.w.local_player_nation;
 	}
 
 	void init_player_cb_state(world_state& ws) {
-		internal_init_player_cb_state<nations::nation_exists<nations::country_tag>, get_player, generic_test_trigger>(ws);
+		internal_init_player_cb_state<world_state, nations::nation_exists<nations::country_tag>, get_player, generic_test_trigger>(ws);
 	}
 
 	void post_cb_change_message(bool new_state, world_state& ws, nations::country_tag player, nations::country_tag n, cb_type_tag cb_id) {
@@ -110,7 +110,7 @@ namespace military {
 	}
 
 	void update_player_cb_state(world_state& ws) {
-		internal_update_player_cb_state<nations::nation_exists<nations::country_tag>, get_player, generic_test_trigger, post_cb_change_message>(ws);
+		internal_update_player_cb_state<world_state, nations::nation_exists<nations::country_tag>, get_player, generic_test_trigger, post_cb_change_message>(ws);
 	}
 
 	bool has_units_in_province(world_state const& ws, nations::country_tag this_nation, provinces::province_tag ps) {
@@ -122,11 +122,11 @@ namespace military {
 	}
 
 	uint32_t total_units_in_province(world_state const& ws, provinces::province_tag ps) {
-		return internal_total_units_in_province<regiment_size>(ws, ps);
+		return internal_total_units_in_province<world_state, regiment_size>(ws, ps);
 	}
 
 	uint32_t total_active_divisions(world_state const& ws, nations::country_tag this_nation) {
-		return internal_total_active_divisions< regiment_size>(ws, this_nation);
+		return internal_total_active_divisions<world_state, regiment_size>(ws, this_nation);
 	}
 	uint32_t total_active_ships(world_state const& ws, nations::country_tag this_nation) {
 		return internal_total_active_ships(ws, this_nation);
@@ -137,7 +137,7 @@ namespace military {
 	}
 
 	float recruited_pop_fraction(world_state const& ws, nations::country_tag this_nation) {
-		return internal_recruited_pop_fraction<soldier_demo_tag>(ws, this_nation);
+		return internal_recruited_pop_fraction<world_state, soldier_demo_tag>(ws, this_nation);
 	}
 
 	bool has_named_leader(world_state const&, nations::country_tag, text_data::text_tag) {
@@ -157,11 +157,11 @@ namespace military {
 	}
 
 	void silent_remove_from_war(world_state& ws, war_tag this_war, nations::country_tag to_remove) {
-		internal_remove_from_war<empty_left_war_message>(ws, this_war, to_remove);
+		internal_remove_from_war<world_state, empty_left_war_message>(ws, this_war, to_remove);
 	}
 
 	void remove_from_war(world_state& ws, war_tag this_war, nations::country_tag to_remove) {
-		internal_remove_from_war<left_war_message>(ws, this_war, to_remove);
+		internal_remove_from_war<world_state, left_war_message>(ws, this_war, to_remove);
 	}
 
 	void add_to_war_message(world_state& ws, war_tag this_war, bool as_attacker, nations::country_tag to_add) {
@@ -169,7 +169,7 @@ namespace military {
 	}
 
 	void add_to_war(world_state& ws, war_tag this_war, bool attacker, nations::country_tag to_add) {
-		internal_add_to_war<add_to_war_message>(ws, this_war, attacker, to_add);
+		internal_add_to_war<world_state, add_to_war_message>(ws, this_war, attacker, to_add);
 	}
 
 	bool is_target_of_war_goal(world_state const& ws, war_tag this_war, nations::country_tag target) {
@@ -181,7 +181,7 @@ namespace military {
 	}
 
 	void destroy_army(world_state& ws, army_tag a) {
-		internal_destroy_army<release_army, true>(ws, a);
+		internal_destroy_army<world_state, release_army, true>(ws, a);
 	}
 
 	void release_fleet(world_state& ws, fleet_tag f) {
@@ -189,15 +189,15 @@ namespace military {
 	}
 
 	void destroy_fleet(world_state& ws, fleet_tag f, nations::country_tag owner) {
-		internal_destroy_fleet<release_fleet, true>(ws, f, owner);
+		internal_destroy_fleet<world_state, release_fleet, true>(ws, f, owner);
 	}
 
 	void partial_destroy_fleet(world_state& ws, fleet_tag f) {
-		internal_destroy_fleet<release_fleet, false>(ws, f, nations::country_tag());
+		internal_destroy_fleet<world_state, release_fleet, false>(ws, f, nations::country_tag());
 	}
 
 	void partial_destroy_army(world_state& ws, army_tag a) {
-		internal_destroy_army<release_army, false>(ws, a);
+		internal_destroy_army<world_state, release_army, false>(ws, a);
 	}
 
 	void release_orders(world_state& ws, army_orders_tag o) {
@@ -205,11 +205,11 @@ namespace military {
 	}
 
 	void destroy_orders(world_state& ws, army_orders_tag o, nations::country_tag owner) {
-		internal_destroy_orders<release_orders, true>(ws, o, owner);
+		internal_destroy_orders<world_state, release_orders, true>(ws, o, owner);
 	}
 
 	void partial_destroy_orders(world_state& ws, army_orders_tag o) {
-		internal_destroy_orders<release_orders, false>(ws, o, nations::country_tag());
+		internal_destroy_orders<world_state, release_orders, false>(ws, o, nations::country_tag());
 	}
 
 	void release_hq(world_state& ws, strategic_hq_tag o) {
@@ -217,10 +217,10 @@ namespace military {
 	}
 
 	void destroy_hq(world_state& ws, strategic_hq_tag o, nations::country_tag owner) {
-		internal_destroy_hq<release_hq, destroy_army, true>(ws, o, owner);
+		internal_destroy_hq<world_state, release_hq, destroy_army, true>(ws, o, owner);
 	}
 	void partial_destroy_hq(world_state& ws, strategic_hq_tag o) {
-		internal_destroy_hq<release_hq, destroy_army, false>(ws, o, nations::country_tag());
+		internal_destroy_hq<world_state, release_hq, destroy_army, false>(ws, o, nations::country_tag());
 	}
 
 	void release_leader(world_state& ws, leader_tag o) {
@@ -228,11 +228,11 @@ namespace military {
 	}
 
 	void destroy_admiral(world_state& ws, leader_tag l, nations::country_tag owner) {
-		internal_destroy_admiral<release_leader>(ws, l, owner);
+		internal_destroy_admiral<world_state, release_leader>(ws, l, owner);
 	}
 
 	void destroy_general(world_state& ws, leader_tag l, nations::country_tag owner) {
-		internal_destroy_general<release_leader>(ws, l, owner);
+		internal_destroy_general<world_state, release_leader>(ws, l, owner);
 	}
 
 	void rebuild_fleet_presence(world_state&, nations::country_tag) {
@@ -244,7 +244,7 @@ namespace military {
 	}
 
 	void destroy_war(world_state& ws, war_tag this_war) {
-		internal_destroy_war<release_war>(ws, this_war);
+		internal_destroy_war<world_state, release_war>(ws, this_war);
 	}
 
 	war_tag get_war_between(world_state& ws, nations::country_tag a, nations::country_tag b) {
@@ -259,12 +259,13 @@ namespace military {
 	}
 
 	war_tag create_war(world_state& ws, nations::country_tag attacker, nations::country_tag defender, bool call_willing_attacker_allies) {
-		return internal_create_war<allocate_war, get_date>(ws, attacker, defender, call_willing_attacker_allies);
+		return internal_create_war<world_state, allocate_war, get_date>(ws, attacker, defender, call_willing_attacker_allies);
 	}
 
 
 	float single_state_war_score(world_state const& ws, nations::state_tag si, float owner_total_pop) {
 		return internal_single_state_war_score<
+			world_state,
 			economy::count_factories_in_state,
 			nations::is_colonial_or_protectorate<nations::state_tag>>(
 				ws, si, owner_total_pop);
@@ -276,6 +277,7 @@ namespace military {
 
 	float calculate_base_war_score_cost(world_state const& ws, war_goal const& wg) {
 		return internal_calculate_base_war_score_cost<
+			world_state,
 			setting_struct,
 			nations::nation_exists<nations::country_tag>,
 			single_state_war_score,
@@ -284,10 +286,10 @@ namespace military {
 	}
 
 	float total_attacker_demands_war_score(world_state const& ws, war_tag w) {
-		return internal_total_attacker_demands_war_score<calculate_base_war_score_cost>(ws, w);
+		return internal_total_attacker_demands_war_score<world_state, calculate_base_war_score_cost>(ws, w);
 	}
 	float total_defender_demands_war_score(world_state const& ws, war_tag w) {
-		return internal_total_defender_demands_war_score<calculate_base_war_score_cost>(ws, w);
+		return internal_total_defender_demands_war_score<world_state, calculate_base_war_score_cost>(ws, w);
 	}
 
 	float base_cb_infamy(world_state const& ws, cb_type_tag cb) {
@@ -295,11 +297,12 @@ namespace military {
 	}
 
 	float daily_cb_progress(world_state const& ws, nations::country_tag n, cb_type_tag type) {
-		return internal_daily_cb_progress<setting_struct>(ws, n, type);
+		return internal_daily_cb_progress<world_state, setting_struct>(ws, n, type);
 	}
 
 	void update_cb_construction(world_state& ws) {
 		internal_update_cb_construction<
+			world_state,
 			setting_struct,
 			is_cb_construction_valid_against,
 			messages::acquired_cb,

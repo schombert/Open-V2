@@ -4,7 +4,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <OutDir>$(SolutionDir)..\open_v2_test_data\$(Configuration)\</OutDir>
-	<PreferredToolArchitecture>x64</PreferredToolArchitecture>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -55,6 +55,7 @@
     <Link>
       <GenerateDebugInformation>DebugFastLink</GenerateDebugInformation>
       <AdditionalLibraryDirectories>$(SolutionDir)..\open_v2_test_data\$(Configuration);$(ProjectDir)..\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>Strmiids.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <Lib>
       <AdditionalLibraryDirectories>$(ProjectDir)..\lib</AdditionalLibraryDirectories>

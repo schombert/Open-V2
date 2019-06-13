@@ -156,7 +156,7 @@ public:
 	current_state::state w;
 	scenario::scenario_manager s;
 
-	GET_SET(w.culture_s.national_tags_state)
+	GET_SET_STV(w.culture_s.national_tags_state)
 	GET_SET_TV(::nation_tag::holder, w.culture_s.tags_to_holders)
 	GET_SET_TFV(::nation_tag::flags, w.culture_s.country_flags_by_government)
 	ARRAY_BACKING_BASE(w.culture_s.culture_arrays)
@@ -199,10 +199,10 @@ public:
 	ARRAY_BACKING_BASE(w.military_s.hq_arrays)
 	ARRAY_BACKING_BASE(w.population_s.pop_arrays)
 
-	GET_SET(s.culture_m.culture_groups)
-	GET_SET(s.culture_m.religions)
-	GET_SET(s.culture_m.culture_container)
-	GET_SET(s.culture_m.national_tags)
+	GET_SET_STV(s.culture_m.culture_groups)
+	GET_SET_STV(s.culture_m.religions)
+	GET_SET_STV(s.culture_m.culture_container)
+	GET_SET_STV(s.culture_m.national_tags)
 	GET_SET_TV(::culture::union_tag, s.culture_m.cultures_to_tags)
 	GET_SET_TV(::culture::group_direct, s.culture_m.cultures_to_groups)
 	GET_SET_TV(::culture_group::union_tag_direct, s.culture_m.groups_to_tags)
@@ -217,7 +217,7 @@ public:
 	GET_SET_TFV(state_region::provinces, s.province_m.states_to_province_index)
 	GET_SET_TFV(province::same_type_adjacency, s.province_m.same_type_adjacency)
 	GET_SET_TFV(province::coastal_adjacency, s.province_m.coastal_adjacency)
-	GET_SET(s.military_m.cb_types)
+	GET_SET_STV(s.military_m.cb_types)
 	GET_SET_TV(military::leader_trait_name, s.military_m.leader_traits)
 	GET_SET_TV(::military::personality_traits, s.military_m.personality_traits)
 	GET_SET_TV(::military::background_traits, s.military_m.background_traits)
