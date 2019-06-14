@@ -434,9 +434,7 @@ public:
 
 	template<typename U>
 	RELEASE_INLINE auto get(tag_type i) const -> const_get_type<U> {
-		static value_type<U> res;
-		return res;
-		//return container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr));
+		return container_type::template get<U>(i, *static_cast<ptr_type const*>(ptr));
 	}
 	template<typename U>
 	RELEASE_INLINE auto get(tag_type i) -> get_type<U> {

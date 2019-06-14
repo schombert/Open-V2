@@ -143,6 +143,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="army.h" />
+    <ClInclude Include="army_order.h" />
+    <ClInclude Include="fleet.h" />
     <ClInclude Include="military.h" />
     <ClInclude Include="military_containers.h" />
     <ClInclude Include="military_functions.h" />
@@ -152,12 +155,41 @@
     <ClInclude Include="military_internals.hpp" />
     <ClInclude Include="military_io.h" />
     <ClInclude Include="military_io.hpp" />
+    <ClInclude Include="military_leader.h" />
+    <ClInclude Include="strategic_hq.h" />
+    <ClInclude Include="war.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp" />
     <ClCompile Include="military_functions.cpp" />
     <ClCompile Include="military_gui.cpp" />
     <ClCompile Include="military_io.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="army.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe army.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">army.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="army_order.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe army_order.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">army_order.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="fleet.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe fleet.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">fleet.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="military_leader.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe military_leader.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_leader.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="strategic_hq.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe strategic_hq.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">strategic_hq.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="war.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe war.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">war.h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

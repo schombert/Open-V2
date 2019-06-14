@@ -252,7 +252,9 @@ int main(int , char **) {
 		std::cout << "end serialize" << std::endl << std::flush;
 	}
 
-	world_state ws;
+	world_state* wsptr = (world_state*)_aligned_malloc(sizeof(world_state), 64);
+	new (wsptr)world_state();
+	world_state& ws = *wsptr;
 
 	std::cout << "begin deserialize" << std::endl << std::flush;
 	concurrency::task_group tg;
@@ -452,6 +454,8 @@ int main(int , char **) {
 	getchar();
 
 	update_thread.join();
+
+	_aligned_free(wsptr);
 	return 0;
 }
 

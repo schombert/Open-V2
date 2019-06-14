@@ -1,0 +1,60 @@
+province_state, 
+dense,
+provinces::province_tag,
+province_state::container_size,
+
+is_blockaded, bitfield_type,
+		is_overseas, bitfield_type,
+		has_owner_core, bitfield_type,
+		owner_building_railroad, bitfield_type,
+		is_non_state, bitfield_type,
+
+		fort_level, uint8_t,
+		railroad_level, uint8_t,
+		naval_base_level, uint8_t,
+		rgo_size, uint8_t,
+
+		dominant_religion, cultures::religion_tag,
+		dominant_ideology, ideologies::ideology_tag,
+		dominant_issue, issues::option_tag,
+
+		artisan_production, economy::goods_tag,
+		rgo_production, economy::goods_tag,
+
+		dominant_culture, cultures::culture_tag,
+		base_life_rating, float,
+		terrain, modifiers::provincial_modifier_tag,
+		crime, modifiers::provincial_modifier_tag,
+		name, text_data::text_tag,
+
+		timed_modifiers, multiset_tag<provinces::timed_provincial_modifier>,
+		static_modifiers, set_tag<modifiers::provincial_modifier_tag>,
+		fleets, set_tag<military::fleet_presence>,
+		pops, "array_tag<population::pop_tag, int32_t, false>",
+		cores, set_tag<cultures::national_tag>,
+
+		rgo_worker_data, economy::worked_instance,
+		total_population, float,
+		last_controller_change, date_tag,
+		last_immigration, date_tag,
+
+		nationalism, float,
+		siege_progress, float,
+		fort_upgrade_progress, float,
+		railroad_upgrade_progress, float,
+		naval_base_upgrade_progress, float,
+		artisan_production_scale, float,
+
+		net_migration_growth, float,
+		net_immigration_growth, float,
+		monthly_population, float,
+		old_migration_growth, float,
+		old_immigration_growth, float,
+		old_monthly_population, float,
+
+		owner, nations::country_tag,
+		controller, nations::country_tag,
+		rebel_controller, population::rebel_faction_tag,
+		state_instance, nations::state_tag,
+		orders, military::army_orders_tag,
+		strat_hq, military::strategic_hq_tag

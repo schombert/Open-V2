@@ -140,7 +140,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="pop.h" />
     <ClInclude Include="population.h" />
+    <ClInclude Include="population_containers.h" />
     <ClInclude Include="population_functions.h" />
     <ClInclude Include="population_functions.hpp" />
     <ClInclude Include="population_gui.h" />
@@ -152,6 +154,12 @@
     <ClCompile Include="population_functions.cpp" />
     <ClCompile Include="population_gui.cpp" />
     <ClCompile Include="population_io.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="pop.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe pop.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">pop.h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

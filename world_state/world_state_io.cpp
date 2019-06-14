@@ -23,6 +23,7 @@
 #include "events\\event_functions.h"
 #include "events\\events_io.h"
 #include <ppl.h>
+#include "technologies\technologies_functions.hpp"
 
 /*
 player_net_income_history income_history;

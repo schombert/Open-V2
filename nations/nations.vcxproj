@@ -93,6 +93,9 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <CustomBuildStep>
+      <Command>..\bin\container_generator state.txt</Command>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -142,19 +145,36 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="nation.h" />
     <ClInclude Include="nations.h" />
+    <ClInclude Include="nations_containers.h" />
     <ClInclude Include="nations_functions.h" />
     <ClInclude Include="nations_functions.hpp" />
     <ClInclude Include="nations_gui.h" />
     <ClInclude Include="nations_gui.hpp" />
     <ClInclude Include="nations_io.h" />
     <ClInclude Include="nations_io.hpp" />
+    <ClInclude Include="state.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nations.cpp" />
     <ClCompile Include="nations_functions.cpp" />
     <ClCompile Include="nations_gui.cpp" />
     <ClCompile Include="nations_io.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="state.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe state.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">state.h</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <OutputItemType Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">ClInclude</OutputItemType>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="nation.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe nation.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">nation.h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -140,19 +140,32 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="province.h" />
     <ClInclude Include="provinces.h" />
     <ClInclude Include="provinces_io.h" />
     <ClInclude Include="provinces_io.hpp" />
+    <ClInclude Include="province_containers.h" />
     <ClInclude Include="province_functions.h" />
     <ClInclude Include="province_functions.hpp" />
     <ClInclude Include="province_gui.h" />
     <ClInclude Include="province_gui.hpp" />
+    <ClInclude Include="province_state.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="provinces.cpp" />
     <ClCompile Include="provinces_io.cpp" />
     <ClCompile Include="province_functions.cpp" />
     <ClCompile Include="province_gui.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="province.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe province.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">province.h</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="province_state.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe province_state.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">province_state.h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

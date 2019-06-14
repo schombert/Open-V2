@@ -1,0 +1,10 @@
+army_order, 
+sparse,
+military::army_orders_tag,
+army_order::container_size,
+
+		type, military::army_orders_type,
+		province_set, set_tag<provinces::province_tag>,
+		army_set, set_tag<military::army_tag>,
+		target, provinces::province_tag,
+		leader, military::leader_tag

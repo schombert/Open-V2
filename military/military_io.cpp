@@ -14,6 +14,56 @@
 #include "nations\\nations_functions.h"
 #include "population\\population_functions.hpp"
 
+
+void serialization::serializer<military::military_manager>::rebuild_indexes(military::military_manager & obj) {
+
+	obj.cb_type_to_speed.resize(obj.cb_types.size());
+	for(auto const& i_cb : obj.cb_types) {
+		obj.named_cb_type_index.emplace(i_cb.name, i_cb.id);
+		obj.cb_type_to_speed[i_cb.id] = i_cb.construction_speed;
+	}
+	for(int32_t i = static_cast<int32_t>(obj.leader_traits.size()) - 1; i >= 0; --i)
+		obj.named_leader_trait_index.emplace(obj.leader_traits[military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i))], military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i)));
+
+
+}
+
+void serialization::serializer<military::military_manager>::serialize_object(std::byte *& output, military::military_manager const & obj) {
+	serialize(output, obj.cb_types);
+	serialize(output, obj.leader_traits);
+	serialize(output, obj.leader_trait_definitions);
+	serialize(output, obj.personality_traits);
+	serialize(output, obj.background_traits);
+}
+
+void serialization::serializer<military::military_manager>::deserialize_object(std::byte const *& input, military::military_manager & obj) {
+	deserialize(input, obj.cb_types);
+	deserialize(input, obj.leader_traits);
+	deserialize(input, obj.leader_trait_definitions);
+	deserialize(input, obj.personality_traits);
+	deserialize(input, obj.background_traits);
+
+	rebuild_indexes(obj);
+}
+
+void serialization::serializer<military::military_manager>::deserialize_object(std::byte const *& input, military::military_manager & obj, concurrency::task_group & tg) {
+	deserialize(input, obj.cb_types);
+	deserialize(input, obj.leader_traits);
+	deserialize(input, obj.leader_trait_definitions);
+	deserialize(input, obj.personality_traits);
+	deserialize(input, obj.background_traits);
+
+	tg.run([&obj]() { rebuild_indexes(obj); });
+}
+
+size_t serialization::serializer<military::military_manager>::size(military::military_manager const & obj) {
+	return serialize_size(obj.cb_types) +
+		serialize_size(obj.leader_traits) +
+		serialize_size(obj.leader_trait_definitions) +
+		serialize_size(obj.personality_traits) +
+		serialize_size(obj.background_traits);
+}
+
 void serialization::serializer<military::military_state>::serialize_object(std::byte *& output, military::military_state const & obj, world_state const & ws) {
 	serialize(output, obj.leaders, ws);
 	serialize(output, obj.armies, ws);

@@ -47,6 +47,8 @@ namespace province {
 	struct same_type_adjacency;
 	struct coastal_adjacency;
 
+	constexpr int32_t container_size = 4000;
+	/*
 	using container =
 		variable_layout_contiguous_tagged_vector<
 		provinces::province_tag, 4000,
@@ -59,8 +61,9 @@ namespace province {
 		continent, modifiers::provincial_modifier_tag,
 		climate, modifiers::provincial_modifier_tag,
 		state_id, provinces::state_tag
-		>;
+		>;*/
 
+	class container;
 	void initialize(container& c, provinces::province_tag);
 }
 
@@ -121,6 +124,7 @@ namespace province_state {
 	struct is_non_state;
 
 	constexpr int32_t container_size = 4000;
+	/*
 	using container =
 		variable_layout_contiguous_tagged_vector <
 		provinces::province_tag, container_size,
@@ -180,8 +184,9 @@ namespace province_state {
 		state_instance, nations::state_tag,
 		orders, military::army_orders_tag,
 		strat_hq, military::strategic_hq_tag
-		> ;
+		> ;*/
 
+	class container;
 	 void initialize(container& c, provinces::province_tag);
 }
 
@@ -226,70 +231,6 @@ namespace provinces {
 		~state_distances_manager();
 	};
 
-	class provinces_state {
-	public:
-		province_state::container province_state_container;
-		fixed_vectorizable_2d_array<provinces::province_tag, modifiers::value_type, province_state::container_size, modifiers::provincial_offsets::count> modifier_values;
-
-		tagged_fixed_2dvector<float, province_tag, ideologies::ideology_tag> party_loyalty;
-		tagged_fixed_blocked_2dvector<float, province_tag, population::demo_tag, aligned_allocator_32<int32_t>> province_demographics;
-
-		std::vector<uint8_t> is_canal_enabled;
-
-		std::vector<float> province_distance_to;
-		std::vector<province_tag> province_path_to;
-		state_distances_manager state_distances;
-
-		stable_variable_vector_storage_mk_2<cultures::national_tag, 4, 8192> core_arrays;
-		stable_variable_vector_storage_mk_2<modifiers::provincial_modifier_tag, 4, 8192> static_modifier_arrays;
-		stable_variable_vector_storage_mk_2<timed_provincial_modifier, 4, 8192> timed_modifier_arrays;
-
-		stable_variable_vector_storage_mk_2<province_tag, 4, 8192> province_arrays;
-
-		modifiers::provincial_modifier_tag europe_modifier;
-		modifiers::provincial_modifier_tag asia_modifier;
-		modifiers::provincial_modifier_tag north_america_modifier;
-		modifiers::provincial_modifier_tag south_america_modifier;
-		modifiers::provincial_modifier_tag africa_modifier;
-		modifiers::provincial_modifier_tag oceania_modifier;
-	};
-
-	class province_manager {
-	public:
-		province::container province_container;
-		tagged_vector<text_data::text_tag, state_tag> state_names;
-		std::vector<provinces::province_tag> integer_to_province;
-		int32_t first_sea_province = 0;
-
-		v_vector<province_tag, state_tag> states_to_province_index;
-		boost::container::flat_map<text_data::text_tag, state_tag> named_states_index;
-
-		v_vector<province_tag, province_tag> same_type_adjacency;
-		v_vector<province_tag, province_tag> coastal_adjacency;
-		std::vector<std::tuple<province_tag, province_tag, text_data::text_tag, province_tag>> canals; // connection A, connection B, name, connection through
-
-		boost::container::flat_map<modifiers::provincial_modifier_tag, graphics::obj_definition_tag> terrain_graphics;
-
-		std::vector<uint16_t> province_map_data;
-		int32_t province_map_width = 0;
-		int32_t province_map_height = 0;
-		borders_manager borders;
-
-		template<typename F>
-		void for_each_province(F const& f) const {
-			int32_t const cmax = int32_t(province_container.size());
-			for(int32_t i = 1; i < cmax; ++i) {
-				f(province_tag(province_tag::value_base_t(i)));
-			}
-		}
-		template<typename F>
-		void for_each_land_province(F const& f) const {
-			int32_t const cmax = first_sea_province;
-			for(int32_t i = 1; i < cmax; ++i) {
-				f(province_tag(province_tag::value_base_t(i)));
-			}
-		}
-	};
 
 	struct color_to_terrain_map {
 		modifiers::provincial_modifier_tag data[256] = { modifiers::provincial_modifier_tag() };

@@ -1,0 +1,28 @@
+state
+sparse
+nations::state_tag
+900
+is_slave_state, bitfield_type,
+is_colonial, bitfield_type,
+is_protectorate, bitfield_type,
+
+dominant_religion, cultures::religion_tag,
+dominant_ideology, ideologies::ideology_tag,
+dominant_issue, issues::option_tag,
+region_id, provinces::state_tag,
+crisis_tag, cultures::national_tag,
+dominant_culture, cultures::culture_tag,
+state_capital, provinces::province_tag,
+name, text_data::text_tag,
+current_tension, float,
+administrative_efficiency, float,
+total_population, float,
+
+flashpoint_tension_focuses, set_tag<nations::country_tag>,
+
+project, nations::pop_project,
+owner_national_focus, modifiers::national_focus_tag,
+owner, nations::country_tag,
+
+colonizers, "std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>",
+factories, "std::array<economy::factory_instance, state::factories_count>" 

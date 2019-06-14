@@ -46,6 +46,9 @@ namespace pop {
 	struct is_middle;
 	struct size;
 
+	constexpr int32_t container_size = 75'000;
+
+	/*
 	using container = variable_layout_tagged_vector < population::pop_tag, 75'000,
 		is_accepted, bitfield_type,
 		is_poor, bitfield_type,
@@ -71,7 +74,7 @@ namespace pop {
 		literacy, float,
 		militancy, float,
 		consciousness, float
-	> ;
+	> ;*/
 }
 
 namespace population {
@@ -246,97 +249,6 @@ namespace population {
 		uint8_t icon = 0ui8; // copied from rebel type
 		rebel_type_tag type;
 	};*/
-
-	class population_state {
-	public:
-
-		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independence_rebel_support;
-		tagged_vector<float, cultures::national_tag, padded_aligned_allocator_64<float>, true> independence_movement_support;
-
-		pop::container pops;
-		//rebel_faction::container rebel_factions;
-		//pop_movement::container pop_movements;
-		stable_2d_vector<float, pop_tag, demo_tag, 2048, 256> pop_demographics;
-
-		stable_variable_vector_storage_mk_2<pop_tag, 16, 131'072> pop_arrays;
-		//stable_variable_vector_storage_mk_2<rebel_faction_tag, 8, 65536> rebel_faction_arrays;
-		//stable_variable_vector_storage_mk_2<movement_tag, 8, 65536> pop_movement_arrays;
-	};
-
-	class population_manager {
-	public:
-		boost::container::flat_map<text_data::text_tag, pop_type_tag> named_pop_type_index;
-		boost::container::flat_map<text_data::text_tag, rebel_type_tag> named_rebel_type_index;
-		
-		tagged_vector<pop_type, pop_type_tag> pop_types;
-		tagged_vector<rebel_type, rebel_type_tag> rebel_types;
-		
-		tagged_fixed_blocked_2dvector<
-			economy::goods_qnty_type,
-			pop_type_tag,
-			economy::goods_tag,
-			aligned_allocator_64<economy::goods_qnty_type>> life_needs;
-		tagged_fixed_blocked_2dvector<
-			economy::goods_qnty_type,
-			pop_type_tag,
-			economy::goods_tag,
-			aligned_allocator_64<economy::goods_qnty_type>> everyday_needs;
-		tagged_fixed_blocked_2dvector<
-			economy::goods_qnty_type,
-			pop_type_tag,
-			economy::goods_tag,
-			aligned_allocator_64<economy::goods_qnty_type>> luxury_needs;
-		//tagged_fixed_blocked_2dvector<
-		//	float,
-		//	pop_type_tag,
-		//	military::unit_type_tag,
-		//	aligned_allocator_32<float>> rebel_units;
-		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, issues::option_tag> issue_inclination;
-		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, ideologies::ideology_tag> ideological_inclination;
-		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> promote_to;
-		tagged_fixed_2dvector<modifiers::factor_tag, pop_type_tag, pop_type_tag> demote_to;
-
-		tagged_fixed_2dvector<governments::government_tag, rebel_type_tag, governments::government_tag> rebel_change_government_to;
-
-		modifiers::factor_tag promotion_chance;
-		modifiers::factor_tag demotion_chance;
-		modifiers::factor_tag migration_chance;
-		modifiers::factor_tag colonial_migration_chance;
-		modifiers::factor_tag emigration_chance;
-		modifiers::factor_tag assimilation_chance;
-		modifiers::factor_tag conversion_chance;
-
-		government_employment clergy_pay;
-		government_employment bureaucrat_pay;
-		government_employment soldier_pay;
-		government_employment officer_pay;
-
-		int32_t officer_leadership = 2;
-
-		std::vector<pop_type_tag> factory_workers;
-
-		pop_type_tag artisan;
-		pop_type_tag farmer;
-		pop_type_tag laborer;
-		pop_type_tag capitalist;
-		pop_type_tag clergy;
-		pop_type_tag bureaucrat;
-		pop_type_tag slave;
-		pop_type_tag soldier;
-		pop_type_tag officer;
-
-		rebel_type_tag nationalist_rebels;
-
-		uint32_t count_poptypes = 0;
-
-		template<typename F>
-		void for_each_pop_type(F const& f) const {
-			int32_t const cmax = int32_t(count_poptypes);
-			for(int32_t i = 0; i < cmax; ++i) {
-				f(pop_type_tag(pop_type_tag::value_base_t(i)));
-			}
-		}
-	};
 
 	demo_tag to_demo_tag(world_state const& ws, ideologies::ideology_tag t);
 	demo_tag to_demo_tag(world_state const& ws, issues::option_tag t);

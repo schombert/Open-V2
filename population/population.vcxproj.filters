@@ -33,6 +33,12 @@
     <ClInclude Include="population_functions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="population_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="pop.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="population.cpp">
@@ -47,5 +53,10 @@
     <ClCompile Include="population_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="pop.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

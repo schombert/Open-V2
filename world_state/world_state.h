@@ -30,6 +30,9 @@
 #include "find.h"
 #include "menu.h"
 #include "graphics/map_modes.h"
+#include "nations\nations_containers.h"
+#include "provinces\province_containers.h"
+#include "population\population_containers.h"
 
 #undef small
 
@@ -161,14 +164,14 @@ public:
 	GET_SET_TFV(::nation_tag::flags, w.culture_s.country_flags_by_government)
 	ARRAY_BACKING_BASE(w.culture_s.culture_arrays)
 	GET_SET_TV(current_state::player_cb_state, w.local_player_data.triggered_cb_state)
-	GET_SET(w.province_s.province_state_container)
+	GET_SET_GEN(w.province_s.province_state_container)
 	GET_SET_TFV(province::demographics, w.province_s.province_demographics)
 	ARRAY_BACKING_BASE(w.province_s.core_arrays)
 	ARRAY_BACKING_BASE(w.province_s.static_modifier_arrays)
 	ARRAY_BACKING_BASE(w.province_s.timed_modifier_arrays)
 	ARRAY_BACKING_BASE(w.province_s.province_arrays)
-	GET_SET(w.nation_s.nations)
-	GET_SET(w.nation_s.states)
+	GET_SET_GEN(w.nation_s.nations)
+	GET_SET_GEN(w.nation_s.states)
 	GET_SET_TFV(nation::demographics, w.nation_s.nation_demographics)
 	GET_SET_TFV(state::demographics, w.nation_s.state_demographics)
 	GET_SET_TFV(nation::colonial_demographics, w.nation_s.nation_colonial_demographics)
@@ -181,12 +184,12 @@ public:
 	ARRAY_BACKING_BASE(w.nation_s.state_tag_arrays)
 	ARRAY_BACKING_BASE(w.nation_s.relations_arrays)
 	ARRAY_BACKING_BASE(w.nation_s.truce_arrays)
-	GET_SET(w.military_s.armies)
-	GET_SET(w.military_s.wars)
-	GET_SET(w.military_s.fleets)
-	GET_SET(w.military_s.army_orders)
-	GET_SET(w.military_s.strategic_hqs)
-	GET_SET(w.military_s.leaders)
+	GET_SET_GEN(w.military_s.armies)
+	GET_SET_GEN(w.military_s.wars)
+	GET_SET_GEN(w.military_s.fleets)
+	GET_SET_GEN(w.military_s.army_orders)
+	GET_SET_GEN(w.military_s.strategic_hqs)
+	GET_SET_GEN(w.military_s.leaders)
 	ARRAY_BACKING_BASE(w.military_s.fleet_presence_arrays)
 	ARRAY_BACKING_BASE(w.military_s.naval_control_arrays)
 	ARRAY_BACKING_BASE(w.military_s.cb_arrays)
@@ -198,6 +201,7 @@ public:
 	ARRAY_BACKING_BASE(w.military_s.leader_arrays)
 	ARRAY_BACKING_BASE(w.military_s.hq_arrays)
 	ARRAY_BACKING_BASE(w.population_s.pop_arrays)
+	GET_SET_GEN(w.population_s.pops)
 
 	GET_SET_STV(s.culture_m.culture_groups)
 	GET_SET_STV(s.culture_m.religions)
@@ -212,7 +216,7 @@ public:
 	GET_SET_TFV(::culture::last_names, s.culture_m.last_names_by_culture)
 	GET_SET_TFV(::culture_group::cultures, s.culture_m.culture_by_culture_group)
 	GET_SET_TV(::cultures::leader_pictures, s.culture_m.leader_pictures)
-	GET_SET(s.province_m.province_container)
+	GET_SET_GEN(s.province_m.province_container)
 	GET_SET_TV(state_region::name, s.province_m.state_names)
 	GET_SET_TFV(state_region::provinces, s.province_m.states_to_province_index)
 	GET_SET_TFV(province::same_type_adjacency, s.province_m.same_type_adjacency)

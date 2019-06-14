@@ -7,6 +7,8 @@
 class world_state;
 
 namespace nations {
+	class nations_state;
+
 	enum class colonial_status {
 		not_colonial,
 		colonial,

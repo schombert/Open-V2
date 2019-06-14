@@ -17,6 +17,8 @@
 #include "sound\\sound.h"
 #include "simple_fs\\simple_fs.h"
 #include "world_state\\messages.h"
+#include "provinces\province_containers.h"
+#include "population\population_containers.h"
 
 namespace scenario {
 	namespace fixed_ui {

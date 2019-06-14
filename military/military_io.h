@@ -6,8 +6,6 @@
 #include "simple_fs\\simple_fs.h"
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
-#include "military_containers.h"
-
 
 class world_state;
 
@@ -40,6 +38,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<war::defenders, T> {
@@ -50,6 +49,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<war::naval_control_set, T> {
@@ -60,6 +60,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<war::war_goals, T> {
@@ -70,78 +71,12 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
-};
-
-template<>
-class serialization::serializer<military::military_state> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, military::military_state const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, military::military_state& obj, world_state& ws);
-	static size_t size(military::military_state const& obj, world_state const& ws);
-};
-
-template<>
-class serialization::serializer<military::military_manager> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void rebuild_indexes(military::military_manager& obj) {
-
-		obj.cb_type_to_speed.resize(obj.cb_types.size());
-		for(auto const& i_cb : obj.cb_types) {
-			obj.named_cb_type_index.emplace(i_cb.name, i_cb.id);
-			obj.cb_type_to_speed[i_cb.id] = i_cb.construction_speed;
-		}
-		for(int32_t i = static_cast<int32_t>(obj.leader_traits.size()) - 1; i >= 0; --i)
-			obj.named_leader_trait_index.emplace(obj.leader_traits[military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i))], military::leader_trait_tag(static_cast<military::leader_trait_tag::value_base_t>(i)));
-		
-		
-	}
-
-	static void serialize_object(std::byte* &output, military::military_manager const& obj) {
-		serialize(output, obj.cb_types);
-		serialize(output, obj.leader_traits);
-		serialize(output, obj.leader_trait_definitions);
-		serialize(output, obj.personality_traits);
-		serialize(output, obj.background_traits);
-	}
-	static void deserialize_object(std::byte const* &input, military::military_manager& obj) {
-		deserialize(input, obj.cb_types);
-		deserialize(input, obj.leader_traits);
-		deserialize(input, obj.leader_trait_definitions);
-		deserialize(input, obj.personality_traits);
-		deserialize(input, obj.background_traits);
-
-		rebuild_indexes(obj);
-	}
-	static void deserialize_object(std::byte const* &input, military::military_manager& obj, concurrency::task_group& tg) {
-		deserialize(input, obj.cb_types);
-		deserialize(input, obj.leader_traits);
-		deserialize(input, obj.leader_trait_definitions);
-		deserialize(input, obj.personality_traits);
-		deserialize(input, obj.background_traits);
-
-		tg.run([&obj]() { rebuild_indexes(obj); });
-	}
-	static size_t size(military::military_manager const& obj) {
-		return serialize_size(obj.cb_types) +
-			serialize_size(obj.leader_traits) +
-			serialize_size(obj.leader_trait_definitions) +
-			serialize_size(obj.personality_traits) +
-			serialize_size(obj.background_traits);
-	}
-	template<typename T>
-	static size_t size(military::military_manager const& obj, T const&) {
-		return size(obj);
-	}
+	static size_t size();
 };
 
 namespace military {
 	struct parsing_environment;
+	class military_manager;
 
 	class parsing_state {
 	public:

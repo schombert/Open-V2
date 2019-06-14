@@ -218,6 +218,7 @@ namespace army_order {
 		
 	constexpr int32_t container_size = 4000;
 
+	/*
 	using container = variable_layout_tagged_vector < military::army_orders_tag, container_size,
 		type, military::army_orders_type,
 		province_set, set_tag<provinces::province_tag>,
@@ -225,6 +226,7 @@ namespace army_order {
 		target, provinces::province_tag,
 		leader, military::leader_tag
 		> ;
+		*/
 }
 
 namespace military_leader {
@@ -248,6 +250,7 @@ namespace military_leader {
 
 	constexpr int32_t container_size = 6000;
 
+	/*
 	using container = variable_layout_tagged_vector< military::leader_tag, container_size,
 		first_name, vector_backed_string<char16_t>,
 		last_name, vector_backed_string<char16_t>,
@@ -264,7 +267,7 @@ namespace military_leader {
 		experience, float,
 		reliability, float,
 		is_attached, bitfield_type
-	>;
+	>;*/
 }
 
 namespace army {
@@ -283,7 +286,7 @@ namespace army {
 
 	constexpr int32_t container_size = 6000;
 
-	using container = variable_layout_tagged_vector< military::army_tag, container_size,
+	/*using container = variable_layout_tagged_vector< military::army_tag, container_size,
 		leader, military::leader_tag,
 		hq, military::strategic_hq_tag,
 		order, military::army_orders_tag,
@@ -296,7 +299,7 @@ namespace army {
 		priority, int8_t,
 		composition, military::army_composition_tag,
 		arrival_time, date_tag
-	>;
+	>;*/
 }
 
 namespace fleet {
@@ -310,14 +313,14 @@ namespace fleet {
 
 	constexpr int32_t container_size = 6000;
 
-	using container = variable_layout_tagged_vector< military::fleet_tag, container_size,
+	/*using container = variable_layout_tagged_vector< military::fleet_tag, container_size,
 		leader, military::leader_tag,
 		location, provinces::province_tag,
 		supply, float,
 		readiness, float,
 		size, float,
 		arrival_time, date_tag
-	>;
+	>;*/
 }
 
 namespace strategic_hq {
@@ -336,7 +339,7 @@ namespace strategic_hq {
 
 	constexpr int32_t container_size = 4000;
 
-	using container = variable_layout_tagged_vector < military::strategic_hq_tag, container_size,
+	/*using container = variable_layout_tagged_vector < military::strategic_hq_tag, container_size,
 		leader, military::leader_tag,
 		location, provinces::province_tag,
 		province_set, set_tag<provinces::province_tag>,
@@ -348,7 +351,7 @@ namespace strategic_hq {
 		total_soldier_pops, float,
 		total_non_soldier_pops, float,
 		mobilization_level, int8_t
-	>;
+	>;*/
 }
 
 namespace war {
@@ -373,7 +376,7 @@ namespace war {
 
 	constexpr int32_t container_size = 500;
 
-	using container = variable_layout_tagged_vector < military::war_tag, container_size,
+	/*using container = variable_layout_tagged_vector < military::war_tag, container_size,
 		attackers, set_tag<nations::country_tag>,
 		defenders, set_tag<nations::country_tag>,
 		naval_control_set, set_tag<military::naval_control>,
@@ -388,7 +391,7 @@ namespace war {
 		war_goals, array_tag<military::war_goal, int32_t, false>,
 		is_great_war, bitfield_type,
 		is_world_war, bitfield_type
-	>;
+	>;*/
 }
 
 namespace military {

@@ -42,6 +42,24 @@
     <ClInclude Include="military_containers.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="army.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="army_order.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="fleet.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="military_leader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="strategic_hq.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="war.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp">
@@ -56,5 +74,25 @@
     <ClCompile Include="military_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="army.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="army_order.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="fleet.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="military_leader.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="strategic_hq.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="war.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

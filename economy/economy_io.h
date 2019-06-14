@@ -23,20 +23,6 @@ template<>
 class serialization::serializer<economy::railroad_information> : public serialization::memcpy_serializer<economy::railroad_information> {};
 template<>
 class serialization::serializer<economy::naval_base_information> : public serialization::memcpy_serializer<economy::naval_base_information> {};
-template<>
-class serialization::serializer<economy::worked_instance> : public serialization::memcpy_serializer<economy::worked_instance> {};
-
-template<>
-class serialization::serializer<economy::factory_instance> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, economy::factory_instance const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, economy::factory_instance& obj, world_state& ws);
-	static size_t size(economy::factory_instance const& obj, world_state const& ws);
-};
-
 
 template<>
 class serialization::serializer<economy::economic_state> {

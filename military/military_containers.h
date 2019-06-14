@@ -1,6 +1,13 @@
 #pragma once
 #include "common\common.h"
 #include "military.h"
+#include "military_io.h"
+#include "army.h"
+#include "army_order.h"
+#include "fleet.h"
+#include "military_leader.h"
+#include "strategic_hq.h"
+#include "war.h"
 
 namespace military {
 	class military_state {
@@ -48,3 +55,32 @@ namespace military {
 		tagged_vector<float, cb_type_tag, padded_aligned_allocator_64<float>, true> cb_type_to_speed;
 	};
 }
+
+template<>
+class serialization::serializer<military::military_state> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, military::military_state const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, military::military_state& obj, world_state& ws);
+	static size_t size(military::military_state const& obj, world_state const& ws);
+};
+
+template<>
+class serialization::serializer<military::military_manager> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void rebuild_indexes(military::military_manager& obj);
+
+	static void serialize_object(std::byte* &output, military::military_manager const& obj);
+	static void deserialize_object(std::byte const* &input, military::military_manager& obj);
+	static void deserialize_object(std::byte const* &input, military::military_manager& obj, concurrency::task_group& tg);
+	static size_t size(military::military_manager const& obj);
+	template<typename T>
+	static size_t size(military::military_manager const& obj, T const&) {
+		return size(obj);
+	}
+};

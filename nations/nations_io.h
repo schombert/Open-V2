@@ -2,9 +2,25 @@
 #include "nations.h"
 #include "simple_fs\\simple_fs.h"
 #include "simple_serialize\\simple_serialize.hpp"
-#include "technologies\\technologies_functions.h"
+#include "economy\economy.h"
+
+namespace nations {
+	class nation_state;
+}
 
 class world_state;
+
+template<>
+class serialization::serializer<economy::factory_instance> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, economy::factory_instance const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, economy::factory_instance& obj, world_state& ws);
+	static size_t size(economy::factory_instance const& obj, world_state const& ws);
+};
+
 
 template<>
 class serialization::serializer<nations::influence> : public serialization::memcpy_serializer<nations::influence> {};
@@ -26,6 +42,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 
 template<typename T>
@@ -147,6 +164,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::gp_influence, T> {
@@ -157,6 +175,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::naval_patrols, T> {
@@ -167,6 +186,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::accepted_cultures, T> {
@@ -177,6 +197,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::relations, T> {
@@ -187,6 +208,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::truces, T> {
@@ -197,6 +219,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::national_focus_locations, T> {
@@ -207,6 +230,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::national_flags, T> {
@@ -217,6 +241,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::static_modifiers, T> {
@@ -227,6 +252,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::timed_modifiers, T> {
@@ -237,6 +263,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::generals, T> {
@@ -247,6 +274,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::admirals, T> {
@@ -257,6 +285,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::fleets, T> {
@@ -267,6 +296,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::active_orders, T> {
@@ -277,6 +307,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::active_cbs, T> {
@@ -287,6 +318,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
 };
 template<typename T>
 class serialization::tagged_serializer<nation::wars_involved_in, T> {
@@ -297,17 +329,7 @@ public:
 	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
 	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
 	static size_t size(T const& obj, world_state const& ws);
-};
-
-template<>
-class serialization::serializer<nations::nations_state> {
-public:
-	static constexpr bool has_static_size = false;
-	static constexpr bool has_simple_serialize = false;
-
-	static void serialize_object(std::byte* &output, nations::nations_state const& obj, world_state const& ws);
-	static void deserialize_object(std::byte const* &input, nations::nations_state& obj, world_state& ws);
-	static size_t size(nations::nations_state const& obj, world_state const& ws);
+	static size_t size();
 };
 
 namespace nations {

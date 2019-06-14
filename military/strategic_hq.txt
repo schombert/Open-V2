@@ -1,0 +1,16 @@
+strategic_hq, 
+sparse,
+military::strategic_hq_tag,
+strategic_hq::container_size,
+
+		leader, military::leader_tag,
+		location, provinces::province_tag,
+		province_set, set_tag<provinces::province_tag>,
+		army_set, set_tag<military::army_tag>,
+		injured_soldiers, float,
+		pow_soldiers, float,
+		reserve_soldiers, float,
+		allocated_soldiers, float,
+		total_soldier_pops, float,
+		total_non_soldier_pops, float,
+		mobilization_level, int8_t

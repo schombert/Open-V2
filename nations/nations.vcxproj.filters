@@ -36,6 +36,15 @@
     <ClInclude Include="nations_io.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nations_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="nation.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="nations.cpp">
@@ -50,5 +59,13 @@
     <ClCompile Include="nations_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="state.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="nation.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

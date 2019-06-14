@@ -6,6 +6,8 @@
 class world_state;
 
 namespace population {
+	class population_state;
+
 	void init_population_state(world_state& ws);
 	void determine_farmer_and_laborer(scenario::scenario_manager& s);
 	void reset_state(population_state& s);

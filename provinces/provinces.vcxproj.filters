@@ -36,6 +36,15 @@
     <ClInclude Include="provinces_io.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="province_containers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="province.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="province_state.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="provinces.cpp">
@@ -50,5 +59,13 @@
     <ClCompile Include="province_gui.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="province.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="province_state.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
   </ItemGroup>
 </Project>

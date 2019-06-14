@@ -54,12 +54,16 @@ namespace population {
 			assert(std::isfinite(initial_size) && initial_size >= 1.0f);
 			assert(is_valid_index(t));
 
-			auto const new_id = [&ws]() {
+			auto const new_id = [&ws, location]() {
 				if constexpr(protect) {
 					std::lock_guard<std::mutex> guard(maybe_has_a_lock<true>().lock);
-					return allocate_new_pop(ws);
+					auto const n = allocate_new_pop(ws);
+					add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(location), n);
+					return n;
 				} else {
-					return allocate_new_pop(ws);
+					auto const n = allocate_new_pop(ws);
+					add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(location), n);
+					return n;
 				}
 			}();
 			auto const prov_owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
@@ -75,7 +79,7 @@ namespace population {
 			change_pop_type(ws, new_id, t);
 			init_pop_demographics(ws, new_id, initial_size);
 
-			add_item(ws.w.population_s.pop_arrays, ws.w.province_s.province_state_container.get<province_state::pops>(location), new_id);
+			
 			ws.w.population_s.pops.set<pop::is_accepted>(new_id, is_pop_accepted(ws, new_id, prov_owner));
 
 			default_initialize_issues_and_ideology(ws, new_id);
@@ -110,6 +114,9 @@ namespace population {
 		change_pop_type(ws, new_id, t);
 
 		tg.run([&ws, new_id, initial_size, militancy, consciousness, literacy, location, t, c, r]() {
+			if((ws.s.population_m.pop_types[t].flags & population::pop_type::is_employable) == 0)
+				ws.w.population_s.pop_demographics.get(new_id, total_employment_tag) = initial_size;
+
 			auto const prov_owner = ws.w.province_s.province_state_container.get<province_state::owner>(location);
 
 			ws.w.population_s.pops.set<pop::militancy>(new_id, militancy);
@@ -2138,10 +2145,6 @@ namespace population {
 					remove_item(ws.w.population_s.pop_arrays, pops_array_ref, pop_j);
 					{
 						std::lock_guard guard(release_lock);
-
-						//if(auto a = ws.w.population_s.pops.get<pop::associated_army>(pop_j); a) {
-						//	remove_item(ws.w.population_s.pop_arrays, ws.w.military_s.armies[a].backing_pops, pop_j);
-						//}
 						ws.w.population_s.pops.release(pop_j);
 					}
 				}
@@ -2156,9 +2159,11 @@ namespace population {
 				std::plus<>(),
 				[&ws](pop_tag p) {
 					auto const sz = ws.w.population_s.pops.get<pop::size>(p);
+#ifdef _DEBUG
 					auto const total_sz = ws.w.population_s.pop_demographics.get(p, total_population_tag);
 					assert(sz >= 1.0f);
 					assert(sz == total_sz);
+#endif
 					return sz;
 			});
 			ws.w.province_s.province_state_container.set<province_state::monthly_population>(t, total);

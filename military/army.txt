@@ -1,0 +1,17 @@
+army, 
+sparse,
+military::army_tag,
+army::container_size,
+
+		leader, military::leader_tag,
+		hq, military::strategic_hq_tag,
+		order, military::army_orders_tag,
+		location, provinces::province_tag,
+		owner, nations::country_tag,
+		current_soldiers, float,
+		target_soldiers, float,
+		readiness, float,
+		supply, float,
+		priority, int8_t,
+		composition, military::army_composition_tag,
+		arrival_time, date_tag

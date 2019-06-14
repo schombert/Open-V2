@@ -13,8 +13,6 @@
 #include "world_state\\world_state.h"
 #include "graphics\\world_map.h"
 
-template<>
-class serialization::serializer<economy::worked_instance> : public serialization::memcpy_serializer<economy::worked_instance> {};
 
 void serialization::serializer<provinces::provinces_state>::serialize_object(std::byte *& output, provinces::provinces_state const & obj, world_state const & ws) {
 	serialize(output, obj.province_state_container, ws);

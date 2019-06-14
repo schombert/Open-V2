@@ -9,6 +9,8 @@ namespace current_state {
 class world_state;
 
 namespace provinces {
+	class provinces_state;
+
 	void add_core(world_state& ws, province_tag prov, cultures::national_tag tag);
 	void remove_core(world_state& ws, province_tag prov, cultures::national_tag tag);
 	bool province_has_core(world_state& ws, province_tag prov, cultures::national_tag tag);

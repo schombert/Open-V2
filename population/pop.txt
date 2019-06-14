@@ -1,0 +1,29 @@
+pop, 
+sparse,
+population::pop_tag,
+pop::container_size,
+
+		is_accepted, bitfield_type,
+		is_poor, bitfield_type,
+		is_middle, bitfield_type,
+
+		type, population::pop_type_tag,
+		religion, cultures::religion_tag,
+		culture, cultures::culture_tag,
+		location, provinces::province_tag,
+
+		size, float,
+		size_change_from_combat, float,
+		size_change_from_growth, float,
+		size_change_from_type_change_away, float,
+		size_change_from_assimilation_away, float,
+		size_change_from_local_migration, float,
+		size_change_from_emigration, float,
+
+		political_interest, float,
+		social_interest, float,
+		money, float,
+		needs_satisfaction, float,
+		literacy, float,
+		militancy, float,
+		consciousness, float

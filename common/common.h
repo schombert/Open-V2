@@ -563,6 +563,15 @@ struct _supports_get_t1<A, decltype(void(std::declval<A>().template get<index>(s
 template<typename A, typename index, typename ... C>
 constexpr bool supports_get_t1 = _supports_get_t1<A, void, index, C ...>::value;
 
+template<typename container, typename index>
+struct supports_index {
+	static constexpr bool value = false;
+	using type = void;
+	using const_type = void;
+	using row = tagged_array_view<int32_t, int32_t>;
+	using const_row = tagged_array_view<const int32_t, int32_t>;
+};
+
 #define GET_SET(container_name) \
 template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto get(tag_type t) noexcept -> std::enable_if_t<decltype(container_name)::supports_index<INDEX>, decltype(container_name)::get_type<INDEX>> { \
@@ -597,6 +606,39 @@ RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<declty
 	int32_t(container_name.resize<INDEX>(sz)); \
 }
 
+#define GET_SET_GEN(container_name) \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) noexcept -> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, typename supports_index<decltype(container_name), INDEX>::type> { \
+	return container_name.get<INDEX>(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get(tag_type t) const noexcept-> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, typename supports_index<decltype(container_name), INDEX>::const_type> { \
+	return container_name.get<INDEX>(t); \
+} \
+template<typename INDEX, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type v) noexcept -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && supports_index<decltype(container_name), INDEX>::value, void> { \
+	return container_name.set<INDEX>(t, v); \
+} \
+template<typename INDEX, typename tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && supports_index<decltype(container_name), INDEX>::value, void> { \
+	return container_name.set<INDEX>(t, v); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto get_row() noexcept -> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, typename supports_index<decltype(container_name), INDEX>::row> { \
+	return container_name.get_row<INDEX>(); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto get_row() const noexcept -> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, typename supports_index<decltype(container_name), INDEX>::const_row> { \
+	return container_name.get_row<INDEX>(); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, int32_t> { \
+	return int32_t(container_name.size()); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<supports_index<decltype(container_name), INDEX>::value, void> { \
+	int32_t(container_name.resize(sz)); \
+}
 
 #define GET_SET_STV(container_name) \
 template<typename INDEX, typename tag_type> \

@@ -1,0 +1,11 @@
+fleet, 
+sparse,
+military::fleet_tag,
+fleet::container_size,
+
+		leader, military::leader_tag,
+		location, provinces::province_tag,
+		supply, float,
+		readiness, float,
+		size, float,
+		arrival_time, date_tag
