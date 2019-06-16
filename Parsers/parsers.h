@@ -11,6 +11,8 @@ enum class token_type {
 	quoted_string,
 	special_identifier,
 	brace,
+	open_brace,
+	close_brace,
 	unknown
 };
 
@@ -33,8 +35,55 @@ public:
 	std::unique_ptr<char[]> parse_data;
 };
 
+class token_generator {
+private:
+	char const* position;
+	char const* const file_end;
+
+	token_and_type peek_1;
+	token_and_type peek_2;
+
+	token_and_type internal_next();
+public:
+	token_generator(char const* file_start, char const* fe) : position(file_start), file_end(fe) {}
+
+	bool at_end() const {
+		return peek_2.type == token_type::unknown &&  peek_1.type == token_type::unknown && position >= file_end;
+	}
+	token_and_type get();
+	token_and_type next();
+	token_and_type next_next();
+};
+
+void discard_group(token_generator& gen);
+template<typename T>
+void finish_parse(T&) {}
+
+class empty_error_handler {
+public:
+	static void unhandled_group_key(token_and_type const&) {}
+	static void unhandled_association_key(token_and_type const&) {}
+	static void unhandled_free_value(token_and_type const&) {}
+	static void unhandled_free_set() {}
+	static void bad_date(token_and_type const&) {}
+	static void bad_value(token_and_type const&) {}
+};
+
+class abort_error_handler {
+public:
+	static void unhandled_group_key(token_and_type const&) { std::abort(); }
+	static void unhandled_association_key(token_and_type const&) { std::abort(); }
+	static void unhandled_free_value(token_and_type const&) { std::abort(); }
+	static void unhandled_free_set() { std::abort(); }
+	static void bad_date(token_and_type const&) { std::abort(); }
+	static void bad_value(token_and_type const&) { std::abort(); }
+};
+
 template<typename T>
 T token_to(const token_and_type& in);
+
+template<typename T, typename ERR_H>
+T token_to(const token_and_type& in, ERR_H& err);
 
 class end_brace_finder;
 class vector_of_strings_operation;

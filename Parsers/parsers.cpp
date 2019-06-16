@@ -428,3 +428,86 @@ char const* csv_advance_to_next_line(char const* start, char const* end) {
 	else
 		return csv_advance_to_next_line(start, end);
 }
+
+token_and_type token_generator::internal_next() {
+	if(position >= file_end)
+		return token_and_type{ file_end, file_end, token_type::unknown };
+	
+	auto non_ws = advance_position_to_non_comment(position, file_end);
+	if(non_ws < file_end) {
+		if(*non_ws == '{') {
+			position = non_ws + 1;
+			return token_and_type{ non_ws, non_ws + 1, token_type::open_brace };
+		} else if(*non_ws == '}') {
+			position = non_ws + 1;
+			return token_and_type{ non_ws, non_ws + 1, token_type::close_brace };
+		} else if(*non_ws == '\"') {
+			const auto close = std::find_if(non_ws + 1, file_end, double_quote_termination);
+			position = close + 1;
+			return token_and_type{ non_ws + 1, close, token_type::quoted_string };
+		} else if(*non_ws == '\'') {
+			const auto close = std::find_if(non_ws + 1, file_end, single_quote_termination);
+			position = close + 1;
+			return token_and_type{ non_ws + 1, close, token_type::quoted_string };
+		} else if(has_fixed_prefix(non_ws, file_end, "==") || has_fixed_prefix(non_ws, file_end, "<=")
+			|| has_fixed_prefix(non_ws, file_end, ">=") || has_fixed_prefix(non_ws, file_end, "<>")
+			|| has_fixed_prefix(non_ws, file_end, "!=")) {
+
+			
+			position = non_ws + 2;
+			return token_and_type{ non_ws, non_ws + 2, token_type::special_identifier };
+		} else if(*non_ws == '<' || *non_ws == '>' || *non_ws == '=') {
+
+			position = non_ws + 1;
+			return token_and_type{ non_ws, non_ws + 1, token_type::special_identifier };
+		} else {
+			position = advance_position_to_breaking_char(non_ws, file_end);
+			return token_and_type{ non_ws, position, token_type::identifier };
+		}
+	} else {
+		position = file_end;
+		return token_and_type{ file_end, file_end, token_type::unknown };
+	}
+
+}
+
+token_and_type token_generator::get() {
+	if(peek_1.type != token_type::unknown) {
+		auto const temp = peek_1;
+		peek_1 = peek_2;
+		peek_2.type = token_type::unknown;
+		return temp;
+	}
+
+	return internal_next();
+}
+
+token_and_type token_generator::next() {
+	if(peek_1.type == token_type::unknown) {
+		peek_1 = internal_next();
+	} 
+	return peek_1;
+}
+
+token_and_type token_generator::next_next() {
+	if(peek_1.type == token_type::unknown) {
+		peek_1 = internal_next();
+	}
+	if(peek_2.type == token_type::unknown) {
+		peek_2 = internal_next();
+	}
+	return peek_2;
+}
+
+void discard_group(token_generator& gen) {
+	int32_t brace_count = 0;
+
+	while(brace_count >= 0 && !gen.at_end()) {
+		auto gotten = gen.get();
+		if(gotten.type == token_type::open_brace) {
+			brace_count++;
+		} else if(gotten.type == token_type::close_brace) {
+			brace_count--;
+		}
+	}
+}

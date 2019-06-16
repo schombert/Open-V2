@@ -5,6 +5,7 @@
 #include <ctype.h>
 #include <string>
 #include "common\\common.h"
+#include <charconv>
 
 template<>
 inline int32_t token_to<int32_t>(const token_and_type& in) {
@@ -64,6 +65,63 @@ inline date_tag token_to<date_tag>(const token_and_type& in) {
 template<>
 inline token_and_type token_to<token_and_type>(const token_and_type& in) {
 	return in;
+}
+
+
+
+template<typename T, typename ERR_H>
+T token_to(const token_and_type& in, ERR_H& err) {
+	if constexpr(std::is_same_v<T, bool>) {
+		if(in.start == in.end)
+			return false;
+		else
+			return (*in.start == 'Y') | (*in.start == 'y') | (*in.start == '1');
+	} else if constexpr(std::is_same_v<T, date_tag>) {
+		const auto first_dot = std::find(in.start, in.end, '.');
+		const auto second_dot = std::find(first_dot + 1, in.end, '.');
+
+		if(first_dot == in.end || second_dot == in.end) {
+			err.bad_date(in);
+			return date_tag();
+		}
+
+		uint16_t year = 0;
+		uint16_t month = 0;
+		uint16_t day = 0;
+		{
+			auto result = std::from_chars(in.start, first_dot, year);
+			if(result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range) {
+				err.bad_date(in);
+				return date_tag();
+			}
+		}
+		{
+			auto result = std::from_chars(first_dot + 1, second_dot, month);
+			if(result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range) {
+				err.bad_date(in);
+				return date_tag();
+			}
+		}
+		{
+			auto result = std::from_chars(second_dot + 1, in.end, day);
+			if(result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range) {
+				err.bad_date(in);
+				return date_tag();
+			}
+		}
+		return date_to_tag(boost::gregorian::date(year, month, day));
+	} else if constexpr(std::is_same_v<T, token_and_type>) {
+		return in;
+	} else if constexpr(std::is_same_v<T, std::string>) {
+		return std::string(in.start, in.end);
+	} else {
+		T val = 0;
+		auto result = std::from_chars(in.start, in.end, val);
+		if(result.ec == std::errc::invalid_argument || result.ec == std::errc::result_out_of_range) {
+			err.bad_value(in);
+		}
+		return val;
+	}
 }
 
 const char* safe_advance(unsigned int n, const char* current, const char* end);

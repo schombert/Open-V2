@@ -149,6 +149,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "vector_performance", "vecto
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "container_generator", "container_generator\container_generator.vcxproj", "{F19D7BD6-C4DB-4FB1-8309-BD2781FF5B9E}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "parser_generator", "parser_generator\parser_generator.vcxproj", "{0B752215-5D5F-4847-9C5C-4B8005653F82}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -741,6 +743,14 @@ Global
 		{F19D7BD6-C4DB-4FB1-8309-BD2781FF5B9E}.Release|x64.Build.0 = Release|x64
 		{F19D7BD6-C4DB-4FB1-8309-BD2781FF5B9E}.Release|x86.ActiveCfg = Release|Win32
 		{F19D7BD6-C4DB-4FB1-8309-BD2781FF5B9E}.Release|x86.Build.0 = Release|Win32
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Debug|x64.ActiveCfg = Debug|x64
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Debug|x64.Build.0 = Debug|x64
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Debug|x86.ActiveCfg = Debug|Win32
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Debug|x86.Build.0 = Debug|Win32
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Release|x64.ActiveCfg = Release|x64
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Release|x64.Build.0 = Release|x64
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Release|x86.ActiveCfg = Release|Win32
+		{0B752215-5D5F-4847-9C5C-4B8005653F82}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

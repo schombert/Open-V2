@@ -50,6 +50,7 @@ double_trigger double_trigger_from_association(association_type a, const token_a
 		return double_trigger{ type, a, parse_double(e.start, e.end), special_values::none };
 }
 
+
 struct int_trigger {
 	enum class int_trigger_type {
 		unknown, total_pops
@@ -73,6 +74,7 @@ int_trigger int_trigger_from_association(association_type a, const token_and_typ
 	else
 		return int_trigger{ type, a, parse_int(e.start, e.end), special_values::none };
 }
+
 
 struct bool_trigger {
 	enum class bool_trigger_type {
@@ -99,6 +101,7 @@ bool_trigger bool_trigger_from_association(association_type , const token_and_ty
 		return bool_trigger{ type, parse_bool(e.start, e.end), special_values::none };
 }
 
+
 struct string_trigger {
 	enum class string_trigger_type {
 		unknown, continent, has_pop_culture, has_pop_religion, health_care, is_ideology_enabled,
@@ -119,6 +122,9 @@ struct string_trigger {
 string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type);
 string_trigger string_trigger_from_association(association_type a, const token_and_type& e, string_trigger::string_trigger_type type) {
 	return string_trigger{ type, a, std::string(e.start, e.end) };
+}
+string_trigger string_trigger_from_association_b(association_type a, std::string const& e, string_trigger::string_trigger_type type) {
+	return string_trigger{ type, a, e };
 }
 
 template<typename value_type>
@@ -145,6 +151,11 @@ struct unemployment_by_type_trigger {
 	}
 	auto associated_value() {
 		return value_association_pair<double>(value_association, value);
+	}
+	template<typename T>
+	void set_value(association_type assoc, double v, T&) {
+		value_association = assoc;
+		value = v;
 	}
 };
 
@@ -173,6 +184,36 @@ struct trigger_group {
 		}
 		return false;
 	}
+
+	template<string_trigger::string_trigger_type type, typename C>
+	void add_string_trigger(association_type a, const token_and_type& val, C const&) {
+		members.push_back(string_trigger_from_association(a, val, type));
+	}
+	template<double_trigger::double_trigger_type type, typename C>
+	void add_double_trigger(association_type a, const token_and_type& val, C const&) {
+		members.push_back(double_trigger_from_association(a, val, type));
+	}
+	template<int_trigger::int_trigger_type type, typename C>
+	void add_int_trigger(association_type a, const token_and_type& val, C const&) {
+		members.push_back(int_trigger_from_association(a, val, type));
+	}
+	template<bool_trigger::bool_trigger_type type, typename C>
+	void add_bool_trigger(association_type a, const token_and_type& val, C const&) {
+		members.push_back(bool_trigger_from_association( a, val, type));
+	}
+	template<typename C>
+	void add_other_trigger(unemployment_by_type_trigger const& val, C const&) {
+		members.push_back(val);
+	}
+	template<typename C>
+	void add_other_trigger(work_available_trigger const& val, C const&) {
+		members.push_back(val);
+	}
+	template<trigger_group::trigger_group_type type, typename C>
+	void add_other_trigger(trigger_group&& val, C const&) {
+		val.type = type;
+		members.emplace_back(std::move(val));
+	}
 };
 
 inline void post_process_trigger_group(trigger_group&& g, association_type, trigger_group::trigger_group_type type) {
@@ -198,6 +239,10 @@ struct modifier_group {
 	bool operator==(const modifier_group& other) const {
 		return members == other.members;
 	}
+	template<typename C>
+	void add_modifier(modifier&& m, C const&) {
+		members.emplace_back(std::move(m));
+	}
 };
 
 MEMBER_DEF(modifier_group, members, "modifier");
@@ -208,6 +253,10 @@ struct simple_modifier_container {
 
 	bool operator==(const simple_modifier_container& other) const {
 		return factor == other.factor && members == other.members;
+	}
+	template<typename C>
+	void add_modifier(modifier&& m, C const&) {
+		members.emplace_back(std::move(m));
 	}
 };
 
@@ -221,6 +270,14 @@ struct complex_modifier_container {
 
 	bool operator==(const complex_modifier_container& other) const {
 		return factor == other.factor && members == other.members && group_members == other.group_members;
+	}
+	template<typename C>
+	void add_modifier(modifier&& m, C const&) {
+		members.emplace_back(std::move(m));
+	}
+	template<typename C>
+	void add_modifier_group(modifier_group&& m, C const&) {
+		group_members.emplace_back(std::move(m));
 	}
 };
 
@@ -327,6 +384,28 @@ std::pair<std::string, simple_modifier_container> label_simple_container(const t
 using vec_str_double = std::vector<std::pair<std::string, double>>;
 using vec_str_simple = std::vector<std::pair<std::string, simple_modifier_container>>;
 using vec_str_complex = std::vector<std::pair<std::string, complex_modifier_container>>;
+using vec_int = std::vector<int>;
+
+template<typename C>
+void add_vec_int(vec_int& obj, int32_t val, C const&) {
+	obj.push_back(val);
+}
+
+template<typename C>
+void add_vec_str_double(vec_str_double& obj, token_and_type const& tok, association_type, double val, C const&) {
+	obj.emplace_back(std::string(tok.start, tok.end), val);
+}
+
+template<typename C>
+void add_vec_str_simple(vec_str_simple& obj, token_and_type const& tok, simple_modifier_container&& val, C const&) {
+	obj.emplace_back(std::string(tok.start, tok.end), std::move(val));
+}
+
+template<typename C>
+void add_vec_str_complex(vec_str_complex& obj, token_and_type const& tok, complex_modifier_container&& val, C const&) {
+	obj.emplace_back(std::string(tok.start, tok.end), std::move(val));
+}
+
 
 BEGIN_DOMAIN(poptype_file_domain)
 BEGIN_TYPE(rebel_types)
@@ -465,6 +544,8 @@ MEMBER_TYPE_ASSOCIATION("issues", "issues", vec_str_simple)
 END_TYPE
 END_DOMAIN;
 
+#include "artisan_file.h"
+
 class file_read_tester {
 public:
 	HANDLE fin;
@@ -511,14 +592,67 @@ public:
 	}
 };
 
+class generated_parser : public file_read_tester {
+public:
+	generated_parser() : file_read_tester(TEXT("artisans.txt")) {}
+	int test_function() {
+		file_read_tester::test_function();
+
+		empty_error_handler err;
+		token_generator gen(fixed_copy, fixed_copy + filesize);
+		poptype_file destination = artisan_file::parse_poptype_file(gen, err);
+
+		return (int)destination.ideologies.size();
+	}
+};
+
 int main()
 {
+#ifdef _DEBUG
+	{
+		file_read_tester ft(TEXT("D:\\VS2007Projects\\open_v2_test_data\\artisans.txt"));
+
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, ft.fixed_copy, ft.fixed_copy + ft.filesize);
+		poptype_file destination_a = parse_object<poptype_file, poptype_file_domain>(&parse_results[0], &parse_results[0] + parse_results.size());
+
+		abort_error_handler err;
+		token_generator gen(ft.fixed_copy, ft.fixed_copy + ft.filesize);
+		poptype_file destination_b = artisan_file::parse_poptype_file(gen, err);
+
+		std::cout << "results identical: " << (destination_a == destination_b) << std::endl;
+
+
+		bool v1 = (destination_a.sprite == destination_b.sprite);
+		bool v2 = (destination_a.is_artisan == destination_b.is_artisan);
+		bool v3 = (destination_a.max_size == destination_b.max_size);
+		bool v4 = (destination_a.merge_max_size == destination_b.merge_max_size);
+		bool v5 = destination_a.color == destination_b.color;
+		bool v6 = destination_a.strata == destination_b.strata;
+		bool v7 = destination_a.rebel == destination_b.rebel;
+		bool v8 = destination_a.luxury_needs == destination_b.luxury_needs;
+		bool v9 = destination_a.everyday_needs == destination_b.everyday_needs;
+		bool v10 = destination_a.life_needs == destination_b.life_needs;
+		bool v11 = destination_a.country_migration_target == destination_b.country_migration_target;
+		bool v12 = destination_a.migration_target == destination_b.migration_target;
+		bool v13 = destination_a.promote_to == destination_b.promote_to;
+		bool v14 = destination_a.ideologies == destination_b.ideologies;
+		bool v15 = destination_a.issues == destination_b.issues;
+
+		std::cout << v1 << v15 << std::endl;
+	}
+#endif
+
 	logging_object log;
 	{
 		test_object<50, 20, two_pass_object_parsing> tp_to;
 		std::cout << tp_to.log_function(log, "two-pass object parsing on artisans.txt") << std::endl;
 	}
+	{
+		test_object<50, 20, generated_parser> tp_to;
+		std::cout << tp_to.log_function(log, "generated parser on artisans.txt") << std::endl;
+	}
 
-    return 0;
+	return 0;
 }
 

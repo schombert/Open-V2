@@ -30,7 +30,10 @@ namespace military {
 	}
 
 	leader_tag make_empty_leader(world_state& ws, cultures::culture_tag culture, bool is_general) {
-		return internal_make_empty_leader<world_state, new_leader_fn>(ws, culture, is_general);
+		return internal_make_empty_leader<world_state,
+			new_leader_fn,
+			internal_get_leader_picture<world_state>,
+			internal_get_leader_name<world_state>>(ws, culture, is_general);
 	}
 
 	leader_tag make_auto_leader(world_state& ws, cultures::culture_tag culture, bool is_general, date_tag creation_date) {

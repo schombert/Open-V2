@@ -152,6 +152,10 @@ TEST_METHOD(parsers_test, numeric_parsing) {
 TEST(parsers_test, date_parsing) {
 	char v[] = "1820.2.4";
 	EXPECT_EQ(date_to_tag(boost::gregorian::date(1820, 2, 4)), parse_date(RANGE(v)));
+
+	empty_error_handler e;
+	auto date_res = token_to<date_tag>(token_and_type{ RANGE(v), token_type::unknown }, e);
+	EXPECT_EQ(date_to_tag(boost::gregorian::date(1820, 2, 4)), date_res);
 }
 
 TEST_METHOD(parsers_test, bool_parsing) {
@@ -185,15 +189,26 @@ TEST_METHOD(parsers_test, bool_parsing) {
 
 TEST_METHOD(parsers_test, token_parsing) {
 	char v1[] = "1.5";
+	empty_error_handler e;
+
 	EXPECT_EQ(1.5, token_to<double>(token_and_type{ RANGE(v1), token_type::unknown }));
 	EXPECT_EQ(1.5f, token_to<float>(token_and_type{ RANGE(v1), token_type::unknown }));
+
+	EXPECT_EQ(1.5, token_to<double>(token_and_type{ RANGE(v1), token_type::unknown }, e));
+	EXPECT_EQ(1.5f, token_to<float>(token_and_type{ RANGE(v1), token_type::unknown }, e));
+
 	char v2[] = "3";
 	EXPECT_EQ(3, token_to<int>(token_and_type{ RANGE(v2), token_type::unknown }));
 	EXPECT_EQ(3ui32, token_to<uint32_t>(token_and_type{ RANGE(v2), token_type::unknown }));
+
+	EXPECT_EQ(3, token_to<int>(token_and_type{ RANGE(v2), token_type::unknown }, e));
+	EXPECT_EQ(3ui32, token_to<uint32_t>(token_and_type{ RANGE(v2), token_type::unknown }, e));
 	char v3[] = "string";
 	EXPECT_EQ(std::string("string"), token_to<std::string>(token_and_type{ RANGE(v3), token_type::unknown }));
+	EXPECT_EQ(std::string("string"), token_to<std::string>(token_and_type{ RANGE(v3), token_type::unknown }, e));
 	char v4[] = "yes";
 	EXPECT_EQ(true, token_to<bool>(token_and_type{ RANGE(v4), token_type::unknown }));
+	EXPECT_EQ(true, token_to<bool>(token_and_type{ RANGE(v4), token_type::unknown }, e));
 }
 
 TEST_METHOD(parsers_test, number_classification) {

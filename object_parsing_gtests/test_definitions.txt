@@ -1,0 +1,41 @@
+test_definitions
+
+three_bool
+	a : value(bool) -> member
+	b : value(bool) -> member
+	c : value(bool) -> member
+	d : value(bool) -> member
+three_bool_recursive
+	a : value(bool) -> member
+	b : value(bool) -> member
+	c : value(bool) -> member
+	d : value(bool) -> member
+	k : group(three_bool_recursive) -> function(add_tbr)
+vector_of_int
+	#value : (int32_t) -> function(add_int_to_vector)
+three_bool_vector
+	a : value(bool) -> member
+	b : value(bool) -> member
+	c : value(bool) -> member
+	d : value(bool) -> member
+	k : group(vector_of_int) -> member(j)
+association_container
+	a : value(bool) -> member
+	b : value(bool) -> member
+	#any : value(int32_t) -> function(add_assoc_int_pair)
+	#any : group(int_vector_summation) -> function(add_int)
+int_vector_summation
+	#value : (int32_t) -> member_fn(add_int)
+base_parse
+	x : value(double) -> member
+derived_parse
+	#base : base_parse
+	svalue : value(std::string) -> member
+variable_named_set
+	#value : (int32_t) -> member_fn(add_int)
+	empty : group -> discard
+variable_named_set_container
+	#any : group(variable_named_set) -> member_fn(add_set)
+extern_reader
+	three_bool : extern(gen_make_three_bool) -> member(m_a)
+	#any : extern(gen_make_var_set) -> member_fn(add_variable_named_set)

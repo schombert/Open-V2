@@ -117,6 +117,11 @@ public:
 	auto get_sum_destination() {
 		return sum_assignment(sum);
 	}
+	template<typename C>
+	void add_int(int32_t v, C const&) {
+		sum += v;
+	}
+
 };
 
 MEMBER_DEF(int_vector_summation, get_sum_destination(), "sum")
@@ -156,10 +161,16 @@ struct variable_named_set {
 	std::vector<int> v;
 	int value;
 
+	variable_named_set() {}
+
 	variable_named_set(const token_and_type& t, int) {
 		name = t;
 	}
 	void add_int(int i) {
+		v.push_back(i);
+	}
+	template<typename C>
+	void add_int(int i, C const&) {
 		v.push_back(i);
 	}
 	void add_empty(const empty_sub& e) {
@@ -177,8 +188,14 @@ inline variable_named_set&& get_set(const token_and_type&, association_type, var
 struct variable_named_set_container {
 	std::vector<variable_named_set> set_of_sets;
 
+	variable_named_set_container() {}
 	variable_named_set_container(int) {}
 	void add_set(variable_named_set&& vin) {
+		set_of_sets.emplace_back(std::move(vin));
+	}
+	template<typename C>
+	void add_set(token_and_type t, variable_named_set&& vin, C&) {
+		vin.name = t;
 		set_of_sets.emplace_back(std::move(vin));
 	}
 };
@@ -190,16 +207,34 @@ struct extern_reader {
 	std::vector<variable_named_set> m_b;
 
 	extern_reader(int) {}
+	extern_reader() {}
 	void add_three_bool(const three_bool& i) {
 		m_a = i;
 	}
 	void add_variable_named_set(variable_named_set&& i) {
 		m_b.emplace_back(std::move(i));
 	}
+	template<typename C>
+	void add_variable_named_set(token_and_type const&, variable_named_set&& i, C const&) {
+		m_b.emplace_back(std::move(i));
+	}
 };
+
+template<typename ERR_H, typename C>
+three_bool gen_make_three_bool(token_generator& gen, ERR_H& err, C const& c) {
+	return test_definitions::parse_three_bool(gen, err, c);
+}
+template<typename ERR_H, typename C>
+variable_named_set gen_make_var_set(token_and_type const& lh, token_generator& gen, ERR_H& err, C const& c) {
+	auto temp = test_definitions::parse_variable_named_set(gen, err, c);
+	temp.name = lh;
+	return temp;
+}
 
 MEMBER_FDEF(extern_reader, add_three_bool, "three_bool");
 MEMBER_FDEF(extern_reader, add_variable_named_set, "variable_named_set");
+
+using vector_of_int = std::vector<int>;
 
 BEGIN_DOMAIN(test_domain)
 	BEGIN_TYPE(three_bool)
@@ -275,6 +310,32 @@ static char extern_description[] =
 
 #define TEST_METHOD(x, y) TEST(x, y)
 
+template<typename C>
+void add_int_to_vector(vector_of_int& i, int32_t v, C const&) {
+	i.push_back(v);
+}
+
+template<typename C>
+void add_int(association_container& cobj, token_and_type const& lh, int_vector_summation const& sum, C const&) {
+	if(is_positive_int(lh.start, lh.end)) {
+		cobj.contents.emplace_back(association_type::list, sum.sum);
+	}
+}
+
+template<typename C>
+void add_assoc_int_pair(association_container& cobj, token_and_type const& lh, association_type asoc, int32_t val, C const&) {
+	if(is_positive_int(lh.start, lh.end)) {
+		cobj.contents.emplace_back(asoc, val);
+	}
+}
+
+template<typename C>
+void add_tbr(three_bool_recursive& cobj, three_bool_recursive&& rh, C const&) {
+	cobj.k.emplace_back(std::move(rh));
+}
+
+#include "test_definitions.h"
+
 TEST(object_parsing_tests, value_helpers) {
 	const char five[] = "5";
 	const char xxxx[] = "xxxx";
@@ -315,6 +376,17 @@ TEST(object_parsing_tests, compile_time_tagged_member_test_b) {
 	EXPECT_FALSE(results.c);
 }
 
+TEST(object_parsing_tests, compile_time_tagged_member_test_b_generated) {
+	token_generator gena(RANGE(description_d));
+	empty_error_handler err;
+	three_bool results = test_definitions::parse_three_bool(gena, err);
+
+	EXPECT_TRUE(results.a);
+	EXPECT_TRUE(results.b);
+	EXPECT_TRUE(results.d);
+	EXPECT_FALSE(results.c);
+}
+
 TEST(object_parsing_tests, compile_time_string_comparison) {
 	const char s[] = "rangeLimitMax";
 	const auto comparison = compile_time_str_compare_ci<CT_STRING("rangelimitmin")>(RANGE(s));
@@ -334,12 +406,39 @@ TEST_METHOD(object_parsing_tests, compile_time_vector_b) {
 	EXPECT_EQ(2, result[2]);
 }
 
+TEST_METHOD(object_parsing_tests, compile_time_vector_b_generated) {
+	const char str[] = "5 9 2";
+
+	token_generator gena(str, str + strlen(str));
+	empty_error_handler err;
+	vector_of_int result = test_definitions::parse_vector_of_int(gena, err);
+
+	EXPECT_EQ(3ui64, result.size());
+	EXPECT_EQ(5, result[0]);
+	EXPECT_EQ(9, result[1]);
+	EXPECT_EQ(2, result[2]);
+}
 
 TEST_METHOD(object_parsing_tests, compile_time_tagged_embedded_vector) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(description_e));
 
 	three_bool_vector result(parse_object<three_bool_vector, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
+
+	EXPECT_TRUE(result.a);
+	EXPECT_TRUE(result.b);
+	EXPECT_TRUE(result.d);
+	EXPECT_EQ(3ui64, result.j.size());
+	EXPECT_EQ(1, result.j[0]);
+	EXPECT_EQ(2, result.j[1]);
+	EXPECT_EQ(3, result.j[2]);
+	EXPECT_FALSE(result.c);
+}
+
+TEST_METHOD(object_parsing_tests, compile_time_tagged_embedded_vector_generated) {
+	token_generator gena(RANGE(description_e));
+	empty_error_handler err;
+	three_bool_vector result = test_definitions::parse_three_bool_vector(gena, err);
 
 	EXPECT_TRUE(result.a);
 	EXPECT_TRUE(result.b);
@@ -366,12 +465,44 @@ TEST_METHOD(object_parsing_tests, compile_time_default_associations) {
 	EXPECT_EQ(-1, result.contents[1].second);
 }
 
+TEST_METHOD(object_parsing_tests, compile_time_default_associations_generated) {
+	const char str[] = "0 <= 5 1 != 2 7 > -1 b = yes";
+
+	token_generator gena(str, str + strlen(str));
+	empty_error_handler err;
+	association_container result = test_definitions::parse_association_container(gena, err);
+
+	EXPECT_FALSE(result.a);
+	EXPECT_TRUE(result.b);
+	EXPECT_EQ(2ui64, result.contents.size());
+	EXPECT_EQ((int)association_type::ne, (int)result.contents[0].first);
+	EXPECT_EQ((int)association_type::gt, (int)result.contents[1].first);
+	EXPECT_EQ(2, result.contents[0].second);
+	EXPECT_EQ(-1, result.contents[1].second);
+}
+
 
 TEST_METHOD(object_parsing_tests, compile_time_default_list_associations) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, "0 <= 5 1 != {2 4 -8} 7 > -1 b = yes");
 
 	association_container result(parse_object<association_container, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
+
+	EXPECT_FALSE(result.a);
+	EXPECT_TRUE(result.b);
+	EXPECT_EQ(2ui64, result.contents.size());
+	EXPECT_EQ((int)association_type::list, (int)result.contents[0].first);
+	EXPECT_EQ((int)association_type::gt, (int)result.contents[1].first);
+	EXPECT_EQ(-2, result.contents[0].second);
+	EXPECT_EQ(-1, result.contents[1].second);
+}
+
+TEST_METHOD(object_parsing_tests, compile_time_default_list_associations_generated) {
+	const char str[] = "0 <= 5 1 != {2 4 -8} 7 > -1 b = yes";
+
+	token_generator gena(str, str + strlen(str));
+	empty_error_handler err;
+	association_container result = test_definitions::parse_association_container(gena, err);;
 
 	EXPECT_FALSE(result.a);
 	EXPECT_TRUE(result.b);
@@ -425,12 +556,56 @@ TEST_METHOD(object_parsing_tests, compile_tiime_derived_object_parsing) {
 	EXPECT_EQ(std::string("blah"), derived_result.svalue);
 }
 
+TEST_METHOD(object_parsing_tests, compile_tiime_derived_object_parsing_generated) {
+	char string[] = "x = 2.0 svalue = blah";
+	char const* end = string + strlen(string);
+
+	token_generator gena(string, end);
+	empty_error_handler err;
+	base_parse base_result = test_definitions::parse_base_parse(gena, err);
+
+	token_generator genb(string, end);
+	derived_parse derived_result = test_definitions::parse_derived_parse(genb, err);
+
+	EXPECT_EQ(2.0, base_result.x);
+	EXPECT_EQ(2.0, derived_result.x);
+	EXPECT_EQ(std::string("blah"), derived_result.svalue);
+}
 
 TEST_METHOD(object_parsing_tests, compile_time_tagged_recursive) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, RANGE(description_f));
 
 	three_bool_recursive result(parse_object<three_bool_recursive, test_domain>(&parse_results[0], &parse_results[0] + parse_results.size()));
+
+	EXPECT_TRUE(result.a);
+	EXPECT_TRUE(result.b);
+	EXPECT_TRUE(result.d);
+	EXPECT_EQ(2ui64, result.k.size());
+	EXPECT_TRUE(result.k[0].c);
+	EXPECT_FALSE(result.k[0].a);
+	EXPECT_FALSE(result.k[0].b);
+
+	EXPECT_EQ(1ui64, result.k[0].k.size());
+
+	EXPECT_FALSE(result.k[0].k[0].c);
+	EXPECT_FALSE(result.k[0].k[0].a);
+	EXPECT_FALSE(result.k[0].k[0].b);
+	EXPECT_EQ(0ui64, result.k[0].k[0].k.size());
+
+	EXPECT_FALSE(result.k[1].c);
+	EXPECT_TRUE(result.k[1].a);
+	EXPECT_FALSE(result.k[1].b);
+	EXPECT_EQ(0ui64, result.k[1].k.size());
+
+	EXPECT_FALSE(result.c);
+}
+
+TEST_METHOD(object_parsing_tests, compile_time_tagged_recursive_generated) {
+	token_generator gena(RANGE(description_f));
+	empty_error_handler err;
+	three_bool_recursive result = test_definitions::parse_three_bool_recursive(gena, err);
+
 
 	EXPECT_TRUE(result.a);
 	EXPECT_TRUE(result.b);
@@ -543,6 +718,23 @@ TEST_METHOD(object_parsing_tests, named_object_construction) {
 	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[1].name, "set_b"));
 }
 
+TEST_METHOD(object_parsing_tests, named_object_construction_generated) {
+	token_generator gena(description_g, description_g + sizeof(description_g) - 1);
+	empty_error_handler err;
+	variable_named_set_container result = test_definitions::parse_variable_named_set_container(gena, err);
+
+	EXPECT_EQ(2ui64, result.set_of_sets.size());
+	EXPECT_EQ(1ui64, result.set_of_sets[0].v.size());
+	EXPECT_EQ(5, result.set_of_sets[0].v[0]);
+	// EXPECT_EQ(7, result.set_of_sets[0].v[1]);
+	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[0].name, "set_a"));
+	EXPECT_EQ(3ui64, result.set_of_sets[1].v.size());
+	EXPECT_EQ(1, result.set_of_sets[1].v[0]);
+	EXPECT_EQ(2, result.set_of_sets[1].v[1]);
+	EXPECT_EQ(3, result.set_of_sets[1].v[2]);
+	EXPECT_TRUE(is_fixed_token_ci(result.set_of_sets[1].name, "set_b"));
+}
+
 TEST_METHOD(object_parsing_tests, extern_object_construction) {
 	std::vector<token_group> parse_results;
 	parse_pdx_file(parse_results, extern_description, extern_description + sizeof(extern_description) - 1);
@@ -557,6 +749,27 @@ TEST_METHOD(object_parsing_tests, extern_object_construction) {
 	EXPECT_EQ(2ui64, result.m_b[0].v.size());
 	EXPECT_EQ(5, result.m_b[0].v[0]);
 	EXPECT_EQ(7, result.m_b[0].v[1]);
+	EXPECT_TRUE(is_fixed_token_ci(result.m_b[0].name, "set_a"));
+	EXPECT_EQ(3ui64, result.m_b[1].v.size());
+	EXPECT_EQ(1, result.m_b[1].v[0]);
+	EXPECT_EQ(2, result.m_b[1].v[1]);
+	EXPECT_EQ(3, result.m_b[1].v[2]);
+	EXPECT_TRUE(is_fixed_token_ci(result.m_b[1].name, "set_b"));
+}
+
+TEST_METHOD(object_parsing_tests, extern_object_construction_generated) {
+	token_generator gena(extern_description, extern_description + sizeof(extern_description) - 1);
+	empty_error_handler err;
+	extern_reader result = test_definitions::parse_extern_reader(gena, err);
+
+	EXPECT_EQ(true, result.m_a.a);
+	EXPECT_EQ(false, result.m_a.b);
+	EXPECT_EQ(true, result.m_a.c);
+	EXPECT_EQ(false, result.m_a.d);
+	EXPECT_EQ(2ui64, result.m_b.size());
+	EXPECT_EQ(1ui64, result.m_b[0].v.size());
+	EXPECT_EQ(5, result.m_b[0].v[0]);
+	// EXPECT_EQ(7, result.m_b[0].v[1]);
 	EXPECT_TRUE(is_fixed_token_ci(result.m_b[0].name, "set_a"));
 	EXPECT_EQ(3ui64, result.m_b[1].v.size());
 	EXPECT_EQ(1, result.m_b[1].v[0]);

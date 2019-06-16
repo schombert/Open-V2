@@ -1,0 +1,123 @@
+artisan_file
+
+rebel_types
+	infantry : value(double) -> member
+	irregular : value(double) -> member
+unemployment_by_type_trigger
+	value : value(double) -> member_fn(set_value)
+	type : value(std::string) -> member
+work_available_trigger
+	worker : value(std::string) -> member
+trigger_group
+	voting_system : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::voting_system>)
+	wage_reform : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::wage_reform>)
+	work_hours : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::work_hours>)
+	vote_franschise : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::vote_franschise>)
+	terrain : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::terrain>)
+	school_reforms : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::school_reforms>)
+	safety_regulations : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::safety_regulations>)
+	ruling_party_ideology : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::ruling_party_ideology>)
+	public_meetings : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::public_meetings>)
+	press_rights : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::press_rights>)
+	political_parties : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::political_parties>)
+	nationalvalue : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::nationalvalue>)
+	is_next_reform : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::is_next_reform>)
+	is_ideology_enabled : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::is_ideology_enabled>)
+	health_care : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::health_care>)
+	has_pop_culture : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::has_pop_culture>)
+	has_pop_religion : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::has_pop_religion>)
+	continent : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::continent>)
+	economic_policy : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::economic_policy>)
+	has_country_flag : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::has_country_flag>)
+	has_pop_type : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::has_pop_type>)
+	religious_policy : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::religious_policy>)
+	slavery : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::slavery>)
+	trade_policy : value(token) -> member_fn(add_string_trigger<string_trigger::string_trigger_type::trade_policy>)
+	is_primary_culture : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_primary_culture>)
+	can_build_factory : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::can_build_factory>)
+	civilized : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::civilized>)
+	is_accepted_culture : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_accepted_culture>)
+	is_capital : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_capital>)
+	is_coastal : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_coastal>)
+	is_greater_power : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_greater_power>)
+	is_state_religion : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_state_religion>)
+	is_state_capital : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_state_capital>)
+	war : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::war>)
+	has_factories : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::has_factories>)
+	is_colonial : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_colonial>)
+	is_slave : value(token) -> member_fn(add_bool_trigger<bool_trigger::bool_trigger_type::is_slave>)
+	total_pops : value(token) -> member_fn(add_int_trigger<int_trigger::int_trigger_type::total_pops>)
+	unemployment : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::unemployment>)
+	soldiers : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::soldiers>)
+	war_exhaustion : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::war_exhaustion>)
+	poor_strata_luxury_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::poor_strata_luxury_needs>)
+	poor_strata_militancy : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::poor_strata_militancy>)
+	revanchism : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::revanchism>)
+	social_reform_want : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::social_reform_want>)
+	political_reform_want : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::political_reform_want>)
+	militancy : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::militancy>)
+	middle_strata_militancy : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::middle_strata_militancy>)
+	luxury_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::luxury_needs>)
+	literacy : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::literacy>)
+	life_rating : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::life_rating>)
+	life_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::life_needs>)
+	everyday_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::everyday_needs>)
+	education_spending : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::education_spending>)
+	crime_fighting : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::crime_fighting>)
+	consciousness : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::consciousness>)
+	clergymen : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::clergymen>)
+	agree_with_ruling_party : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::agree_with_ruling_party>)
+	bureaucrats : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::bureaucrats>)
+	capitalists : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::capitalists>)
+	middle_strata_everyday_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::middle_strata_everyday_needs>)
+	military_score : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::military_score>)
+	plurality : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::plurality>)
+	poor_strata_everyday_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::poor_strata_everyday_needs>)
+	poor_strata_life_needs : value(token) -> member_fn(add_double_trigger<double_trigger::double_trigger_type::poor_strata_life_needs>)
+	unemployment_by_type : group(unemployment_by_type_trigger) -> member_fn(add_other_trigger)
+	work_available : group(work_available_trigger) -> member_fn(add_other_trigger)
+	and : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::and_t>)
+	or : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::or_t>)
+	not : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::not_t>)
+	any_core : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::any_core>)
+	any_neighbor_country : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::any_neighbor_country>)
+	any_owned_province : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::any_owned_province>)
+	country : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::country>)
+	location : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::location>)
+	state_scope : group(trigger_group) -> member_fn(add_other_trigger<trigger_group::trigger_group_type::state_scope>)
+modifier
+	#base : trigger_group
+	factor : value(double) -> member
+modifier_group
+	modifier : group(modifier) -> member_fn(add_modifier)
+simple_modifier_container
+	factor : value(double) -> member
+	modifier : group(modifier) -> member_fn(add_modifier)
+complex_modifier_container
+	factor : value(double) -> member
+	modifier : group(modifier) -> member_fn(add_modifier)
+	group : group(modifier_group) -> member_fn(add_modifier_group)
+vec_int
+	#value : (int32_t) -> function(add_vec_int)
+vec_str_double
+	#any : value(double) -> function(add_vec_str_double)
+vec_str_simple
+	#any : group(simple_modifier_container) -> function(add_vec_str_simple)
+vec_str_complex
+	#any : group(complex_modifier_container) -> function(add_vec_str_complex)
+poptype_file
+	sprite : value(uint32_t) -> member
+	color : group(vec_int) -> member
+	is_artisan : value(bool) -> member
+	max_size : value(int32_t) -> member
+	merge_max_size : value(int32_t) -> member
+	strata : value(std::string) -> member
+	rebel : group(rebel_types) -> member
+	luxury_needs : group(vec_str_double) -> member
+	everyday_needs : group(vec_str_double) -> member
+	life_needs : group(vec_str_double) -> member
+	country_migration_target : group(simple_modifier_container) -> member
+	migration_target : group(simple_modifier_container) -> member
+	promote_to : group(vec_str_complex) -> member
+	ideologies : group(vec_str_simple) -> member
+	issues : group(vec_str_simple) -> member

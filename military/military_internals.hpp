@@ -1,46 +1,73 @@
 #pragma once
 #include "common\common.h"
 #include "military\military.h"
+#include <random>
 
 namespace military {
-	template<typename world_state_t, leader_tag (*new_leader_fn)(world_state_t&)>
-	RELEASE_INLINE leader_tag internal_make_empty_leader(world_state_t& ws, cultures::culture_tag culture, bool is_general) {
-		leader_tag new_leader = new_leader_fn(ws);
-		auto cgroup = ws.get<culture::group>(culture);
 
+	template<typename world_state_t>
+	graphics::texture_tag internal_get_leader_picture(world_state_t const& ws, cultures::culture_tag culture, bool is_general) {
 		auto& local_generator = get_local_generator();
+		auto cgroup = ws.get<culture::group>(culture);
 		auto const lp = ws.get<culture_group::leader_pictures>(cgroup);
 
 		if(is_general) {
 			auto const mx = int32_t(lp.general_size) - 1;
-			if(mx > 0) {
+			if(mx >= 0) {
 				std::uniform_int_distribution<int32_t> r(0, mx);
-				ws.set<military_leader::portrait>(
-					new_leader,
-					ws.get<cultures::leader_pictures>(lp.general_offset + r(local_generator)));
+				return ws.get<cultures::leader_pictures>(lp.general_offset + r(local_generator));
 			}
 		} else {
 			auto const mx = int32_t(lp.admiral_size) - 1;
-			if(mx > 0) {
+			if(mx >= 0) {
 				std::uniform_int_distribution<int32_t> r(0, mx);
-				ws.set<military_leader::portrait>(
-					new_leader,
-					ws.get<cultures::leader_pictures>(lp.admiral_offset + r(local_generator)));
+				return ws.get<cultures::leader_pictures>(lp.admiral_offset + r(local_generator));
 			}
 		}
+		return graphics::texture_tag();
+	}
+
+	struct names_result {
+		vector_backed_string<char16_t> first;
+		vector_backed_string<char16_t> last;
+	};
+
+	template<typename world_state_t>
+	names_result internal_get_leader_name(world_state_t const& ws, cultures::culture_tag culture) {
+		auto& local_generator = get_local_generator();
 
 		auto first_name_range = ws.get_row<culture::first_names>(culture);
 		auto last_name_range = ws.get_row<culture::last_names>(culture);
 
-		if(auto const mx_fn = int32_t(first_name_range.second - first_name_range.first) - 1; mx_fn > 0) {
+		names_result result;
+
+		if(auto const mx_fn = int32_t(first_name_range.second - first_name_range.first) - 1; mx_fn >= 0) {
 			std::uniform_int_distribution<int32_t> fn(0, mx_fn);
-			ws.set<military_leader::first_name>(new_leader, *(first_name_range.first + fn(local_generator)));
+			result.first = *(first_name_range.first + fn(local_generator));
 		}
 
-		if(auto const mx_ln = int32_t(last_name_range.second - last_name_range.first) - 1; mx_ln > 0) {
+		if(auto const mx_ln = int32_t(last_name_range.second - last_name_range.first) - 1; mx_ln >= 0) {
 			std::uniform_int_distribution<int32_t> ln(0, mx_ln);
-			ws.set<military_leader::last_name>(new_leader, *(last_name_range.first + ln(local_generator)));
+			result.last = *(last_name_range.first + ln(local_generator));
 		}
+
+		return result;
+	}
+
+	template<typename world_state_t,
+		leader_tag (*new_leader_fn)(world_state_t&),
+		graphics::texture_tag (*picture_function)(world_state_t const&, cultures::culture_tag, bool),
+		names_result (*names_function)(world_state_t const&, cultures::culture_tag culture)>
+	RELEASE_INLINE leader_tag internal_make_empty_leader(world_state_t& ws, cultures::culture_tag culture, bool is_general) {
+		
+		leader_tag new_leader = new_leader_fn(ws);
+
+		ws.set<military_leader::portrait>(new_leader, picture_function(ws, culture, is_general));
+
+		auto const nr = names_function(ws, culture);
+
+		ws.set<military_leader::first_name>(new_leader, nr.first);
+		ws.set<military_leader::last_name>(new_leader, nr.last);
 
 		return new_leader;
 	}
@@ -909,7 +936,7 @@ namespace military {
 				} else {
 					// check for discovery & then validity
 					if(ws.get<nation::cb_construction_discovered>(n) == false) {
-						std::uniform_int_distribution<int32_t> dist(0, 1'000);
+						std::uniform_int_distribution<int32_t> dist{ 0, 1'000 };
 						auto const chance = dist(get_local_generator());
 						auto const defines_probability = base_detection_chance;
 

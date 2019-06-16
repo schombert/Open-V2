@@ -13,6 +13,8 @@
 #include <ppl.h>
 #include "nations\\nations_functions.h"
 #include "scenario\\scenario_io.h"
+#include "common\\testing_world_state.h"
+#include "military\military_internals.hpp"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -607,7 +609,10 @@ TEST(military_tests, read_oob_test) {
 	std::vector<token_group> presults;
 	parse_pdx_file(presults, RANGE(test_file));
 
-	world_state ws;
+	world_state* wsptr = (world_state*)_aligned_malloc(sizeof(world_state), 64);
+	new (wsptr)world_state();
+	world_state& ws = *wsptr;
+
 	concurrency::task_group tg;
 	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
 	tg.wait();
@@ -680,4 +685,19 @@ TEST(military_tests, read_oob_test) {
 	EXPECT_EQ(military::leader_tag(), ws.get<fleet::leader>(b));
 	EXPECT_EQ(provinces::province_tag(219), ws.get<fleet::location>(b));
 	EXPECT_EQ(5.0f, ws.get<fleet::size>(b));
+
+	_aligned_free(wsptr);
+}
+
+inline int32_t new_leader_count = 0;
+
+TEST(military_tests, internal_get_leader_picture_t) {
+	test_ws<world_state> test_state;
+
+	test_state.get<culture::group>(cultures::culture_tag(0)) = cultures::culture_group_tag(0);
+	test_state.get<culture_group::leader_pictures>(cultures::culture_group_tag(0)).general_offset = 0;
+	test_state.get<culture_group::leader_pictures>(cultures::culture_group_tag(0)).general_size = 1;
+	test_state.get<cultures::leader_pictures>(0) = graphics::texture_tag(10);
+
+	EXPECT_EQ(graphics::texture_tag(10), internal_get_leader_picture(test_state, cultures::culture_tag(0), true));
 }

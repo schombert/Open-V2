@@ -5,7 +5,7 @@
 namespace detail {
 	template<typename T>
 	struct addr_struct {
-		static uint16_t value() {
+		static uint64_t value() {
 			static int32_t v = 1;
 			return uint64_t(&v);
 		}
@@ -16,6 +16,10 @@ struct index_tuple {
 	uint64_t a = 0;
 	uint64_t b = 0;
 	uint64_t c = 0;
+
+	bool operator==(index_tuple const& o) const {
+		return a == o.a && b == o.b && c == o.c;
+	}
 };
 
 template<>
@@ -23,7 +27,7 @@ struct std::hash<index_tuple> {
 	typedef index_tuple argument_type;
 	typedef size_t result_type;
 
-	size_t operator()(index_tuple const& v) {
+	size_t operator()(index_tuple const& v) const {
 		return std::hash<uint64_t>()(v.a ^ v.b ^ v.c);
 	}
 };
@@ -43,7 +47,7 @@ public:
 	test_vector_type<T> vec;
 
 	type_erased_vector() {
-		vec.resize(16);
+		vec.reserve(16);
 	}
 	virtual void* ptr() { return &vec; };
 	virtual ~type_erased_vector() {}
@@ -84,11 +88,12 @@ public:
 
 	template<typename val_type>
 	test_vector_type<val_type>& get_vector(index_tuple key) const {
-		std::unordered_map<index_tuple, std::unique_ptr<type_erased_vector_base>>::iterator v_location = [_this = this]() {
-			if(auto it = _this->stored_values.find(key); it != stored_values.end()) {
+		std::unordered_map<index_tuple, std::unique_ptr<type_erased_vector_base>>::iterator v_location = [_this = this, key]() {
+			if(auto it = _this->stored_values.find(key); it != _this->stored_values.end()) {
 				return it;
 			} else {
-				return _this->stored_values.emplace(key, std::make_unique<type_erased_vector<val_type>>());
+				return 
+					_this->stored_values.emplace(key, std::make_unique<type_erased_vector<val_type>>()).first;
 			}
 		}();
 		return *((test_vector_type<val_type>*)(v_location->second->ptr()));
@@ -97,10 +102,10 @@ public:
 	template<typename val_type>
 	stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>& get_storage() const {
 		auto v_location = [_this = this]() {
-			if(auto it = _this->stored_values.find(detail::addr_struct<val_type>::value()); it != stored_values.end()) {
+			if(auto it = _this->stored_values.find(detail::addr_struct<val_type>::value()); it != _this->stored_values.end()) {
 				return it;
 			} else {
-				return _this->stored_values.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>());
+				return _this->stored_values.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>()).first;
 			}
 		}();
 		return *((stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
@@ -135,7 +140,7 @@ public:
 	template<typename index>
 	auto get_row() const -> decltype(std::declval<imitation_type&>().get_row<index>()) {
 		using row_type = decltype(std::declval<imitation_type&>().get_row<index>());
-		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>().begin()))>;
 
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 
@@ -144,7 +149,7 @@ public:
 	
 	template<typename index>
 	int32_t size() const {
-		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>().begin()))>;
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 		
 		return int32_t(v.size());
@@ -152,7 +157,7 @@ public:
 
 	template<typename index>
 	void resize(int32_t sz) const {
-		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>().begin()))>;
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 
 		return v.resize(sz);
@@ -185,7 +190,7 @@ public:
 	auto get_row(tag_type t) const -> decltype(std::declval<imitation_type&>().get_row<index>(t)) {
 		assert(is_valid_index(t));
 		using row_type = decltype(std::declval<imitation_type&>().get_row<index>(t));
-		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>(t).begin()))>;
 
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
@@ -194,7 +199,7 @@ public:
 	template<typename index, typename tag_type>
 	int32_t size(tag_type t) const {
 		assert(is_valid_index(t));
-		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>(t).begin()))>;
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		return int32_t(v.size());
