@@ -40,11 +40,12 @@ namespace military {
 		void button_function(ui::button<cb_type_button>& self, world_state& ws);
 	};
 
+	/*
 	using cb_item = ui::gui_window<
 		CT_STRING("wargoal_icon"), ui::dynamic_icon<cb_type_icon>,
 		CT_STRING("select_cb"), ui::button<cb_type_button>,
 		cb_item_base
-	>;
+	>;*/
 
 
 	class fabricate_cb_window_base : public ui::draggable_region {
@@ -89,6 +90,7 @@ namespace military {
 		void update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	/*
 	class fabricate_cb_window_t : public ui::gui_window <
 		CT_STRING("Background"), ui::simple_button<hidden_button>,
 		CT_STRING("AgreeButton"), ui::simple_button<ok_button>,
@@ -99,7 +101,9 @@ namespace military {
 		CT_STRING("Description"), ui::multiline_text<description>,
 		CT_STRING("cb_list"), ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24>,
 		fabricate_cb_window_base
-	> {};
+	> {};*/
+
+#include "military_windows.h"
 
 	template<typename lb_type>
 	void fabricate_cb_types_lb::populate_list(lb_type & lb, world_state & ws) {

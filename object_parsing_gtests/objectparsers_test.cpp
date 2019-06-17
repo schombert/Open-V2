@@ -117,8 +117,8 @@ public:
 	auto get_sum_destination() {
 		return sum_assignment(sum);
 	}
-	template<typename C>
-	void add_int(int32_t v, C const&) {
+	template<typename ERR, typename C>
+	void add_int(int32_t v, ERR const&, C const&) {
 		sum += v;
 	}
 
@@ -169,8 +169,8 @@ struct variable_named_set {
 	void add_int(int i) {
 		v.push_back(i);
 	}
-	template<typename C>
-	void add_int(int i, C const&) {
+	template<typename ERR, typename C>
+	void add_int(int i, ERR const&, C const&) {
 		v.push_back(i);
 	}
 	void add_empty(const empty_sub& e) {
@@ -193,8 +193,8 @@ struct variable_named_set_container {
 	void add_set(variable_named_set&& vin) {
 		set_of_sets.emplace_back(std::move(vin));
 	}
-	template<typename C>
-	void add_set(token_and_type t, variable_named_set&& vin, C&) {
+	template<typename ERR, typename C>
+	void add_set(token_and_type t, variable_named_set&& vin, ERR const&,  C const&) {
 		vin.name = t;
 		set_of_sets.emplace_back(std::move(vin));
 	}
@@ -214,8 +214,8 @@ struct extern_reader {
 	void add_variable_named_set(variable_named_set&& i) {
 		m_b.emplace_back(std::move(i));
 	}
-	template<typename C>
-	void add_variable_named_set(token_and_type const&, variable_named_set&& i, C const&) {
+	template<typename ERR, typename C>
+	void add_variable_named_set(token_and_type const&, variable_named_set&& i, ERR const&, C const&) {
 		m_b.emplace_back(std::move(i));
 	}
 };
@@ -310,27 +310,27 @@ static char extern_description[] =
 
 #define TEST_METHOD(x, y) TEST(x, y)
 
-template<typename C>
-void add_int_to_vector(vector_of_int& i, int32_t v, C const&) {
+template<typename ERR, typename C>
+void add_int_to_vector(vector_of_int& i, int32_t v, ERR const&, C const&) {
 	i.push_back(v);
 }
 
-template<typename C>
-void add_int(association_container& cobj, token_and_type const& lh, int_vector_summation const& sum, C const&) {
+template<typename ERR, typename C>
+void add_int(association_container& cobj, token_and_type const& lh, int_vector_summation const& sum, ERR const&, C const&) {
 	if(is_positive_int(lh.start, lh.end)) {
 		cobj.contents.emplace_back(association_type::list, sum.sum);
 	}
 }
 
-template<typename C>
-void add_assoc_int_pair(association_container& cobj, token_and_type const& lh, association_type asoc, int32_t val, C const&) {
+template<typename ERR, typename C>
+void add_assoc_int_pair(association_container& cobj, token_and_type const& lh, association_type asoc, int32_t val, ERR const&, C const&) {
 	if(is_positive_int(lh.start, lh.end)) {
 		cobj.contents.emplace_back(asoc, val);
 	}
 }
 
-template<typename C>
-void add_tbr(three_bool_recursive& cobj, three_bool_recursive&& rh, C const&) {
+template<typename ERR, typename C>
+void add_tbr(three_bool_recursive& cobj, three_bool_recursive&& rh, ERR const&, C const&) {
 	cobj.k.emplace_back(std::move(rh));
 }
 

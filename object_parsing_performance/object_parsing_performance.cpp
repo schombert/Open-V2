@@ -152,8 +152,8 @@ struct unemployment_by_type_trigger {
 	auto associated_value() {
 		return value_association_pair<double>(value_association, value);
 	}
-	template<typename T>
-	void set_value(association_type assoc, double v, T&) {
+	template<typename ERR, typename T>
+	void set_value(association_type assoc, double v, ERR const&, T const&) {
 		value_association = assoc;
 		value = v;
 	}
@@ -185,32 +185,32 @@ struct trigger_group {
 		return false;
 	}
 
-	template<string_trigger::string_trigger_type type, typename C>
-	void add_string_trigger(association_type a, const token_and_type& val, C const&) {
+	template<string_trigger::string_trigger_type type, typename ERR, typename C>
+	void add_string_trigger(association_type a, const token_and_type& val, ERR const&, C const&) {
 		members.push_back(string_trigger_from_association(a, val, type));
 	}
-	template<double_trigger::double_trigger_type type, typename C>
-	void add_double_trigger(association_type a, const token_and_type& val, C const&) {
+	template<double_trigger::double_trigger_type type, typename ERR, typename C>
+	void add_double_trigger(association_type a, const token_and_type& val, ERR const&, C const&) {
 		members.push_back(double_trigger_from_association(a, val, type));
 	}
-	template<int_trigger::int_trigger_type type, typename C>
-	void add_int_trigger(association_type a, const token_and_type& val, C const&) {
+	template<int_trigger::int_trigger_type type, typename ERR, typename C>
+	void add_int_trigger(association_type a, const token_and_type& val, ERR const&, C const&) {
 		members.push_back(int_trigger_from_association(a, val, type));
 	}
-	template<bool_trigger::bool_trigger_type type, typename C>
-	void add_bool_trigger(association_type a, const token_and_type& val, C const&) {
+	template<bool_trigger::bool_trigger_type type, typename ERR, typename C>
+	void add_bool_trigger(association_type a, const token_and_type& val, ERR const&, C const&) {
 		members.push_back(bool_trigger_from_association( a, val, type));
 	}
-	template<typename C>
-	void add_other_trigger(unemployment_by_type_trigger const& val, C const&) {
+	template<typename ERR, typename C>
+	void add_other_trigger(unemployment_by_type_trigger const& val, ERR const&, C const&) {
 		members.push_back(val);
 	}
-	template<typename C>
-	void add_other_trigger(work_available_trigger const& val, C const&) {
+	template<typename ERR, typename C>
+	void add_other_trigger(work_available_trigger const& val, ERR const&, C const&) {
 		members.push_back(val);
 	}
-	template<trigger_group::trigger_group_type type, typename C>
-	void add_other_trigger(trigger_group&& val, C const&) {
+	template<trigger_group::trigger_group_type type, typename ERR, typename C>
+	void add_other_trigger(trigger_group&& val, ERR const&, C const&) {
 		val.type = type;
 		members.emplace_back(std::move(val));
 	}
@@ -239,8 +239,8 @@ struct modifier_group {
 	bool operator==(const modifier_group& other) const {
 		return members == other.members;
 	}
-	template<typename C>
-	void add_modifier(modifier&& m, C const&) {
+	template<typename ERR, typename C>
+	void add_modifier(modifier&& m, ERR const&, C const&) {
 		members.emplace_back(std::move(m));
 	}
 };
@@ -254,8 +254,8 @@ struct simple_modifier_container {
 	bool operator==(const simple_modifier_container& other) const {
 		return factor == other.factor && members == other.members;
 	}
-	template<typename C>
-	void add_modifier(modifier&& m, C const&) {
+	template<typename ERR, typename C>
+	void add_modifier(modifier&& m, ERR const&, C const&) {
 		members.emplace_back(std::move(m));
 	}
 };
@@ -271,12 +271,12 @@ struct complex_modifier_container {
 	bool operator==(const complex_modifier_container& other) const {
 		return factor == other.factor && members == other.members && group_members == other.group_members;
 	}
-	template<typename C>
-	void add_modifier(modifier&& m, C const&) {
+	template<typename ERR, typename C>
+	void add_modifier(modifier&& m, ERR const&, C const&) {
 		members.emplace_back(std::move(m));
 	}
-	template<typename C>
-	void add_modifier_group(modifier_group&& m, C const&) {
+	template<typename ERR, typename C>
+	void add_modifier_group(modifier_group&& m, ERR const&, C const&) {
 		group_members.emplace_back(std::move(m));
 	}
 };
@@ -386,23 +386,23 @@ using vec_str_simple = std::vector<std::pair<std::string, simple_modifier_contai
 using vec_str_complex = std::vector<std::pair<std::string, complex_modifier_container>>;
 using vec_int = std::vector<int>;
 
-template<typename C>
-void add_vec_int(vec_int& obj, int32_t val, C const&) {
+template<typename ERR, typename C>
+void add_vec_int(vec_int& obj, int32_t val, ERR const&, C const&) {
 	obj.push_back(val);
 }
 
-template<typename C>
-void add_vec_str_double(vec_str_double& obj, token_and_type const& tok, association_type, double val, C const&) {
+template<typename ERR, typename C>
+void add_vec_str_double(vec_str_double& obj, token_and_type const& tok, association_type, double val, ERR const&, C const&) {
 	obj.emplace_back(std::string(tok.start, tok.end), val);
 }
 
-template<typename C>
-void add_vec_str_simple(vec_str_simple& obj, token_and_type const& tok, simple_modifier_container&& val, C const&) {
+template<typename ERR, typename C>
+void add_vec_str_simple(vec_str_simple& obj, token_and_type const& tok, simple_modifier_container&& val, ERR const&, C const&) {
 	obj.emplace_back(std::string(tok.start, tok.end), std::move(val));
 }
 
-template<typename C>
-void add_vec_str_complex(vec_str_complex& obj, token_and_type const& tok, complex_modifier_container&& val, C const&) {
+template<typename ERR, typename C>
+void add_vec_str_complex(vec_str_complex& obj, token_and_type const& tok, complex_modifier_container&& val, ERR const&, C const&) {
 	obj.emplace_back(std::string(tok.start, tok.end), std::move(val));
 }
 

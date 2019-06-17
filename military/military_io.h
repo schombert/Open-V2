@@ -74,15 +74,21 @@ public:
 	static size_t size();
 };
 
+namespace scenario {
+	class scenario_manager;
+}
+
 namespace military {
+	template<typename S>
 	struct parsing_environment;
+
 	class military_manager;
 
 	class parsing_state {
 	public:
-		std::unique_ptr<parsing_environment> impl;
+		std::unique_ptr<parsing_environment<scenario::scenario_manager>> impl;
 
-		parsing_state(text_data::text_sequences& tl, military_manager& m);
+		parsing_state(scenario::scenario_manager& m, events::event_creation_manager& e);
 		parsing_state(parsing_state&&) noexcept;
 		~parsing_state();
 	};
@@ -101,7 +107,7 @@ namespace military {
 	//	economy::economic_scenario& economy_m,
 	//	sound::sound_manager& sound_m,
 	//	text_data::text_sequences& text_m);
-	void read_cb_types(parsing_state const& state, scenario::scenario_manager& s, events::event_creation_manager& ecm);
-	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_group const* start, token_group const* end);
+	void read_cb_types(parsing_state const& state);
+	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_generator& gen);
 	void read_wars(world_state& ws, date_tag target_date, const directory& root);
 }

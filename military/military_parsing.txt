@@ -1,0 +1,120 @@
+military_parsing
+
+war_file
+	name : value -> discard
+	#any : group(war_date_block) -> member_fn(add_date_block)
+war_date_block
+	add_attacker : value -> member_fn(add_attacker)
+	add_defender : value -> member_fn(add_defender)
+	rem_attacker : value -> member_fn(remove_attacker)
+	rem_defender : value -> member_fn(remove_attacker)
+	war_goal : group(war_goal_reader) -> member_fn(add_war_goal)
+war_goal_reader
+	actor : value -> member_fn(set_actor)
+	state :  value(uint16_t) -> member_fn(set_state)
+	receiver : value -> member_fn(set_receiver)
+	casus_belli : value -> member_fn(set_casus_belli)
+parsed_relation
+	value : value(int32_t) -> member
+	level : value(int32_t) -> member
+	influence_value : value(int32_t) -> member
+	military_access : value -> discard
+parsed_leader
+	personality : value -> member_fn(set_personality)
+	background : value -> member_fn(set_background)
+	date : value(date_tag) -> member(creation_date)
+	type : value -> member_fn(set_type)
+	name : value -> discard
+	picture : value -> discard
+	prestige : value -> discard
+parsed_regiment
+	home : value -> discard
+	name : value -> discard
+	type : value -> discard
+parsed_ship
+	name : value -> discard
+	type : value -> discard
+parsed_army_or_navy
+	leader : group(parsed_leader) -> member_fn(add_leader)
+	ship : group(parsed_ship) -> member_fn(add_ship)
+	regiment : group(parsed_regiment) -> member_fn(add_regiment)
+	location : value(uint16_t) -> member_fn(set_location)
+	name : value -> discard
+oob_file
+	leader : group(parsed_leader) -> member_fn(add_leader)
+	army : group(parsed_army_or_navy) -> member_fn(add_army)
+	navy : group(parsed_army_or_navy) -> member_fn(add_navy)
+	#any : group(parsed_relation) -> member_fn(add_relation)
+peace_order
+	#value : (token) -> member_fn(add_cb)
+cb_file
+	peace_order : group(peace_order) -> member_fn(peace_order)
+	#any : extern(find_group_range) -> member_fn(reserve_cb)
+traits_file
+	personality : group(personalities) -> member_fn(add_personalities)
+	background : group(backgrounds) -> member_fn(add_backgrounds)
+personalities
+	no_personality : group(trait) -> member_fn(set_no_personality)
+	#any : group(trait) -> member_fn(add_trait)
+backgrounds
+	no_background : group(trait) -> member_fn(set_no_background)
+	#any : group(trait) -> member_fn(add_trait)
+trait
+	organisation : value(float) -> member
+	morale : value(float) -> member
+	attack : value(float) -> member
+	defence : value(float) -> member
+	reconnaissance : value(float) -> member
+	speed : value(float) -> member
+	experience : value(float) -> member
+	reliability : value(float) -> member
+single_cb
+	is_civil_war : value(bool) -> member_fn(set_is_civil_war)
+	months : value(uint8_t) -> member
+	truce_months : value(uint8_t) -> member
+	sprite_index : value(uint8_t) -> member
+	always : value(bool) -> member_fn(set_always)
+	is_triggered_only : value(bool) -> member_fn(set_is_triggered_only)
+	constructing_cb : value(bool) -> member_fn(set_constructing_cb)
+	allowed_states : extern(read_cb_state_trigger) -> member
+	allowed_states_in_crisis : extern(read_cb_state_trigger) -> member
+	allowed_substate_regions : extern(read_cb_state_trigger) -> member
+	allowed_countries : extern(read_cb_nation_trigger) -> member
+	can_use : extern(read_cb_nation_trigger) -> member
+	on_add : extern(read_cb_nation_effect) -> member
+	on_po_accepted : extern(read_cb_nation_effect) -> member
+	badboy_factor : value(float) -> member
+	prestige_factor : value(float) -> member
+	peace_cost_factor : value(float) -> member
+	penalty_factor : value(float) -> member
+	break_truce_prestige_factor : value(float) -> member
+	break_truce_infamy_factor : value(float) -> member
+	break_truce_militancy_factor : value(float) -> member
+	good_relation_prestige_factor : value(float) -> member
+	good_relation_infamy_factor : value(float) -> member
+	good_relation_militancy_factor : value(float) -> member
+	war_name : value(token) -> member_fn(set_war_name)
+	construction_speed : value(float) -> member
+	tws_battle_factor : value(float) -> member
+	great_war_obligatory : value(bool) -> member_fn(set_great_war_obligatory)
+	all_allowed_states : value(bool) -> member_fn(set_all_allowed_states)
+	crisis : value(bool) -> member_fn(set_crisis)
+	po_clear_union_sphere : value(bool) -> member_fn(set_po_clear_union_sphere)
+	po_gunboat : value(bool) -> member_fn(set_po_gunboat)
+	po_annex : value(bool) -> member_fn(set_po_annex)
+	po_demand_state : value(bool) -> member_fn(set_po_demand_state)
+	po_add_to_sphere : value(bool) -> member_fn(set_po_add_to_sphere)
+	po_disarmament : value(bool) -> member_fn(set_po_disarmament)
+	po_reparations : value(bool) -> member_fn(set_po_reparations)
+	po_transfer_provinces : value(bool) -> member_fn(set_po_transfer_provinces)
+	po_remove_prestige : value(bool) -> member_fn(set_po_remove_prestige)
+	po_make_puppet : value(bool) -> member_fn(set_po_make_puppet)
+	po_release_puppet : value(bool) -> member_fn(set_po_release_puppet)
+	po_status_quo : value(bool) -> member_fn(set_po_status_quo)
+	po_install_communist_gov_type : value(bool) -> member_fn(set_po_install_communist_gov_type)
+	po_uninstall_communist_gov_type : value(bool) -> member_fn(set_po_uninstall_communist_gov_type)
+	po_remove_cores : value(bool) -> member_fn(set_po_remove_cores)
+	po_colony : value(bool) -> member_fn(set_po_colony)
+	po_destroy_forts : value(bool) -> member_fn(set_po_destroy_forts)
+	mutual : value -> discard
+	is_valid : group -> discard

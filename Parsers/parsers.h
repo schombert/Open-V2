@@ -35,6 +35,12 @@ public:
 	std::unique_ptr<char[]> parse_data;
 };
 
+
+class unparsed_data {
+public:
+	std::unique_ptr<char[]> parse_data;
+};
+
 class token_generator {
 private:
 	char const* position;
@@ -56,6 +62,55 @@ public:
 };
 
 void discard_group(token_generator& gen);
+
+struct text_range {
+	char const* start;
+	char const* end;
+};
+
+template<typename ERR, typename CONTEXT>
+text_range find_group_range(token_generator& gen, ERR const&, CONTEXT const&) {
+	int32_t brace_count = 0;
+	auto gotten = gen.next();
+
+	text_range result{gotten.start, gotten.start};
+
+	while(brace_count >= 0 && !gen.at_end()) {
+		gotten = gen.get();
+
+		if(gotten.type == token_type::open_brace) {
+			brace_count++;
+		} else if(gotten.type == token_type::close_brace) {
+			brace_count--;	
+		} else {
+			result.end = gotten.end;
+		}
+	}
+
+	return result;
+}
+template<typename ERR, typename CONTEXT>
+text_range find_group_range(token_and_type const&, token_generator& gen, ERR const& e, CONTEXT const& c) {
+	int32_t brace_count = 0;
+	auto gotten = gen.next();
+
+	text_range result{ gotten.start, gotten.start };
+
+	while(brace_count >= 0 && !gen.at_end()) {
+		gotten = gen.get();
+
+		if(gotten.type == token_type::open_brace) {
+			brace_count++;
+		} else if(gotten.type == token_type::close_brace) {
+			brace_count--;
+		} else {
+			result.end = gotten.end;
+		}
+	}
+
+	return result;
+}
+
 template<typename T>
 void finish_parse(T&) {}
 

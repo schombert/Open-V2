@@ -38,7 +38,9 @@ rebel_types parse_rebel_types(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -83,7 +85,9 @@ unemployment_by_type_trigger parse_unemployment_by_type_trigger(token_generator&
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -106,7 +110,7 @@ unemployment_by_type_trigger parse_unemployment_by_type_trigger(token_generator&
 					 break;
 				 case 5:
 					 if((true && (*(uint32_t*)(cur.start + 0) | 0x20202020ui32) == 0x756C6176ui32 && (*(cur.start + 4) | 0x20) == 0x65)) {
-						 cobj.set_value(assoc_type, token_to<double>(rh_token, err), context);
+						 cobj.set_value(assoc_type, token_to<double>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -128,7 +132,9 @@ work_available_trigger parse_work_available_trigger(token_generator& gen, ERR_H&
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -166,7 +172,9 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -174,7 +182,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 2:
 					 if((true && (*(uint16_t*)(cur.start + 0) | 0x2020) == 0x726F)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::or_t>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::or_t>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -183,14 +191,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint16_t*)(cur.start + 1) | 0x2020) == 0x646E)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::and_t>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::and_t>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x6E:
 						 if((true && (*(uint16_t*)(cur.start + 1) | 0x2020) == 0x746F)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::not_t>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::not_t>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -201,7 +209,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 break;
 				 case 7:
 					 if((true && (*(uint32_t*)(cur.start + 0) | 0x20202020ui32) == 0x6E756F63ui32 && (*(uint16_t*)(cur.start + 4) | 0x2020) == 0x7274 && (*(cur.start + 6) | 0x20) == 0x79)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::country>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::country>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -210,14 +218,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x637F796Eui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x726F && (*(cur.start + 7) | 0x20) == 0x65)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_core>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_core>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x7461636Fui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6F69 && (*(cur.start + 7) | 0x20) == 0x6E)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::location>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::location>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -228,21 +236,21 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 break;
 				 case 11:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x63737F6574617473ui64 && (*(uint16_t*)(cur.start + 8) | 0x2020) == 0x706F && (*(cur.start + 10) | 0x20) == 0x65)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::state_scope>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::state_scope>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
 					 break;
 				 case 14:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x6176617F6B726F77ui64 && (*(uint32_t*)(cur.start + 8) | 0x20202020ui32) == 0x62616C69ui32 && (*(uint16_t*)(cur.start + 12) | 0x2020) == 0x656C)) {
-						 cobj.add_other_trigger(parse_work_available_trigger(gen, err, context), context);
+						 cobj.add_other_trigger(parse_work_available_trigger(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
 					 break;
 				 case 18:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x656E776F7F796E61ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x6E69766F72707F64ui64 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x6563)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::any_owned_province>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::any_owned_province>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -251,14 +259,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x686769656E7F796Eui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E756F637F726F62ui64 && (*(uint16_t*)(cur.start + 17) | 0x2020) == 0x7274 && (*(cur.start + 19) | 0x20) == 0x79)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_neighbor_country>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_neighbor_country>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x75:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6D796F6C706D656Eui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x747F79627F746E65ui64 && (*(uint16_t*)(cur.start + 17) | 0x2020) == 0x7079 && (*(cur.start + 19) | 0x20) == 0x65)) {
-							 cobj.add_other_trigger(parse_unemployment_by_type_trigger(gen, err, context), context);
+							 cobj.add_other_trigger(parse_unemployment_by_type_trigger(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -277,7 +285,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 3:
 					 if((true && (*(uint16_t*)(cur.start + 0) | 0x2020) == 0x6177 && (*(cur.start + 2) | 0x20) == 0x72)) {
-						 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::war>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::war>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -286,14 +294,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x73:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x6576616Cui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7972)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::slavery>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::slavery>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x61727265ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6E69)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::terrain>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::terrain>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -306,21 +314,21 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x69:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x6C737F73ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7661 && (*(cur.start + 7) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_slave>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_slave>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x72657469ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6361 && (*(cur.start + 7) | 0x20) == 0x79)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::literacy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::literacy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x69646C6Fui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7265 && (*(cur.start + 7) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::soldiers>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::soldiers>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -335,21 +343,21 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 1))) {
 					 case 0x69:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x696C6976ui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x657A && (*(cur.start + 8) | 0x20) == 0x64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::civilized>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::civilized>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x79677265ui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x656D && (*(cur.start + 8) | 0x20) == 0x6E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::clergymen>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::clergymen>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x6E69746Eui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x6E65 && (*(cur.start + 8) | 0x20) == 0x74)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::continent>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::continent>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -360,14 +368,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x79636E6174696C69ui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7974696C6172756Cui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::plurality>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::plurality>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -388,14 +396,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 4))) {
 					 case 0x61:
 						 if((true && (*(uint32_t*)(cur.start + 5) | 0x20202020ui32) == 0x61746970ui32 && (*(cur.start + 9) | 0x20) == 0x6C)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_capital>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_capital>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint32_t*)(cur.start + 5) | 0x20202020ui32) == 0x61747361ui32 && (*(cur.start + 9) | 0x20) == 0x6C)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_coastal>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_coastal>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -418,28 +426,28 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6465656E7F656669ui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x736968636E617665ui64 && (*(cur.start + 9) | 0x20) == 0x6D)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::revanchism>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::revanchism>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x706F707F6C61746Fui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_int_trigger<int_trigger::int_trigger_type::total_pops>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_int_trigger<int_trigger::int_trigger_type::total_pops>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x72756F687F6B726Fui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::work_hours>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::work_hours>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -452,42 +460,42 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x62:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6172637561657275ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7374)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::bureaucrats>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::bureaucrats>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73696C6174697061ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7374)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::capitalists>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::capitalists>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x61637F68746C6165ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6572)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::health_care>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::health_care>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x696E6F6C6F637F73ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6C61)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_colonial>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_colonial>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x697461727F656669ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x676E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_rating>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_rating>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6F6665727F656761ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6D72)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::wage_reform>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::wage_reform>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -500,35 +508,35 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x747F706F707F7361ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7079 && (*(cur.start + 11) | 0x20) == 0x65)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_type>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_type>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x656E7F7972757875ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6465 && (*(cur.start + 11) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6769727F73736572ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7468 && (*(cur.start + 11) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::press_rights>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::press_rights>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6C6F707F65646172ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6369 && (*(cur.start + 11) | 0x20) == 0x79)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::trade_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::trade_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x75:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6D796F6C706D656Eui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6E65 && (*(cur.start + 11) | 0x20) == 0x74)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::unemployment>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::unemployment>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -541,28 +549,28 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73756F6963736E6Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x7373656Eui32)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::consciousness>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::consciousness>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6F746361667F7361ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x73656972ui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::has_factories>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::has_factories>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6E:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x766C616E6F697461ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x65756C61ui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::nationalvalue>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::nationalvalue>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x76:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x79737F676E69746Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6D657473ui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::voting_system>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::voting_system>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -575,42 +583,42 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6769667F656D6972ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6E697468ui32 && (*(cur.start + 13) | 0x20) == 0x67)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::crime_fighting>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::crime_fighting>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F79616479726576ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6465656Eui32 && (*(cur.start + 13) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x727F7478656E7F73ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x726F6665ui32 && (*(cur.start + 13) | 0x20) == 0x6D)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_next_reform>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_next_reform>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F79726174696C69ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x726F6373ui32 && (*(cur.start + 13) | 0x20) == 0x65)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::military_score>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::military_score>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x65727F6C6F6F6863ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6D726F66ui32 && (*(cur.start + 13) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::school_reforms>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::school_reforms>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x75616878657F7261ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6F697473ui32 && (*(cur.start + 13) | 0x20) == 0x6E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::war_exhaustion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::war_exhaustion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -623,28 +631,28 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F63696D6F6E6F63ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x696C6F70ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x7963)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::economic_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::economic_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x637F706F707F7361ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x75746C75ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6572)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x656D7F63696C6275ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6E697465ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x7367)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::public_meetings>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::public_meetings>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x76:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6E6172667F65746Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x69686373ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6573)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::vote_franschise>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::vote_franschise>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -665,14 +673,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 4))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 5) | 0x2020202020202020ui64) == 0x667F7972746E756Fui64 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x616C && (*(cur.start + 15) | 0x20) == 0x67)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_country_flag>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_country_flag>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 5) | 0x2020202020202020ui64) == 0x67696C65727F706Fui64 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6F69 && (*(cur.start + 15) | 0x20) == 0x6E)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_religion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_religion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -701,14 +709,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 3))) {
 					 case 0x67:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x707F726574616572ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x7265776Fui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_greater_power>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_greater_power>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7061637F65746174ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x6C617469ui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_capital>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_capital>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -727,7 +735,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73756F6967696C65ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6C6F707Fui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6369 && (*(cur.start + 15) | 0x20) == 0x79)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::religious_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::religious_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -740,21 +748,21 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x646C6975627F6E61ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x79726F746361667Fui64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::can_build_factory>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::can_build_factory>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F65746174737F73ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E6F6967696C6572ui64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_religion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_religion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6C61636974696C6Fui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x736569747261707Fui64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::political_parties>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::political_parties>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -767,14 +775,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6E6F697461637564ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E69646E6570737Fui64 && (*(cur.start + 17) | 0x20) == 0x67)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::education_spending>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::education_spending>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x72616D6972707F73ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x7275746C75637F79ui64 && (*(cur.start + 17) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_primary_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_primary_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -783,14 +791,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 1))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 2) | 0x2020202020202020ui64) == 0x6765727F79746566ui64 && (*(uint64_t*)(cur.start + 10) | 0x2020202020202020ui64) == 0x736E6F6974616C75ui64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::safety_regulations>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::safety_regulations>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint64_t*)(cur.start + 2) | 0x2020202020202020ui64) == 0x6665727F6C616963ui64 && (*(uint64_t*)(cur.start + 10) | 0x2020202020202020ui64) == 0x746E61777F6D726Fui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::social_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::social_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -813,14 +821,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 3))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7F64657470656363ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x746C7563ui32 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x7275 && (*(cur.start + 18) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_accepted_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_accepted_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7F79676F6C6F6564ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x62616E65ui32 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x656C && (*(cur.start + 18) | 0x20) == 0x64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_ideology_enabled>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_ideology_enabled>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -849,14 +857,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 2))) {
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 3) | 0x2020202020202020ui64) == 0x727F6C6163697469ui64 && (*(uint64_t*)(cur.start + 11) | 0x2020202020202020ui64) == 0x61777F6D726F6665ui64 && (*(uint16_t*)(cur.start + 19) | 0x2020) == 0x746E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::political_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::political_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint64_t*)(cur.start + 3) | 0x2020202020202020ui64) == 0x6174617274737F72ui64 && (*(uint64_t*)(cur.start + 11) | 0x2020202020202020ui64) == 0x6E6174696C696D7Fui64 && (*(uint16_t*)(cur.start + 19) | 0x2020) == 0x7963)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -871,7 +879,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x61707F676E696C75ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6F6564697F797472ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x79676F6Cui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::ruling_party_ideology>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::ruling_party_ideology>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -882,7 +890,7 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 break;
 				 case 22:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x6566696C7F617461ui64 && (*(uint32_t*)(cur.start + 16) | 0x20202020ui32) == 0x65656E7Fui32 && (*(uint16_t*)(cur.start + 20) | 0x2020) == 0x7364)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -891,14 +899,14 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7469777F65657267ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x676E696C75727F68ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x7261707Fui32 && (*(uint16_t*)(cur.start + 21) | 0x2020) == 0x7974)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::agree_with_ruling_party>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::agree_with_ruling_party>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x74737F656C646469ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6C696D7F61746172ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x6E617469ui32 && (*(uint16_t*)(cur.start + 21) | 0x2020) == 0x7963)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -909,21 +917,21 @@ trigger_group parse_trigger_group(token_generator& gen, ERR_H& err, C&& context)
 					 break;
 				 case 24:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x7578756C7F617461ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x736465656E7F7972ui64)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
 					 break;
 				 case 26:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x726576657F617461ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x65656E7F79616479ui64 && (*(uint16_t*)(cur.start + 24) | 0x2020) == 0x7364)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
 					 break;
 				 case 28:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x737F656C6464696Dui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x76657F6174617274ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x6E7F796164797265ui64 && (*(uint32_t*)(cur.start + 24) | 0x20202020ui32) == 0x73646565ui32)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -945,7 +953,9 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -953,7 +963,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 2:
 					 if((true && (*(uint16_t*)(cur.start + 0) | 0x2020) == 0x726F)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::or_t>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::or_t>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -962,14 +972,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint16_t*)(cur.start + 1) | 0x2020) == 0x646E)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::and_t>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::and_t>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x6E:
 						 if((true && (*(uint16_t*)(cur.start + 1) | 0x2020) == 0x746F)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::not_t>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::not_t>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -980,7 +990,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 break;
 				 case 7:
 					 if((true && (*(uint32_t*)(cur.start + 0) | 0x20202020ui32) == 0x6E756F63ui32 && (*(uint16_t*)(cur.start + 4) | 0x2020) == 0x7274 && (*(cur.start + 6) | 0x20) == 0x79)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::country>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::country>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -989,14 +999,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x637F796Eui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x726F && (*(cur.start + 7) | 0x20) == 0x65)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_core>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_core>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x7461636Fui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6F69 && (*(cur.start + 7) | 0x20) == 0x6E)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::location>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::location>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -1007,21 +1017,21 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 break;
 				 case 11:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x63737F6574617473ui64 && (*(uint16_t*)(cur.start + 8) | 0x2020) == 0x706F && (*(cur.start + 10) | 0x20) == 0x65)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::state_scope>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::state_scope>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
 					 break;
 				 case 14:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x6176617F6B726F77ui64 && (*(uint32_t*)(cur.start + 8) | 0x20202020ui32) == 0x62616C69ui32 && (*(uint16_t*)(cur.start + 12) | 0x2020) == 0x656C)) {
-						 cobj.add_other_trigger(parse_work_available_trigger(gen, err, context), context);
+						 cobj.add_other_trigger(parse_work_available_trigger(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
 					 break;
 				 case 18:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x656E776F7F796E61ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x6E69766F72707F64ui64 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x6563)) {
-						 cobj.add_other_trigger<trigger_group::trigger_group_type::any_owned_province>(parse_trigger_group(gen, err, context), context);
+						 cobj.add_other_trigger<trigger_group::trigger_group_type::any_owned_province>(parse_trigger_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -1030,14 +1040,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x686769656E7F796Eui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E756F637F726F62ui64 && (*(uint16_t*)(cur.start + 17) | 0x2020) == 0x7274 && (*(cur.start + 19) | 0x20) == 0x79)) {
-							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_neighbor_country>(parse_trigger_group(gen, err, context), context);
+							 cobj.add_other_trigger<trigger_group::trigger_group_type::any_neighbor_country>(parse_trigger_group(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
 						 break;
 					 case 0x75:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6D796F6C706D656Eui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x747F79627F746E65ui64 && (*(uint16_t*)(cur.start + 17) | 0x2020) == 0x7079 && (*(cur.start + 19) | 0x20) == 0x65)) {
-							 cobj.add_other_trigger(parse_unemployment_by_type_trigger(gen, err, context), context);
+							 cobj.add_other_trigger(parse_unemployment_by_type_trigger(gen, err, context), err, context);
 						 } else {
 							 err.unhandled_group_key(cur); discard_group(gen);
 						 }
@@ -1056,7 +1066,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 3:
 					 if((true && (*(uint16_t*)(cur.start + 0) | 0x2020) == 0x6177 && (*(cur.start + 2) | 0x20) == 0x72)) {
-						 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::war>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::war>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -1072,14 +1082,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x73:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x6576616Cui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7972)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::slavery>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::slavery>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x61727265ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6E69)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::terrain>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::terrain>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1092,21 +1102,21 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x69:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x6C737F73ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7661 && (*(cur.start + 7) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_slave>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_slave>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x72657469ui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x6361 && (*(cur.start + 7) | 0x20) == 0x79)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::literacy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::literacy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint32_t*)(cur.start + 1) | 0x20202020ui32) == 0x69646C6Fui32 && (*(uint16_t*)(cur.start + 5) | 0x2020) == 0x7265 && (*(cur.start + 7) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::soldiers>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::soldiers>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1121,21 +1131,21 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 1))) {
 					 case 0x69:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x696C6976ui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x657A && (*(cur.start + 8) | 0x20) == 0x64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::civilized>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::civilized>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x79677265ui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x656D && (*(cur.start + 8) | 0x20) == 0x6E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::clergymen>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::clergymen>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint32_t*)(cur.start + 2) | 0x20202020ui32) == 0x6E69746Eui32 && (*(uint16_t*)(cur.start + 6) | 0x2020) == 0x6E65 && (*(cur.start + 8) | 0x20) == 0x74)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::continent>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::continent>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1146,14 +1156,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x79636E6174696C69ui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7974696C6172756Cui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::plurality>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::plurality>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1174,14 +1184,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 4))) {
 					 case 0x61:
 						 if((true && (*(uint32_t*)(cur.start + 5) | 0x20202020ui32) == 0x61746970ui32 && (*(cur.start + 9) | 0x20) == 0x6C)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_capital>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_capital>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint32_t*)(cur.start + 5) | 0x20202020ui32) == 0x61747361ui32 && (*(cur.start + 9) | 0x20) == 0x6C)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_coastal>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_coastal>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1204,28 +1214,28 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6465656E7F656669ui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x736968636E617665ui64 && (*(cur.start + 9) | 0x20) == 0x6D)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::revanchism>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::revanchism>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x706F707F6C61746Fui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_int_trigger<int_trigger::int_trigger_type::total_pops>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_int_trigger<int_trigger::int_trigger_type::total_pops>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x72756F687F6B726Fui64 && (*(cur.start + 9) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::work_hours>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::work_hours>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1238,42 +1248,42 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x62:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6172637561657275ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7374)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::bureaucrats>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::bureaucrats>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73696C6174697061ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7374)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::capitalists>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::capitalists>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x61637F68746C6165ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6572)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::health_care>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::health_care>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x696E6F6C6F637F73ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6C61)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_colonial>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_colonial>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x697461727F656669ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x676E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_rating>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::life_rating>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6F6665727F656761ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6D72)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::wage_reform>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::wage_reform>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1286,35 +1296,35 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x747F706F707F7361ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7079 && (*(cur.start + 11) | 0x20) == 0x65)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_type>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_type>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x656E7F7972757875ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6465 && (*(cur.start + 11) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6769727F73736572ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x7468 && (*(cur.start + 11) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::press_rights>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::press_rights>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x74:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6C6F707F65646172ui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6369 && (*(cur.start + 11) | 0x20) == 0x79)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::trade_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::trade_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x75:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6D796F6C706D656Eui64 && (*(uint16_t*)(cur.start + 9) | 0x2020) == 0x6E65 && (*(cur.start + 11) | 0x20) == 0x74)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::unemployment>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::unemployment>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1327,28 +1337,28 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73756F6963736E6Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x7373656Eui32)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::consciousness>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::consciousness>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6F746361667F7361ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x73656972ui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::has_factories>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::has_factories>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6E:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x766C616E6F697461ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x65756C61ui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::nationalvalue>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::nationalvalue>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x76:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x79737F676E69746Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6D657473ui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::voting_system>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::voting_system>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1361,42 +1371,42 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6769667F656D6972ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6E697468ui32 && (*(cur.start + 13) | 0x20) == 0x67)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::crime_fighting>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::crime_fighting>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F79616479726576ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6465656Eui32 && (*(cur.start + 13) | 0x20) == 0x73)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x727F7478656E7F73ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x726F6665ui32 && (*(cur.start + 13) | 0x20) == 0x6D)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_next_reform>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_next_reform>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F79726174696C69ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x726F6373ui32 && (*(cur.start + 13) | 0x20) == 0x65)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::military_score>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::military_score>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x65727F6C6F6F6863ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6D726F66ui32 && (*(cur.start + 13) | 0x20) == 0x73)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::school_reforms>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::school_reforms>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x77:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x75616878657F7261ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6F697473ui32 && (*(cur.start + 13) | 0x20) == 0x6E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::war_exhaustion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::war_exhaustion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1409,28 +1419,28 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F63696D6F6E6F63ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x696C6F70ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x7963)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::economic_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::economic_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x68:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x637F706F707F7361ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x75746C75ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6572)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x656D7F63696C6275ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6E697465ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x7367)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::public_meetings>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::public_meetings>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x76:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6E6172667F65746Fui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x69686373ui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6573)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::vote_franschise>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::vote_franschise>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1451,14 +1461,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 4))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 5) | 0x2020202020202020ui64) == 0x667F7972746E756Fui64 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x616C && (*(cur.start + 15) | 0x20) == 0x67)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_country_flag>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_country_flag>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 5) | 0x2020202020202020ui64) == 0x67696C65727F706Fui64 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6F69 && (*(cur.start + 15) | 0x20) == 0x6E)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_religion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::has_pop_religion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1487,14 +1497,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 3))) {
 					 case 0x67:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x707F726574616572ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x7265776Fui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_greater_power>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_greater_power>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x73:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7061637F65746174ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x6C617469ui32)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_capital>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_capital>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1513,7 +1523,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x73756F6967696C65ui64 && (*(uint32_t*)(cur.start + 9) | 0x20202020ui32) == 0x6C6F707Fui32 && (*(uint16_t*)(cur.start + 13) | 0x2020) == 0x6369 && (*(cur.start + 15) | 0x20) == 0x79)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::religious_policy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::religious_policy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1526,21 +1536,21 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x63:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x646C6975627F6E61ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x79726F746361667Fui64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::can_build_factory>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::can_build_factory>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7F65746174737F73ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E6F6967696C6572ui64)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_religion>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_state_religion>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x70:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6C61636974696C6Fui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x736569747261707Fui64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::political_parties>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::political_parties>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1553,14 +1563,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x65:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x6E6F697461637564ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6E69646E6570737Fui64 && (*(cur.start + 17) | 0x20) == 0x67)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::education_spending>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::education_spending>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x72616D6972707F73ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x7275746C75637F79ui64 && (*(cur.start + 17) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_primary_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_primary_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1569,14 +1579,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 1))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 2) | 0x2020202020202020ui64) == 0x6765727F79746566ui64 && (*(uint64_t*)(cur.start + 10) | 0x2020202020202020ui64) == 0x736E6F6974616C75ui64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::safety_regulations>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::safety_regulations>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint64_t*)(cur.start + 2) | 0x2020202020202020ui64) == 0x6665727F6C616963ui64 && (*(uint64_t*)(cur.start + 10) | 0x2020202020202020ui64) == 0x746E61777F6D726Fui64)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::social_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::social_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1599,14 +1609,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 3))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7F64657470656363ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x746C7563ui32 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x7275 && (*(cur.start + 18) | 0x20) == 0x65)) {
-							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_accepted_culture>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_bool_trigger<bool_trigger::bool_trigger_type::is_accepted_culture>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x69:
 						 if((true && (*(uint64_t*)(cur.start + 4) | 0x2020202020202020ui64) == 0x7F79676F6C6F6564ui64 && (*(uint32_t*)(cur.start + 12) | 0x20202020ui32) == 0x62616E65ui32 && (*(uint16_t*)(cur.start + 16) | 0x2020) == 0x656C && (*(cur.start + 18) | 0x20) == 0x64)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_ideology_enabled>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::is_ideology_enabled>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1635,14 +1645,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 2))) {
 					 case 0x6C:
 						 if((true && (*(uint64_t*)(cur.start + 3) | 0x2020202020202020ui64) == 0x727F6C6163697469ui64 && (*(uint64_t*)(cur.start + 11) | 0x2020202020202020ui64) == 0x61777F6D726F6665ui64 && (*(uint16_t*)(cur.start + 19) | 0x2020) == 0x746E)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::political_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::political_reform_want>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6F:
 						 if((true && (*(uint64_t*)(cur.start + 3) | 0x2020202020202020ui64) == 0x6174617274737F72ui64 && (*(uint64_t*)(cur.start + 11) | 0x2020202020202020ui64) == 0x6E6174696C696D7Fui64 && (*(uint16_t*)(cur.start + 19) | 0x2020) == 0x7963)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1657,7 +1667,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 						 break;
 					 case 0x72:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x61707F676E696C75ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6F6564697F797472ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x79676F6Cui32)) {
-							 cobj.add_string_trigger<string_trigger::string_trigger_type::ruling_party_ideology>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_string_trigger<string_trigger::string_trigger_type::ruling_party_ideology>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1668,7 +1678,7 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 break;
 				 case 22:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x6566696C7F617461ui64 && (*(uint32_t*)(cur.start + 16) | 0x20202020ui32) == 0x65656E7Fui32 && (*(uint16_t*)(cur.start + 20) | 0x2020) == 0x7364)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_life_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -1677,14 +1687,14 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 switch(0x20 | int32_t(*(cur.start + 0))) {
 					 case 0x61:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x7469777F65657267ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x676E696C75727F68ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x7261707Fui32 && (*(uint16_t*)(cur.start + 21) | 0x2020) == 0x7974)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::agree_with_ruling_party>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::agree_with_ruling_party>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
 						 break;
 					 case 0x6D:
 						 if((true && (*(uint64_t*)(cur.start + 1) | 0x2020202020202020ui64) == 0x74737F656C646469ui64 && (*(uint64_t*)(cur.start + 9) | 0x2020202020202020ui64) == 0x6C696D7F61746172ui64 && (*(uint32_t*)(cur.start + 17) | 0x20202020ui32) == 0x6E617469ui32 && (*(uint16_t*)(cur.start + 21) | 0x2020) == 0x7963)) {
-							 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+							 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_militancy>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 						 } else {
 							 err.unhandled_association_key(cur);
 						 }
@@ -1695,21 +1705,21 @@ modifier parse_modifier(token_generator& gen, ERR_H& err, C&& context) {
 					 break;
 				 case 24:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x7578756C7F617461ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x736465656E7F7972ui64)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_luxury_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
 					 break;
 				 case 26:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7274737F726F6F70ui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x726576657F617461ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x65656E7F79616479ui64 && (*(uint16_t*)(cur.start + 24) | 0x2020) == 0x7364)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::poor_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
 					 break;
 				 case 28:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x737F656C6464696Dui64 && (*(uint64_t*)(cur.start + 8) | 0x2020202020202020ui64) == 0x76657F6174617274ui64 && (*(uint64_t*)(cur.start + 16) | 0x2020202020202020ui64) == 0x6E7F796164797265ui64 && (*(uint32_t*)(cur.start + 24) | 0x20202020ui32) == 0x73646565ui32)) {
-						 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), context);
+						 cobj.add_double_trigger<double_trigger::double_trigger_type::middle_strata_everyday_needs>(assoc_type, token_to<token_and_type>(rh_token, err), err, context);
 					 } else {
 						 err.unhandled_association_key(cur);
 					 }
@@ -1731,7 +1741,9 @@ modifier_group parse_modifier_group(token_generator& gen, ERR_H& err, C&& contex
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -1739,7 +1751,7 @@ modifier_group parse_modifier_group(token_generator& gen, ERR_H& err, C&& contex
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 8:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7265696669646F6Dui64)) {
-						 cobj.add_modifier(parse_modifier(gen, err, context), context);
+						 cobj.add_modifier(parse_modifier(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -1769,7 +1781,9 @@ simple_modifier_container parse_simple_modifier_container(token_generator& gen, 
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -1777,7 +1791,7 @@ simple_modifier_container parse_simple_modifier_container(token_generator& gen, 
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 8:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7265696669646F6Dui64)) {
-						 cobj.add_modifier(parse_modifier(gen, err, context), context);
+						 cobj.add_modifier(parse_modifier(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -1814,7 +1828,9 @@ complex_modifier_container parse_complex_modifier_container(token_generator& gen
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -1822,14 +1838,14 @@ complex_modifier_container parse_complex_modifier_container(token_generator& gen
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 5:
 					 if((true && (*(uint32_t*)(cur.start + 0) | 0x20202020ui32) == 0x756F7267ui32 && (*(cur.start + 4) | 0x20) == 0x70)) {
-						 cobj.add_modifier_group(parse_modifier_group(gen, err, context), context);
+						 cobj.add_modifier_group(parse_modifier_group(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
 					 break;
 				 case 8:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x7265696669646F6Dui64)) {
-						 cobj.add_modifier(parse_modifier(gen, err, context), context);
+						 cobj.add_modifier(parse_modifier(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -1866,7 +1882,9 @@ vec_int parse_vec_int(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -1885,7 +1903,7 @@ vec_int parse_vec_int(token_generator& gen, ERR_H& err, C&& context) {
 				 }
 			 }
 		 } else {
-			 add_vec_int(cobj, token_to<int32_t>(cur, err), context);
+			 add_vec_int(cobj, token_to<int32_t>(cur, err), err, context);
 		 }
 	 }
 	 finish_parse(cobj);
@@ -1897,7 +1915,9 @@ vec_str_double parse_vec_str_double(token_generator& gen, ERR_H& err, C&& contex
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -1912,7 +1932,7 @@ vec_str_double parse_vec_str_double(token_generator& gen, ERR_H& err, C&& contex
 				 auto const rh_token = gen.get();
 				 switch(int32_t(cur.end - cur.start)) {
 				 default:
-					 add_vec_str_double(cobj, cur, assoc_type, token_to<double>(rh_token, err), context);
+					 add_vec_str_double(cobj, cur, assoc_type, token_to<double>(rh_token, err), err, context);
 				 }
 			 }
 		 } else {
@@ -1928,14 +1948,16 @@ vec_str_simple parse_vec_str_simple(token_generator& gen, ERR_H& err, C&& contex
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
 				 gen.get(); gen.get();
 				 switch(int32_t(cur.end - cur.start)) {
 				 default:
-					 add_vec_str_simple(cobj, cur, parse_simple_modifier_container(gen, err, context), context);
+					 add_vec_str_simple(cobj, cur, parse_simple_modifier_container(gen, err, context), err, context);
 				 }
 			 } else {
 				 auto const assoc_token = gen.get();
@@ -1959,14 +1981,16 @@ vec_str_complex parse_vec_str_complex(token_generator& gen, ERR_H& err, C&& cont
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
 				 gen.get(); gen.get();
 				 switch(int32_t(cur.end - cur.start)) {
 				 default:
-					 add_vec_str_complex(cobj, cur, parse_complex_modifier_container(gen, err, context), context);
+					 add_vec_str_complex(cobj, cur, parse_complex_modifier_container(gen, err, context), err, context);
 				 }
 			 } else {
 				 auto const assoc_token = gen.get();
@@ -1990,7 +2014,9 @@ poptype_file parse_poptype_file(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {

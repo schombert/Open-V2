@@ -20,35 +20,33 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
-    <ProjectGuid>{0225D28C-A6CC-4E23-84DC-9072AC5D7314}</ProjectGuid>
+    <ProjectGuid>{58ADCEB9-B6C6-4C01-B97B-FA9DB905DC95}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>military</RootNamespace>
+    <RootNamespace>guiwindowgenerator</RootNamespace>
     <WindowsTargetPlatformVersion>10.0.17763.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
-    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v141</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
@@ -88,13 +86,18 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PreprocessorDefinitions>_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Lib />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -102,11 +105,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -118,11 +122,12 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -130,81 +135,34 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <PreprocessorDefinitions>NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="army.h" />
-    <ClInclude Include="army_order.h" />
-    <ClInclude Include="fleet.h" />
-    <ClInclude Include="military.h" />
-    <ClInclude Include="military_containers.h" />
-    <ClInclude Include="military_functions.h" />
-    <ClInclude Include="military_functions.hpp" />
-    <ClInclude Include="military_gui.h" />
-    <ClInclude Include="military_gui.hpp" />
-    <ClInclude Include="military_internals.hpp" />
-    <ClInclude Include="military_io.h" />
-    <ClInclude Include="military_io.hpp" />
-    <ClInclude Include="military_io_internals.hpp" />
-    <ClInclude Include="military_leader.h" />
-    <ClInclude Include="military_parsing.h" />
-    <ClInclude Include="military_windows.h" />
-    <ClInclude Include="strategic_hq.h" />
-    <ClInclude Include="war.h" />
+    <ClInclude Include="pch.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="military.cpp" />
-    <ClCompile Include="military_functions.cpp" />
-    <ClCompile Include="military_gui.cpp" />
-    <ClCompile Include="military_io.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="army.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe army.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">army.h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="army_order.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe army_order.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">army_order.h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="fleet.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe fleet.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">fleet.h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="military_leader.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe military_leader.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_leader.h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="strategic_hq.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe strategic_hq.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">strategic_hq.h</Outputs>
-    </CustomBuild>
-    <CustomBuild Include="war.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe war.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">war.h</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="military_parsing.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\parser_generator.exe military_parsing.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_parsing.h</Outputs>
-    </CustomBuild>
-  </ItemGroup>
-  <ItemGroup>
-    <CustomBuild Include="military_windows.txt">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\gui_window_generator.exe military_windows.txt</Command>
-      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_windows.h</Outputs>
-    </CustomBuild>
+    <ClCompile Include="gui_window_generator.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

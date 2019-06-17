@@ -45,7 +45,7 @@ namespace military {
 	}
 
 	void fabricate_cb_window::init_fabricate_window(world_state& ws) {
-		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["MakeCBDialog"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+		create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["MakeCBDialog"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 	void target_flag::update(ui::masked_flag<target_flag>& self, world_state & ws) {
 		self.set_displayed_flag(ws, ws.w.fabricate_cb_w.target);

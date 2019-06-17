@@ -1,0 +1,14 @@
+military_windows
+
+cb_item cb_item_base
+	wargoal_icon ui::dynamic_icon<cb_type_icon>
+	select_cb ui::button<cb_type_button>
+fabricate_cb_window_t fabricate_cb_window_base
+	Background ui::simple_button<hidden_button>
+	AgreeButton ui::simple_button<ok_button>
+	DeclineButton ui::simple_button<cancel_button>
+	LeftShield ui::masked_flag<self_flag>
+	RightShield ui::masked_flag<target_flag>
+	Title ui::display_text<dialog_title>
+	Description ui::multiline_text<description>
+	cb_list "ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24>"

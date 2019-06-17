@@ -34,7 +34,9 @@ three_bool parse_three_bool(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -99,7 +101,9 @@ three_bool_recursive parse_three_bool_recursive(token_generator& gen, ERR_H& err
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -107,7 +111,7 @@ three_bool_recursive parse_three_bool_recursive(token_generator& gen, ERR_H& err
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 1:
 					 if((true && (*(cur.start + 0) | 0x20) == 0x6B)) {
-						 add_tbr(cobj, parse_three_bool_recursive(gen, err, context), context);
+						 add_tbr(cobj, parse_three_bool_recursive(gen, err, context), err, context);
 					 } else {
 						 err.unhandled_group_key(cur); discard_group(gen);
 					 }
@@ -171,7 +175,9 @@ vector_of_int parse_vector_of_int(token_generator& gen, ERR_H& err, C&& context)
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -190,7 +196,7 @@ vector_of_int parse_vector_of_int(token_generator& gen, ERR_H& err, C&& context)
 				 }
 			 }
 		 } else {
-			 add_int_to_vector(cobj, token_to<int32_t>(cur, err), context);
+			 add_int_to_vector(cobj, token_to<int32_t>(cur, err), err, context);
 		 }
 	 }
 	 finish_parse(cobj);
@@ -202,7 +208,9 @@ three_bool_vector parse_three_bool_vector(token_generator& gen, ERR_H& err, C&& 
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -274,14 +282,16 @@ association_container parse_association_container(token_generator& gen, ERR_H& e
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
 				 gen.get(); gen.get();
 				 switch(int32_t(cur.end - cur.start)) {
 				 default:
-					 add_int(cobj, cur, parse_int_vector_summation(gen, err, context), context);
+					 add_int(cobj, cur, parse_int_vector_summation(gen, err, context), err, context);
 				 }
 			 } else {
 				 auto const assoc_token = gen.get();
@@ -294,22 +304,22 @@ association_container parse_association_container(token_generator& gen, ERR_H& e
 						 if((true)) {
 							 cobj.a = token_to<bool>(rh_token, err);
 						 } else {
-							 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), context);
+							 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), err, context);
 						 }
 						 break;
 					 case 0x62:
 						 if((true)) {
 							 cobj.b = token_to<bool>(rh_token, err);
 						 } else {
-							 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), context);
+							 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), err, context);
 						 }
 						 break;
 					 default:
-						 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), context);
+						 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), err, context);
 					 }
 					 break;
 				 default:
-					 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), context);
+					 add_assoc_int_pair(cobj, cur, assoc_type, token_to<int32_t>(rh_token, err), err, context);
 				 }
 			 }
 		 } else {
@@ -325,7 +335,9 @@ int_vector_summation parse_int_vector_summation(token_generator& gen, ERR_H& err
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -344,7 +356,7 @@ int_vector_summation parse_int_vector_summation(token_generator& gen, ERR_H& err
 				 }
 			 }
 		 } else {
-			 cobj.add_int(token_to<int32_t>(cur, err), context);
+			 cobj.add_int(token_to<int32_t>(cur, err), err, context);
 		 }
 	 }
 	 finish_parse(cobj);
@@ -356,7 +368,9 @@ base_parse parse_base_parse(token_generator& gen, ERR_H& err, C&& context) {
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -394,7 +408,9 @@ derived_parse parse_derived_parse(token_generator& gen, ERR_H& err, C&& context)
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -439,7 +455,9 @@ variable_named_set parse_variable_named_set(token_generator& gen, ERR_H& err, C&
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -465,7 +483,7 @@ variable_named_set parse_variable_named_set(token_generator& gen, ERR_H& err, C&
 				 }
 			 }
 		 } else {
-			 cobj.add_int(token_to<int32_t>(cur, err), context);
+			 cobj.add_int(token_to<int32_t>(cur, err), err, context);
 		 }
 	 }
 	 finish_parse(cobj);
@@ -477,14 +495,16 @@ variable_named_set_container parse_variable_named_set_container(token_generator&
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
 				 gen.get(); gen.get();
 				 switch(int32_t(cur.end - cur.start)) {
 				 default:
-					 cobj.add_set(cur, parse_variable_named_set(gen, err, context), context);
+					 cobj.add_set(cur, parse_variable_named_set(gen, err, context), err, context);
 				 }
 			 } else {
 				 auto const assoc_token = gen.get();
@@ -508,7 +528,9 @@ extern_reader parse_extern_reader(token_generator& gen, ERR_H& err, C&& context)
 	 for(token_and_type cur = gen.get(); cur.type != token_type::unknown && cur.type != token_type::close_brace; cur = gen.get()) {
 		 if(cur.type == token_type::open_brace) { 
 			 err.unhandled_free_set(); discard_group(gen);
-			 continue;		 }		 auto peek_result = gen.next();
+			 continue;
+		 }
+		 auto peek_result = gen.next();
 		 if(peek_result.type == token_type::special_identifier) {
 			 auto peek2_result = gen.next_next();
 			 if(peek2_result.type == token_type::open_brace) {
@@ -518,11 +540,11 @@ extern_reader parse_extern_reader(token_generator& gen, ERR_H& err, C&& context)
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x6F627F6565726874ui64 && (*(uint16_t*)(cur.start + 8) | 0x2020) == 0x6C6F)) {
 						 cobj.m_a = gen_make_three_bool(gen, err, context);
 					 } else {
-						 cobj.add_variable_named_set(cur, gen_make_var_set(cur, gen, err, context), context);
+						 cobj.add_variable_named_set(cur, gen_make_var_set(cur, gen, err, context), err, context);
 					 }
 					 break;
 				 default:
-					 cobj.add_variable_named_set(cur, gen_make_var_set(cur, gen, err, context), context);
+					 cobj.add_variable_named_set(cur, gen_make_var_set(cur, gen, err, context), err, context);
 				 }
 			 } else {
 				 auto const assoc_token = gen.get();

@@ -60,6 +60,15 @@
     <ClInclude Include="war.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="military_parsing.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="military_io_internals.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="military_windows.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="military.cpp">
@@ -92,6 +101,12 @@
       <Filter>Header Files</Filter>
     </CustomBuild>
     <CustomBuild Include="war.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="military_parsing.txt">
+      <Filter>Header Files</Filter>
+    </CustomBuild>
+    <CustomBuild Include="military_windows.txt">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

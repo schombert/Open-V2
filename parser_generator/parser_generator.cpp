@@ -500,11 +500,11 @@ int wmain(int argc, wchar_t *argv[]) {
 						} else if(g.any_group_handler.handler.value == "member_fn") {
 							no_match_effect = "cobj." +
 								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), context);";
+								"(cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
 						} else if(g.any_group_handler.handler.value == "function") {
 							no_match_effect =
 								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), context);";
+								"(cobj, cur, parse_" + g.any_group_handler.type_or_function + "(gen, err, context), err, context);";
 						} else {
 							no_match_effect = "err.unhandled_group_key(cur); discard_group(gen);";
 						}
@@ -518,11 +518,11 @@ int wmain(int argc, wchar_t *argv[]) {
 						} else if(g.any_group_handler.handler.value == "member_fn") {
 							no_match_effect = "cobj." +
 								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), context);";
+								"(cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
 						} else if(g.any_group_handler.handler.value == "function") {
 							no_match_effect =
 								(g.any_group_handler.handler.opt.length() > 0 ? g.any_group_handler.handler.opt : std::string("any")) +
-								"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), context);";
+								"(cobj, cur, " + g.any_group_handler.type_or_function + "(cur, gen, err, context), err, context);";
 						} else {
 							no_match_effect = "err.unhandled_group_key(cur); discard_group(gen);";
 						}
@@ -538,10 +538,10 @@ int wmain(int argc, wchar_t *argv[]) {
 									" = " + type_string_to_type(v.type_or_function) + "(gen, err, context);";
 							} else if(v.handler.value == "member_fn") {
 								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(" + type_string_to_type(v.type_or_function) + "(gen, err, context), context);";
+									"(" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
 							} else if(v.handler.value == "function") {
 								out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(cobj, " + type_string_to_type(v.type_or_function) + "(gen, err, context), context);";
+									"(cobj, " + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
 							} else {
 								out = "err.unhandled_group_key(cur);";
 							}
@@ -553,10 +553,10 @@ int wmain(int argc, wchar_t *argv[]) {
 									" = parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context);";
 							} else if(v.handler.value == "member_fn") {
 								out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), context);";
+									"(parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
 							} else if(v.handler.value == "function") {
 								out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-									"(cobj, parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), context);";
+									"(cobj, parse_" + type_string_to_type(v.type_or_function) + "(gen, err, context), err, context);";
 							} else {
 								out = "err.unhandled_group_key(cur);";
 							}
@@ -585,11 +585,11 @@ int wmain(int argc, wchar_t *argv[]) {
 					} else if(g.any_value_handler.handler.value == "member_fn") {
 						no_match_effect = "cobj." +
 							(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-							"(cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), context);";
+							"(cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
 					} else if(g.any_value_handler.handler.value == "function") {
 						no_match_effect =
 							(g.any_value_handler.handler.opt.length() > 0 ? g.any_value_handler.handler.opt : std::string("any")) +
-							"(cobj, cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), context);";
+							"(cobj, cur, assoc_type, token_to<" + type_string_to_type(g.any_value_handler.type) + ">(rh_token, err), err, context);";
 					} else {
 						no_match_effect = "err.unhandled_association_key(cur);";
 					}
@@ -603,10 +603,10 @@ int wmain(int argc, wchar_t *argv[]) {
 								" = token_to<" + type_string_to_type(v.type) + ">(rh_token, err);";
 						} else if(v.handler.value == "member_fn") {
 							out = "cobj." + (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), context);";
+								"(assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
 						} else if(v.handler.value == "function") {
 							out = (v.handler.opt.length() > 0 ? v.handler.opt : v.key) +
-								"(cobj, assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), context);";
+								"(cobj, assoc_type, token_to<" + type_string_to_type(v.type) + ">(rh_token, err), err, context);";
 						} else {
 							out = "err.unhandled_association_key(cur);";
 						}
@@ -631,11 +631,11 @@ int wmain(int argc, wchar_t *argv[]) {
 					} else if(g.single_value_handler_result.value == "member_fn") {
 						output += "\t\t\t cobj." +
 							(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-							"(token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), context);\r\n";
+							"(token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\r\n";
 					} else if(g.single_value_handler_result.value == "function") {
 						output += "\t\t\t " +
 							(g.single_value_handler_result.opt.length() > 0 ? g.single_value_handler_result.opt : std::string("value")) +
-							"(cobj, token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), context);\r\n";
+							"(cobj, token_to<" + type_string_to_type(g.single_value_handler_type) + ">(cur, err), err, context);\r\n";
 					}
 				} else {
 					output += "\t\t\t err.unhandled_free_value(cur);\r\n"; // end next token if

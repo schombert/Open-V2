@@ -536,13 +536,14 @@ namespace nations {
 		if(fi) {
 			const auto sz = fi->size();
 			std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
-			std::vector<token_group> parse_results;
+			//std::vector<token_group> parse_results;
 
 			fi->read_to_buffer(parse_data.get(), sz);
-			parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+			//parse_pdx_file(parse_results, parse_data.get(), parse_data.get() + sz);
+			//if(parse_results.size() > 0)
 
-			if(parse_results.size() > 0)
-				military::read_oob_file(ws, target_nation, parse_results.data(), parse_results.data() + parse_results.size());
+			token_generator gen(parse_data.get(), parse_data.get() + sz);
+			military::read_oob_file(ws, target_nation, gen);
 		}
 		//not used: decisions
 	}

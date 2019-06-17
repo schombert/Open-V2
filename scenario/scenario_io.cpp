@@ -4,6 +4,7 @@
 namespace scenario {
 	void read_scenario(scenario_manager& s, const directory& root) {
 		//stage 1
+		events::event_creation_manager ecm;
 
 		graphics::name_maps gobj_nmaps;
 		ui::load_gui_from_directory(root, s.gui_m, gobj_nmaps);
@@ -24,7 +25,7 @@ namespace scenario {
 
 		auto const government_names = governments::read_governments(s.governments_m, root, s.gui_m.text_data_sequences, s.ideologies_m);
 
-		military::parsing_state military_state(s.gui_m.text_data_sequences, s.military_m);
+		military::parsing_state military_state(s, ecm);
 		// military::pre_parse_unit_types(military_state, root);
 		military::pre_parse_cb_types(military_state, root);
 		military::read_leader_traits(military_state, root);
@@ -58,8 +59,6 @@ namespace scenario {
 
 		// stage 3
 
-		events::event_creation_manager ecm;
-
 		governments::ready_party_issues(s.governments_m, s.issues_m);
 
 		cultures::read_country_files(country_files, s, root);
@@ -73,7 +72,7 @@ namespace scenario {
 		issues::read_issue_options(issues_state, s, ecm);
 
 		// military::read_unit_types(military_state, s.military_m, s.economy_m, s.sound_m, s.gui_m.text_data_sequences);
-		military::read_cb_types(military_state, s, ecm);
+		military::read_cb_types(military_state);
 
 		modifiers::read_crimes(modifiers_state, s);
 		modifiers::read_triggered_modifiers(modifiers_state, s);
