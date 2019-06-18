@@ -37,18 +37,20 @@ namespace military {
 		auto& local_generator = get_local_generator();
 
 		auto first_name_range = ws.get_row<culture::first_names>(culture);
+		auto first_name_sz = ws.size<culture::first_names>(culture);
 		auto last_name_range = ws.get_row<culture::last_names>(culture);
+		auto last_name_sz = ws.size<culture::first_names>(culture);
 
 		names_result result;
 
-		if(auto const mx_fn = int32_t(first_name_range.second - first_name_range.first) - 1; mx_fn >= 0) {
+		if(auto const mx_fn = first_name_sz - 1; mx_fn >= 0) {
 			std::uniform_int_distribution<int32_t> fn(0, mx_fn);
-			result.first = *(first_name_range.first + fn(local_generator));
+			result.first = first_name_range[fn(local_generator)];
 		}
 
-		if(auto const mx_ln = int32_t(last_name_range.second - last_name_range.first) - 1; mx_ln >= 0) {
+		if(auto const mx_ln = last_name_sz - 1; mx_ln >= 0) {
 			std::uniform_int_distribution<int32_t> ln(0, mx_ln);
-			result.last = *(last_name_range.first + ln(local_generator));
+			result.last = last_name_range[ln(local_generator)];
 		}
 
 		return result;
@@ -68,6 +70,7 @@ namespace military {
 
 		ws.set<military_leader::first_name>(new_leader, nr.first);
 		ws.set<military_leader::last_name>(new_leader, nr.last);
+		ws.set<military_leader::is_general>(new_leader, is_general);
 
 		return new_leader;
 	}

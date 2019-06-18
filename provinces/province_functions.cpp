@@ -430,8 +430,8 @@ namespace provinces {
 			
 
 			bool is_sea = container.get<province::is_sea>(current.id);
-			auto same_adjacent = ws.s.province_m.same_type_adjacency.get_row(current.id);
-			auto coastal_adjacent = ws.s.province_m.coastal_adjacency.get_row(current.id);
+			auto same_adjacent = ws.s.province_m.same_type_adjacency.get_range(current.id);
+			auto coastal_adjacent = ws.s.province_m.coastal_adjacency.get_range(current.id);
 
 			for(auto p : same_adjacent) {
 

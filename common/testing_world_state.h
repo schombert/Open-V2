@@ -47,6 +47,7 @@ public:
 	test_vector_type<T> vec;
 
 	type_erased_vector() {
+		if constexpr(!std::is_same_v<T, bitfield_type>)
 		vec.reserve(16);
 	}
 	virtual void* ptr() { return &vec; };
@@ -76,7 +77,7 @@ index_tuple get_index_tuple() {
 }
 template<typename T, typename U>
 index_tuple get_index_tuple(U u) {
-	return index_tuple{ detail::addr_struct<T>::value(), detail::addr_struct<U>::value(), to_index(u) };
+	return index_tuple{ detail::addr_struct<T>::value(), detail::addr_struct<U>::value(), uint16_t(to_index(u)) };
 }
 
 template<typename imitation_type>
@@ -114,12 +115,13 @@ public:
 	template<typename index, typename tag_type>
 	auto get(tag_type t) const -> decltype(std::declval<imitation_type&>().get<index>(t)) { 
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
+		using vec_type = std::conditional_t<std::is_same_v<val_type, bool>, bitfield_type, val_type>;
 
 		static val_type bad_value = val_type();
 		if(!is_valid_index(t))
 			return bad_value;
 
-		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
+		test_vector_type<vec_type>& v = get_vector<vec_type>(get_index_tuple<index>());
 
 		if(v.size() <= to_index(t))
 			v.resize(to_index(t) + 1);
@@ -130,12 +132,14 @@ public:
 	auto set(tag_type t, value_type const& v) -> decltype(std::declval<imitation_type&>().set<index>(t, v)) {
 		assert(is_valid_index(t));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t))>;
-		test_vector_type<val_type>& vec = get_vector<val_type>(get_index_tuple<index>());
+		using vec_type = std::conditional_t<std::is_same_v<val_type, bool>, bitfield_type, val_type>;
+
+		test_vector_type<vec_type>& vec = get_vector<vec_type>(get_index_tuple<index>());
 
 		if(vec.size() <= to_index(t))
 			vec.resize(to_index(t) + 1);
 
-		vec[to_index(t)] = v;
+		vec.set(to_index(t), v);
 	}
 	template<typename index>
 	auto get_row() const -> decltype(std::declval<imitation_type&>().get_row<index>()) {
@@ -167,7 +171,9 @@ public:
 	auto get(tag_type t, inner_type u) const -> decltype(std::declval<imitation_type&>().get<index>(t, u)) {
 		assert(is_valid_index(t) && is_valid_index(u));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
-		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+		using vec_type = std::conditional_t<std::is_same_v<val_type, bool>, bitfield_type, val_type>;
+
+		test_vector_type<vec_type>& v = get_vector<vec_type>(get_index_tuple<index, tag_type>(t));
 
 		if(v.size() <= to_index(u))
 			v.resize(to_index(u) + 1);
@@ -179,12 +185,14 @@ public:
 	auto set(tag_type t, inner_type u, value_type const& v) -> decltype(std::declval<imitation_type&>().set<index>(t, u, v)) {
 		assert(is_valid_index(t) && is_valid_index(u));
 		using val_type = std::remove_reference_t<decltype(std::declval<imitation_type&>().get<index>(t, u))>;
+		using vec_type = std::conditional_t<std::is_same_v<val_type, bool>, bitfield_type, val_type>;
+
 		test_vector_type<val_type>& vec = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		if(vec.size() <= to_index(u))
 			vec.resize(to_index(u) + 1);
 
-		vec[to_index(u)] = v;
+		vec.set(to_index(u), v);
 	}
 	template<typename index, typename tag_type>
 	auto get_row(tag_type t) const -> decltype(std::declval<imitation_type&>().get_row<index>(t)) {
@@ -200,6 +208,7 @@ public:
 	int32_t size(tag_type t) const {
 		assert(is_valid_index(t));
 		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>(t).begin()))>;
+
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
 
 		return int32_t(v.size());

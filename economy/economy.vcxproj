@@ -147,6 +147,9 @@
     <ClInclude Include="economy_gui.h" />
     <ClInclude Include="economy_gui.hpp" />
     <ClInclude Include="economy_io.h" />
+    <ClInclude Include="economy_windows.h" />
+    <ClInclude Include="economy_windows_b.h" />
+    <ClInclude Include="good_filter_item_window.h" />
     <ClInclude Include="trade_window.h" />
     <ClInclude Include="trade_window.hpp" />
   </ItemGroup>
@@ -156,6 +159,24 @@
     <ClCompile Include="economy_gui.cpp" />
     <ClCompile Include="economy_io.cpp" />
     <ClCompile Include="trade_window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="economy_windows.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\gui_window_generator.exe economy_windows.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">economy_windows.h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="good_filter_item_window.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\gui_window_generator.exe good_filter_item_window.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">good_filter_item_window.h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="economy_windows_b.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\gui_window_generator.exe economy_windows_b.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">economy_windows_b.h</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

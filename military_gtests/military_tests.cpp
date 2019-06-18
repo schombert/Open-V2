@@ -1,3 +1,4 @@
+#include "common\common.h"
 #include "military\\military.h"
 #include "gtest\\gtest.h"
 #include "fake_fs\\fake_fs.h"
@@ -704,4 +705,137 @@ TEST(military_tests, internal_get_leader_picture_t) {
 	test_state.get<cultures::leader_pictures>(0) = graphics::texture_tag(10);
 
 	EXPECT_EQ(graphics::texture_tag(10), internal_get_leader_picture(test_state, cultures::culture_tag(0), true));
+}
+
+TEST(military_tests, internal_get_admiral_leader_picture_t) {
+	test_ws<world_state> test_state;
+
+	test_state.get<culture::group>(cultures::culture_tag(0)) = cultures::culture_group_tag(0);
+	test_state.get<culture_group::leader_pictures>(cultures::culture_group_tag(0)).admiral_offset = 1;
+	test_state.get<culture_group::leader_pictures>(cultures::culture_group_tag(0)).admiral_size = 2;
+	test_state.get<cultures::leader_pictures>(0) = graphics::texture_tag(10);
+	test_state.get<cultures::leader_pictures>(1) = graphics::texture_tag(5);
+	test_state.get<cultures::leader_pictures>(2) = graphics::texture_tag(7);
+	test_state.get<cultures::leader_pictures>(3) = graphics::texture_tag(10);
+
+	auto res = internal_get_leader_picture(test_state, cultures::culture_tag(0), false);
+	EXPECT_TRUE(res == graphics::texture_tag(5) || res == graphics::texture_tag(7));
+}
+
+TEST(military_tests, leader_names) {
+	test_ws<world_state> test_state;
+
+	vector_backed_string<char16_t> name_a(u"NAME_A");
+	vector_backed_string<char16_t> name_b(u"NAME_B");
+	vector_backed_string<char16_t> name_c(u"NAME_C");
+
+	test_state.set<culture::first_names>(cultures::culture_tag(1), 0, name_a);
+	test_state.set<culture::last_names>(cultures::culture_tag(1), 0, name_b);
+	test_state.set<culture::last_names>(cultures::culture_tag(1), 1, name_c);
+
+	auto res = internal_get_leader_name(test_state, cultures::culture_tag(1));
+
+	EXPECT_EQ(res.first, name_a);
+	EXPECT_TRUE(res.last == name_b || res.last == name_c);
+}
+
+
+inline int32_t count_leaders_made = 0;
+leader_tag fake_leader(test_ws<world_state>&) {
+	return leader_tag(count_leaders_made++);
+}
+leader_tag fake_leader_b(test_ws<world_state>&, cultures::culture_tag, bool) {
+	return leader_tag(count_leaders_made++);
+}
+
+inline int32_t count_pictures_found = 0;
+graphics::texture_tag fake_picture(test_ws<world_state> const&, cultures::culture_tag, bool) {
+	++count_pictures_found;
+	return graphics::texture_tag(5);
+}
+
+inline int32_t count_names_found = 0;
+names_result fake_names(test_ws<world_state> const&, cultures::culture_tag) {
+	++count_names_found;
+	return names_result{ vector_backed_string<char16_t>(u"FIRST"), vector_backed_string<char16_t>(u"LAST") };
+}
+
+TEST(military_tests, leader_generation) {
+	test_ws<world_state> test_state;
+
+	auto pre_a = count_leaders_made;
+	auto pre_b = count_pictures_found;
+	auto pre_c = count_names_found;
+
+	auto res = internal_make_empty_leader<test_ws<world_state>, fake_leader, fake_picture, fake_names>(test_state, cultures::culture_tag(1), true);
+
+	EXPECT_EQ(pre_a + 1, count_leaders_made);
+	EXPECT_EQ(pre_b + 1, count_pictures_found);
+	EXPECT_EQ(pre_c + 1, count_names_found);
+
+	EXPECT_NE(res, military::leader_tag());
+	EXPECT_EQ(test_state.get<military_leader::portrait>(res), graphics::texture_tag(5));
+	EXPECT_EQ(test_state.get<military_leader::is_general>(res), true);
+	EXPECT_EQ(test_state.get<military_leader::first_name>(res), fake_names(test_state, cultures::culture_tag(1)).first);
+	EXPECT_EQ(test_state.get<military_leader::last_name>(res), fake_names(test_state, cultures::culture_tag(1)).last);
+}
+
+inline int32_t count_calculation_type = 0;
+void fake_calculate_leader_traits(test_ws<world_state>&, military::leader_tag) {
+	++count_calculation_type;
+}
+
+TEST(military_tests, auto_leader_generation) {
+	test_ws<world_state> test_state;
+	auto pre_a = count_leaders_made;
+	auto pre_b = count_calculation_type;
+
+	test_state.set<military::background_traits>(0, military::leader_trait_tag(0));
+	test_state.set<military::personality_traits>(0, military::leader_trait_tag(1));
+
+	auto res = internal_make_auto_leader<test_ws<world_state>, fake_leader_b, fake_calculate_leader_traits>(
+		test_state, cultures::culture_tag(0), false, date_to_tag(boost::gregorian::date(1851, 1, 10)));
+
+	EXPECT_EQ(pre_a + 1, count_leaders_made);
+	EXPECT_EQ(pre_b + 1, count_calculation_type);
+	EXPECT_NE(res, military::leader_tag());
+	EXPECT_EQ(test_state.get<military_leader::creation_date>(res), date_to_tag(boost::gregorian::date(1851, 1, 10)));
+	EXPECT_EQ(test_state.get<military_leader::background>(res), military::leader_trait_tag(0));
+	EXPECT_EQ(test_state.get<military_leader::personality>(res), military::leader_trait_tag(1));
+}
+
+TEST(military_tests, trait_calculation) {
+	test_ws<world_state> test_state;
+
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::organisation, 1.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::morale, 3.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::attack, 4.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::defence, 5.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::reconnaissance, 6.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::speed, 7.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::experience, 8.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(0), military::traits::reliability, 2.0f);
+
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::organisation, 10.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::morale, 30.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::attack, 40.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::defence, 50.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::reconnaissance, 60.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::speed, 70.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::experience, 80.0f);
+	test_state.set<military::leader_trait_values>(military::leader_trait_tag(1), military::traits::reliability, 20.0f);
+
+	test_state.set<military_leader::background>(military::leader_tag(0), military::leader_trait_tag(0));
+	test_state.set<military_leader::personality>(military::leader_tag(0), military::leader_trait_tag(1));
+
+	internal_calculate_leader_traits(test_state, military::leader_tag(0));
+
+	EXPECT_EQ(11.0f, test_state.get<military_leader::organisation>(military::leader_tag(0)));
+	EXPECT_EQ(33.0f, test_state.get<military_leader::morale>(military::leader_tag(0)));
+	EXPECT_EQ(44.0f, test_state.get<military_leader::attack>(military::leader_tag(0)));
+	EXPECT_EQ(55.0f, test_state.get<military_leader::defence>(military::leader_tag(0)));
+	EXPECT_EQ(66.0f, test_state.get<military_leader::reconnaissance>(military::leader_tag(0)));
+	EXPECT_EQ(77.0f, test_state.get<military_leader::speed>(military::leader_tag(0)));
+	EXPECT_EQ(88.0f, test_state.get<military_leader::experience>(military::leader_tag(0)));
+	EXPECT_EQ(22.0f, test_state.get<military_leader::reliability>(military::leader_tag(0)));
 }

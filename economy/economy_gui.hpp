@@ -13,12 +13,12 @@ namespace economy {
 		void on_create(W& w, world_state&);
 	};
 
-	class close_button {
+	class close_button_s {
 	public:
-		void button_function(ui::simple_button<close_button>&, world_state&);
+		void button_function(ui::simple_button<close_button_s>&, world_state&);
 	};
 
-	class production_tab_button_group {
+	class production_tab_button_group_b {
 	public:
 		void on_select(world_state& ws, uint32_t i);
 	};
@@ -293,6 +293,7 @@ namespace economy {
 		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	/*
 	using investment_country_item = ui::gui_window<
 		CT_STRING("country_select"), ui::simple_button<investment_country_item_background_button>,
 		CT_STRING("country_flag"), ui::masked_flag<investment_country_item_flag>,
@@ -316,6 +317,7 @@ namespace economy {
 		CT_STRING("factories"), ui::display_text<investment_country_item_factories_count>,
 		investment_country_item_base
 	>;
+	*/
 
 	class investment_country_lb {
 	public:
@@ -428,34 +430,14 @@ namespace economy {
 		void windowed_update(ui::dynamic_icon<good_filter_item_type>& self, window_type& win, world_state& ws);
 	};
 	
+	/*
 	using good_filter_item = ui::gui_window<
 		CT_STRING("filter_button"), ui::simple_button<good_filter_item_button>,
 		CT_STRING("filter_enabled"), ui::dynamic_icon<good_filter_item_enabled_bg>,
 		CT_STRING("goods_type"), ui::dynamic_icon<good_filter_item_type>,
 		good_filter_item_base
 	>;
-
-	class goods_filters_base : public ui::window_pane {
-	public:
-		std::vector<good_filter_item> filter_buttons;
-		template<typename W>
-		void on_create(W& win, world_state& ws);
-	};
-
-	using factory_filter_buttons = ui::gui_window<
-		CT_STRING("prod_subsidize_all"), ui::simple_button<subsidize_all_button>,
-		CT_STRING("prod_unsubsidize_all"), ui::simple_button<unsubsidize_all_button>,
-		CT_STRING("prod_open_all_factories"), ui::simple_button<open_all_factories_button>,
-		CT_STRING("prod_close_all_factories"), ui::simple_button<close_all_factories_button>,
-		CT_STRING("select_all"), ui::simple_button<select_all_factories_filters_button>,
-		CT_STRING("deselect_all"), ui::simple_button<deselect_all_factories_filters_button>,
-		CT_STRING("show_empty_states"), ui::button<show_hide_empty_states_button>,
-		CT_STRING("sort_by_name"), ui::simple_button<sort_factories_by_state_name>,
-		CT_STRING("sort_by_factories"), ui::simple_button<sort_factories_by_count>,
-		CT_STRING("sort_by_infra"), ui::simple_button<sort_factories_by_infrastructure>,
-		CT_STRING("filter_bounds"), ui::gui_window<goods_filters_base>,
-		factory_filter_buttons_base
-	>;
+	*/
 
 	class gp_investment_subwindow_base : public ui::visible_region {
 	public:
@@ -474,10 +456,62 @@ namespace economy {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	class state_pop_display_icon {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<state_pop_display_icon>& self, window_type& win, world_state& ws);
+	};
+
+	class state_pop_display_amount {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_pop_display_window_base : public ui::visible_region {
+	public:
+		population::pop_type_tag type;
+		nations::state_tag in_state;
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+
+#include "good_filter_item_window.h"
+
+	class goods_filters_base : public ui::window_pane {
+	public:
+		std::vector<good_filter_item> filter_buttons;
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+	};
+
+	/*
+	using factory_filter_buttons = ui::gui_window<
+		CT_STRING("prod_subsidize_all"), ui::simple_button<subsidize_all_button>,
+		CT_STRING("prod_unsubsidize_all"), ui::simple_button<unsubsidize_all_button>,
+		CT_STRING("prod_open_all_factories"), ui::simple_button<open_all_factories_button>,
+		CT_STRING("prod_close_all_factories"), ui::simple_button<close_all_factories_button>,
+		CT_STRING("select_all"), ui::simple_button<select_all_factories_filters_button>,
+		CT_STRING("deselect_all"), ui::simple_button<deselect_all_factories_filters_button>,
+		CT_STRING("show_empty_states"), ui::button<show_hide_empty_states_button>,
+		CT_STRING("sort_by_name"), ui::simple_button<sort_factories_by_state_name>,
+		CT_STRING("sort_by_factories"), ui::simple_button<sort_factories_by_count>,
+		CT_STRING("sort_by_infra"), ui::simple_button<sort_factories_by_infrastructure>,
+		CT_STRING("filter_bounds"), ui::gui_window<goods_filters_base>,
+		factory_filter_buttons_base
+	>;
+	*/
+
+	
+
+	/*
 	using gp_investment_subwindow = ui::gui_window<
 		CT_STRING("country_flag"), ui::masked_flag<gp_subwindow_flag>,
 		CT_STRING("nongp_country_investment"), ui::display_text<gp_subwindow_investment_value>,
 		gp_investment_subwindow_base>;
+	*/
 
 	class investment_filter_buttons_base : public ui::window_pane {
 	public:
@@ -516,6 +550,7 @@ namespace economy {
 		void button_function(ui::simple_button<investment_target_back_button>& self, world_state& ws);
 	};
 
+	/*
 	using investment_filter_buttons = ui::gui_window<
 		CT_STRING("country_flag"), ui::masked_flag<investment_target_flag>,
 		CT_STRING("country_flag_overlay"), ui::dynamic_icon<investment_target_flag_overlay>,
@@ -531,7 +566,7 @@ namespace economy {
 		CT_STRING("filter_bounds"), ui::gui_window<goods_filters_base>,
 		investment_filter_buttons_base
 	>;
-
+	
 	using investment_pane = ui::gui_window<
 		CT_STRING("filter_all"), ui::simple_button<filter_all_button>,
 		CT_STRING("filter_north_america"), ui::simple_button<filter_north_america_button>,
@@ -574,35 +609,18 @@ namespace economy {
 		CT_STRING("country_listbox"), ui::discrete_listbox<investment_country_lb, investment_country_item, nations::country_tag>,
 		investment_pane_base
 	>;
+	*/
 
-	class state_pop_display_icon {
-	public:
-		template<typename window_type>
-		void windowed_update(ui::dynamic_icon<state_pop_display_icon>& self, window_type& win, world_state& ws);
-	};
+	
 
-	class state_pop_display_amount {
-	public:
-		template<typename W>
-		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
-	};
-
-	class state_pop_display_window_base : public ui::visible_region {
-	public:
-		population::pop_type_tag type;
-		nations::state_tag in_state;
-
-		template<typename W>
-		void on_create(W& win, world_state& ws);
-	};
-
+	/*
 	using state_pop_display_window = ui::gui_window<
 		CT_STRING("pop_icon"), ui::dynamic_icon<state_pop_display_icon>,
 		CT_STRING("pop_amount"), ui::display_text<state_pop_display_amount, 4>,
 		CT_STRING("pop_amount_2"), ui::display_text<empty_text_box>,
 		state_pop_display_window_base
 	>;
-
+	*/
 	class factory_display_base : public ui::visible_region {
 	public:
 		nations::state_tag location;
@@ -759,12 +777,13 @@ namespace economy {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
-	class factory_closed_text {
+	class factory_closed_text_s {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	/*
 	using factory_display = ui::gui_window<
 		CT_STRING("prod_factory_bg"), ui::dynamic_icon<factory_open_background>,
 		CT_STRING("prod_factory_inprogress_bg"), ui::dynamic_icon<factory_closed_background>,
@@ -794,90 +813,7 @@ namespace economy {
 		CT_STRING("factory_closed_text"), ui::display_text<factory_closed_text>,
 		factory_display_base
 	>;
-
-	class state_window_base : public ui::window_pane {
-	public:
-		nations::state_tag tag;
-
-		state_pop_display_window workers_a;
-		state_pop_display_window workers_b;
-		state_pop_display_window owner;
-
-		factory_display factories[state::factories_count];
-
-		void set_value(nations::state_tag t) {
-			tag = t;
-			workers_a.in_state = t;
-			workers_b.in_state = t;
-			owner.in_state = t;
-		}
-
-		template<typename W>
-		void on_create(W& win, world_state& ws);
-		void update(world_state& ws);
-	};
-
-	class state_focus_button {
-	public:
-		nations::state_tag tag;
-		template<typename window_type>
-		void windowed_update(ui::simple_button<state_focus_button>& self, window_type& win, world_state& ws);
-		void button_function(ui::simple_button<state_focus_button>& self, world_state& ws);
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
-	};
-
-	class state_name {
-	public:
-		template<typename W>
-		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
-	};
-
-	class state_factory_count {
-	public:
-		template<typename W>
-		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
-	};
-
-	class state_build_factory_button {
-	public:
-		nations::state_tag tag;
-		template<typename window_type>
-		void windowed_update(ui::simple_button<state_build_factory_button>& self, window_type& win, world_state& ws);
-		void button_function(ui::simple_button<state_build_factory_button>& self, world_state& ws);
-
-		bool has_tooltip(world_state&) { return true; }
-		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
-	};
-
-	class state_average_infrastructure {
-	public:
-		template<typename W>
-		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
-	};
-
-	using state_window = ui::gui_window<
-		CT_STRING("state_focus"), ui::simple_button<state_focus_button>,
-		CT_STRING("state_name"), ui::display_text<state_name, 4>,
-		CT_STRING("factory_count"), ui::display_text<state_factory_count, 4>,
-		CT_STRING("build_new_factory"), ui::simple_button<state_build_factory_button>,
-		CT_STRING("avg_infra_text"), ui::display_text<state_average_infrastructure>,
-		state_window_base
-	>;
-
-	class state_details_lb {
-	public:
-		template<typename lb_type>
-		void populate_list(lb_type& lb, world_state& ws);
-		ui::window_tag element_tag(ui::gui_static& m);
-	};
-
-	class investment_state_details_lb {
-	public:
-		template<typename lb_type>
-		void populate_list(lb_type& lb, world_state& ws);
-		ui::window_tag element_tag(ui::gui_static& m);
-	};
+	*/
 
 	class goods_category_label_base : public ui::visible_region {
 	public:
@@ -890,10 +826,6 @@ namespace economy {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	using goods_category_label = ui::gui_window<
-		CT_STRING("cat_name"), ui::display_text<goods_category_name>,
-		goods_category_label_base
-	>;
 
 	class production_info_base : public ui::window_pane {
 	public:
@@ -955,6 +887,104 @@ namespace economy {
 		void windowed_update(ui::dynamic_icon<production_no_production_overlay>& self, window_type& win, world_state& ws);
 	};
 
+
+#include "economy_windows_b.h"
+
+	class state_window_base : public ui::window_pane {
+	public:
+		nations::state_tag tag;
+
+		state_pop_display_window workers_a;
+		state_pop_display_window workers_b;
+		state_pop_display_window owner;
+
+		factory_display factories[state::factories_count];
+
+		void set_value(nations::state_tag t) {
+			tag = t;
+			workers_a.in_state = t;
+			workers_b.in_state = t;
+			owner.in_state = t;
+		}
+
+		template<typename W>
+		void on_create(W& win, world_state& ws);
+		void update(world_state& ws);
+	};
+
+	class state_focus_button {
+	public:
+		nations::state_tag tag;
+		template<typename window_type>
+		void windowed_update(ui::simple_button<state_focus_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<state_focus_button>& self, world_state& ws);
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class state_name_s {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_factory_count {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class state_build_factory_button {
+	public:
+		nations::state_tag tag;
+		template<typename window_type>
+		void windowed_update(ui::simple_button<state_build_factory_button>& self, window_type& win, world_state& ws);
+		void button_function(ui::simple_button<state_build_factory_button>& self, world_state& ws);
+
+		bool has_tooltip(world_state&) { return true; }
+		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	};
+
+	class state_average_infrastructure {
+	public:
+		template<typename W>
+		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	/*
+	using state_window = ui::gui_window<
+		CT_STRING("state_focus"), ui::simple_button<state_focus_button>,
+		CT_STRING("state_name"), ui::display_text<state_name, 4>,
+		CT_STRING("factory_count"), ui::display_text<state_factory_count, 4>,
+		CT_STRING("build_new_factory"), ui::simple_button<state_build_factory_button>,
+		CT_STRING("avg_infra_text"), ui::display_text<state_average_infrastructure>,
+		state_window_base
+	>;
+	*/
+
+	class state_details_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class investment_state_details_lb {
+	public:
+		template<typename lb_type>
+		void populate_list(lb_type& lb, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	
+	/*
+	using goods_category_label = ui::gui_window<
+		CT_STRING("cat_name"), ui::display_text<goods_category_name>,
+		goods_category_label_base
+	>;
+	*/
+
+	/*
 	using production_info = ui::gui_window<
 		CT_STRING("prod_producing_entry"), ui::dynamic_icon<production_backkground>,
 		CT_STRING("pop_factory"), ui::dynamic_icon<production_pop_icon>,
@@ -970,7 +1000,7 @@ namespace economy {
 		CT_STRING("output_factory"), ui::simple_button<production_output_icon>,
 		production_info_base
 	>;
-
+	*/
 	class production_info_pane_base : public ui::window_pane {
 	public:
 		std::vector<goods_category_label> categories;
@@ -1010,13 +1040,13 @@ namespace economy {
 		void windowed_update(ui::dynamic_icon<project_infrastructure_icon>& self, window_type& win, world_state& ws);
 	};
 
-	class project_name {
+	class project_name_s {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
-	class project_cost {
+	class project_cost_s {
 	public:
 		template<typename W>
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
@@ -1045,6 +1075,7 @@ namespace economy {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	/*
 	using project_item = ui::gui_window<
 		CT_STRING("state_name"), ui::display_text<project_state_name>,
 		CT_STRING("project_icon"), ui::dynamic_icon<project_resource_icon>,
@@ -1056,6 +1087,7 @@ namespace economy {
 		CT_STRING("invest_project"), ui::button<project_invest_button>,
 		project_item_base
 	>;
+	*/
 
 	class projects_lb {
 	public:
@@ -1064,6 +1096,7 @@ namespace economy {
 		ui::window_tag element_tag(ui::gui_static& m);
 	};
 
+	/*
 	class production_window_t : public ui::gui_window<
 		CT_STRING("close_button"), ui::simple_button<close_button>,
 		CT_STRING("tab_factories"), ui::button_group_member,
@@ -1092,7 +1125,7 @@ namespace economy {
 		CT_STRING("project_listbox"), ui::discrete_listbox<projects_lb, project_item, nations::state_tag>,
 		production_window_base
 	>{};
-
+	*/
 
 	struct factory_worker_value {
 		float amount;
@@ -1124,13 +1157,14 @@ namespace economy {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	/*
 	using factory_worker_item = ui::gui_window<
 		CT_STRING("pop_icon"), ui::dynamic_icon<factory_worker_item_icon>,
 		CT_STRING("pop_amount"), ui::display_text<empty_text_box>,
 		CT_STRING("pop_amount_2"), ui::display_text<factory_worker_item_amount>,
 		factory_worker_item_base
 	>;
-
+	*/
 	struct factory_construction_cost_value {
 		float amount;
 		economy::goods_tag type;
@@ -1167,12 +1201,14 @@ namespace economy {
 		void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
 
+	/*
 	using factory_construction_cost_item = ui::gui_window<
 		CT_STRING("goods_icon"), ui::dynamic_icon<factory_construction_cost_item_icon>,
 		CT_STRING("goods_cost"), ui::display_text<factory_construction_cost_item_cost>,
 		CT_STRING("you_have"), ui::display_text<factory_construction_cost_item_stockpile_amount>,
 		factory_construction_cost_item_base
 	>;
+	*/
 
 	class factory_type_item_base : public ui::gui_behavior {
 	public:
@@ -1216,6 +1252,7 @@ namespace economy {
 		void button_function(ui::simple_button<factory_item_bg>& self, world_state& ws);
 	};
 
+	/*
 	using factory_type_item = ui::gui_window<
 		CT_STRING("bg"), ui::simple_button<factory_item_bg>,
 		CT_STRING("output"), ui::dynamic_icon<factory_item_icon>,
@@ -1224,6 +1261,7 @@ namespace economy {
 		CT_STRING("buildtime"), ui::display_text<factory_item_time>,
 		factory_type_item_base
 	>;
+	*/
 
 	class build_factory_window_base : public ui::draggable_region {
 	public:
@@ -1362,6 +1400,7 @@ namespace economy {
 		void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
 	};
 
+	/*
 	class build_factory_window_t : public ui::gui_window<
 		CT_STRING("state_name"), ui::display_text<bf_state_name, 8>,
 		CT_STRING("input_0_amount"), ui::display_text<bf_input_amount<0>>,
@@ -1394,6 +1433,9 @@ namespace economy {
 		CT_STRING("Build"), ui::simple_button<bf_build>,
 		build_factory_window_base
 	> {};
+	*/
+
+#include "economy_windows.h"
 
 	template<typename W>
 	void project_item_base::on_create(W & win, world_state & ws) {
@@ -1422,7 +1464,7 @@ namespace economy {
 		for(int32_t i = 0; i < ws.s.economy_m.good_type_names.size(); ++i) {
 			goods_type_tag this_category(static_cast<goods_type_tag::value_base_t>(i));
 
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, header_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				categories[i]));
@@ -1439,7 +1481,7 @@ namespace economy {
 			for(uint32_t j = 0; j < ws.s.economy_m.goods_count; ++j) {
 				goods_tag this_good(static_cast<goods_tag::value_base_t>(j));
 				if(ws.s.economy_m.goods[this_good].type == this_category) {
-					ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+					ui::move_to_front(ws.w.gui_m, create_static_element(
 						ws, details_tag,
 						ui::tagged_gui_object{ *associated_object, win.window_object },
 						production_details[j]));
@@ -1599,7 +1641,7 @@ namespace economy {
 		constexpr int16_t size_x = 131i16;
 		constexpr int16_t base_x = 470i16;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			workers_a));
@@ -1607,7 +1649,7 @@ namespace economy {
 		workers_a.associated_object->position.y = -2i16;
 		workers_a.associated_object->position.x = base_x;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			workers_b));
@@ -1615,7 +1657,7 @@ namespace economy {
 		workers_b.associated_object->position.y = -2i16;
 		workers_b.associated_object->position.x = base_x + size_x;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			owner));
@@ -1626,7 +1668,7 @@ namespace economy {
 		auto factory_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["factory_info"]);
 
 		for(uint32_t i = 0; i < 8; ++i) {
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, factory_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				factories[i]));
@@ -1648,7 +1690,7 @@ namespace economy {
 		auto left_position = win.template get<CT_STRING("sort_by_factories")>().associated_object->position;
 		auto left_size_x = win.template get<CT_STRING("sort_by_factories")>().associated_object->size.x;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			workers_a));
@@ -1656,7 +1698,7 @@ namespace economy {
 		workers_a.associated_object->position = left_position;
 		workers_a.associated_object->position.x += left_size_x - 1i16;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			workers_b));
@@ -1664,7 +1706,7 @@ namespace economy {
 		workers_b.associated_object->position = left_position;
 		workers_b.associated_object->position.x += left_size_x + size_x - 1i16;
 
-		ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+		ui::move_to_front(ws.w.gui_m, create_static_element(
 			ws, common_tag,
 			ui::tagged_gui_object{ *associated_object, win.window_object },
 			owner));
@@ -1688,7 +1730,7 @@ namespace economy {
 			auto left_position = win.template get<CT_STRING("sort_by_factories")>().associated_object->position;
 			auto left_size_x = win.template get<CT_STRING("sort_by_factories")>().associated_object->size.x;
 
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, common_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				workers_a));
@@ -1696,7 +1738,7 @@ namespace economy {
 			workers_a.associated_object->position = left_position;
 			workers_a.associated_object->position.x += left_size_x - 1i16;
 
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, common_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				workers_b));
@@ -1704,7 +1746,7 @@ namespace economy {
 			workers_b.associated_object->position = left_position;
 			workers_b.associated_object->position.x += left_size_x + size_x - 1i16;
 
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, common_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				owner));
@@ -1716,7 +1758,7 @@ namespace economy {
 			auto common_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["invest_non_gp_extra_info"]);
 			for(int32_t i = 0; i < 8; ++i) {
 				gp_windows[i].nth_nation = i;
-				ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ui::move_to_front(ws.w.gui_m, create_static_element(
 					ws, common_tag,
 					ui::tagged_gui_object{ *associated_object, win.window_object },
 					gp_windows[i]));
@@ -2103,7 +2145,7 @@ namespace economy {
 		int16_t cy = 0;
 
 		for(uint32_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
-			ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+			ui::move_to_front(ws.w.gui_m, create_static_element(
 				ws, common_tag,
 				ui::tagged_gui_object{ *associated_object, win.window_object },
 				filter_buttons[i]));
@@ -2178,7 +2220,7 @@ namespace economy {
 	}
 
 	template<typename W>
-	void state_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void state_name_s::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.tag)) {
 			ui::add_text(ui::xy_pair{ 0,0 }, ws.w.nation_s.states.get<state::name>(w.tag), fmt,
 				ws, box, lm);
@@ -2737,7 +2779,7 @@ namespace economy {
 	}
 
 	template<typename W>
-	void factory_closed_text::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void factory_closed_text_s::windowed_update(W & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(win.index >= 0 && is_valid_index(win.location)) {
 			economy::factory_instance& f = ws.w.nation_s.states.get<state::factories>(win.location)[win.index];
 			if(factory_is_closed(f)) {
@@ -2791,7 +2833,7 @@ namespace economy {
 	}
 
 	template<typename W>
-	void project_cost::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void project_cost_s::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
 
 			economy::money_qnty_type cost = [&ws, sid = w.location]() {
@@ -2808,7 +2850,7 @@ namespace economy {
 	}
 
 	template<typename W>
-	void project_name::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+	void project_name_s::windowed_update(W & w, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(is_valid_index(w.location)) {
 			
 			if(ws.w.nation_s.states.get<state::project>(w.location).type == economy::pop_project_type::railroad) {

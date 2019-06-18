@@ -1,0 +1,169 @@
+economy_windows
+
+investment_country_item investment_country_item_base
+	country_select ui::simple_button<investment_country_item_background_button>
+	country_flag ui::masked_flag<investment_country_item_flag>
+	country_name ui::display_text<investment_country_item_name>
+	invest ui::display_text<investment_country_item_self_investment_text>
+	country_gp0 ui::display_text<gp_investment_text<0>>
+	country_gp1 ui::display_text<gp_investment_text<1>>
+	country_gp2 ui::display_text<gp_investment_text<2>>
+	country_gp3 ui::display_text<gp_investment_text<3>>
+	country_gp4 ui::display_text<gp_investment_text<4>>
+	country_gp5 ui::display_text<gp_investment_text<5>>
+	country_gp6 ui::display_text<gp_investment_text<6>>
+	country_gp7 ui::display_text<gp_investment_text<7>>
+	country_boss_flag ui::masked_flag<investment_country_item_sphere_leader_flag>
+	country_prestige ui::display_text<investment_country_item_prestige_rank>
+	country_economic ui::display_text<investment_country_item_industrial_rank>
+	country_military ui::display_text<investment_country_item_military_rank>
+	country_total ui::display_text<investment_country_item_overall_rank>
+	country_opinion ui::display_text<investment_country_item_opinion_type>
+	country_relation ui::display_text<investment_country_item_relations_value>
+	factories ui::display_text<investment_country_item_factories_count>
+factory_filter_buttons factory_filter_buttons_base
+	prod_subsidize_all ui::simple_button<subsidize_all_button>
+	prod_unsubsidize_all ui::simple_button<unsubsidize_all_button>
+	prod_open_all_factories ui::simple_button<open_all_factories_button>
+	prod_close_all_factories ui::simple_button<close_all_factories_button>
+	select_all ui::simple_button<select_all_factories_filters_button>
+	deselect_all ui::simple_button<deselect_all_factories_filters_button>
+	show_empty_states ui::button<show_hide_empty_states_button>
+	sort_by_name ui::simple_button<sort_factories_by_state_name>
+	sort_by_factories ui::simple_button<sort_factories_by_count>
+	sort_by_infra ui::simple_button<sort_factories_by_infrastructure>
+	filter_bounds ui::gui_window<goods_filters_base>
+investment_filter_buttons investment_filter_buttons_base
+	country_flag ui::masked_flag<investment_target_flag>
+	country_flag_overlay ui::dynamic_icon<investment_target_flag_overlay>
+	country_name ui::display_text<investment_target_name>
+	country_investment ui::display_text<investment_target_amount>
+	invest_country_browse ui::simple_button<investment_target_back_button>
+	select_all ui::simple_button<select_all_factories_filters_button>
+	deselect_all ui::simple_button<deselect_all_factories_filters_button>
+	show_empty_states ui::button<show_hide_empty_states_button>
+	sort_by_name ui::simple_button<sort_factories_by_state_name>
+	sort_by_factories ui::simple_button<sort_factories_by_count>
+	sort_by_infra ui::simple_button<sort_factories_by_infrastructure>
+	filter_bounds ui::gui_window<goods_filters_base>
+investment_pane investment_pane_base
+	filter_all ui::simple_button<filter_all_button>
+	filter_north_america ui::simple_button<filter_north_america_button>
+	filter_south_america ui::simple_button<filter_south_america_button>
+	filter_europe ui::simple_button<filter_europe_button>
+	filter_africa ui::simple_button<filter_africa_button>
+	filter_asia ui::simple_button<filter_asia_button>
+	filter_oceania ui::simple_button<filter_oceania_button>
+	filter_neighbours ui::simple_button<filter_neighbours_button>
+	filter_sphere ui::simple_button<filter_sphere_button>
+	filter_enemies ui::simple_button<filter_enemies_button>
+	filter_allies ui::simple_button<filter_allies_button>
+	sort_by_country ui::simple_button<sort_by_country_button>
+	sort_by_my_invest ui::simple_button<clear_text_button>
+	sort_by_my_flag ui::masked_flag<sort_by_my_flag_button>
+	sort_by_gp0 ui::simple_button<clear_text_button>
+	sort_by_gpflag0 ui::masked_flag<sort_by_gpflag0_button>
+	sort_by_gp1 ui::simple_button<clear_text_button>
+	sort_by_gpflag1 ui::masked_flag<sort_by_gpflag1_button>
+	sort_by_gp2 ui::simple_button<clear_text_button>
+	sort_by_gpflag2 ui::masked_flag<sort_by_gpflag2_button>
+	sort_by_gp3 ui::simple_button<clear_text_button>
+	sort_by_gpflag3 ui::masked_flag<sort_by_gpflag3_button>
+	sort_by_gp4 ui::simple_button<clear_text_button>
+	sort_by_gpflag4 ui::masked_flag<sort_by_gpflag4_button>
+	sort_by_gp5 ui::simple_button<clear_text_button>
+	sort_by_gpflag5 ui::masked_flag<sort_by_gpflag5_button>
+	sort_by_gp6 ui::simple_button<clear_text_button>
+	sort_by_gpflag6 ui::masked_flag<sort_by_gpflag6_button>
+	sort_by_gp7 ui::simple_button<clear_text_button>
+	sort_by_gpflag7 ui::masked_flag<sort_by_gpflag7_button>
+	sort_by_boss ui::simple_button<sort_by_boss_button>
+	sort_by_prestige ui::simple_button<sort_by_prestige_button>
+	sort_by_economic ui::simple_button<sort_by_economic_button>
+	sort_by_military ui::simple_button<sort_by_military_button>
+	sort_by_total ui::simple_button<sort_by_total_button>
+	sort_by_opinion ui::simple_button<sort_by_opinion_button>
+	sort_by_relation ui::simple_button<sort_by_relation_button>
+	sort_by_invest_factories ui::simple_button<sort_by_invest_factories_button>
+	country_listbox "ui::discrete_listbox<investment_country_lb, investment_country_item, nations::country_tag>"
+state_window state_window_base
+	state_focus ui::simple_button<state_focus_button>
+	state_name "ui::display_text<state_name_s, 4>"
+	factory_count "ui::display_text<state_factory_count, 4>"
+	build_new_factory ui::simple_button<state_build_factory_button>
+	avg_infra_text ui::display_text<state_average_infrastructure>
+project_item project_item_base
+	state_name ui::display_text<project_state_name>
+	project_icon ui::dynamic_icon<project_resource_icon>
+	infra ui::dynamic_icon<project_infrastructure_icon>
+	project_name ui::display_text<project_name_s>
+	project_cost ui::display_text<project_cost_s>
+	pop_icon ui::dynamic_icon<project_investor_icon>
+	pop_amount ui::display_text<project_investor_amount>
+	invest_project ui::button<project_invest_button>
+production_window_t production_window_base
+	close_button ui::simple_button<close_button_s>
+	tab_factories ui::button_group_member
+	tab_invest ui::button_group_member
+	tab_goodsproduction ui::button_group_member
+	tab_popprojects ui::button_group_member
+	production_tab_button_group "ui::button_group<CT_STRING('tab_factories'), CT_STRING('tab_invest'), CT_STRING('tab_goodsproduction'), CT_STRING('tab_popprojects'), production_tab_button_group_b>"
+	tab_factories_text ui::display_text<empty_text_box>
+	tab_invest_text ui::display_text<empty_text_box>
+	tab_goodsproduction_text ui::display_text<empty_text_box>
+	tab_popprojects_text ui::display_text<empty_text_box>
+	investment_browser investment_pane
+	sort_by_state ui::simple_button<sort_by_project_state_button>
+	sort_by_projects ui::simple_button<sort_by_project_type_button>
+	sort_by_completion ui::simple_button<sort_by_project_completion_button>
+	sort_by_projecteers ui::simple_button<sort_by_project_investors_button>
+	factory_buttons factory_filter_buttons
+	invest_buttons investment_filter_buttons
+	state_listbox "ui::discrete_listbox<state_details_lb, state_window, nations::state_tag>"
+	state_listbox_invest "ui::discrete_listbox<investment_state_details_lb, state_window, nations::state_tag>"
+	good_production production_info_pane
+	project_listbox "ui::discrete_listbox<projects_lb, project_item, nations::state_tag>"
+factory_worker_item factory_worker_item_base
+	pop_icon ui::dynamic_icon<factory_worker_item_icon>
+	pop_amount ui::display_text<empty_text_box>
+	pop_amount_2 ui::display_text<factory_worker_item_amount>
+factory_construction_cost_item factory_construction_cost_item_base
+	goods_icon ui::dynamic_icon<factory_construction_cost_item_icon>
+	goods_cost ui::display_text<factory_construction_cost_item_cost>
+	you_have ui::display_text<factory_construction_cost_item_stockpile_amount>
+factory_type_item factory_type_item_base
+	bg ui::simple_button<factory_item_bg>
+	output ui::dynamic_icon<factory_item_icon>
+	name ui::display_text<factory_item_name>
+	total_build_cost ui::display_text<factory_item_cost>
+	buildtime ui::display_text<factory_item_time>
+build_factory_window_t build_factory_window_base
+	state_name "ui::display_text<bf_state_name, 8>"
+	input_0_amount ui::display_text<bf_input_amount<0>>
+	input_1_amount ui::display_text<bf_input_amount<1>>
+	input_2_amount ui::display_text<bf_input_amount<2>>
+	input_3_amount ui::display_text<bf_input_amount<3>>
+	output ui::dynamic_icon<bf_output_icon>
+	building_name ui::display_text<bf_factory_name>
+	factory_type "ui::discrete_listbox<factory_types_lb, factory_type_item, economy::goods_tag>"
+	output_label ui::display_text<bf_profit_label>
+	output_amount ui::display_text<bf_profit_amount>
+	input_0 ui::dynamic_icon<bf_input_icon<0>>
+	input_1 ui::dynamic_icon<bf_input_icon<1>>
+	input_2 ui::dynamic_icon<bf_input_icon<2>>
+	input_3 ui::dynamic_icon<bf_input_icon<3>>
+	description_text ui::multiline_text<bf_description>
+	needed_workers_count ui::display_text<bf_total_workers_amount>
+	employment_info "ui::discrete_listbox<factory_workers_lb, factory_worker_item, factory_worker_value>"
+	goods_cost_info "ui::discrete_listbox<factory_construction_costs_lb, factory_construction_cost_item, factory_construction_cost_value>"
+	base_price_label ui::display_text<bf_base_price_label>
+	input_price_label ui::display_text<bf_input_price_label>
+	total_label ui::display_text<bf_total_label>
+	base_price ui::display_text<bf_base_price_amount>
+	input_price ui::display_text<bf_input_price_amount>
+	total_price ui::display_text<bf_total_amount>
+	you_have ui::display_text<bf_treasury_amount>
+	prod_label ui::display_text<bf_stockpile_lack_label>
+	prod_cost ui::display_text<bf_stockpile_lack_amount>
+	Cancel ui::simple_button<bf_cancel>
+	Build ui::simple_button<bf_build>

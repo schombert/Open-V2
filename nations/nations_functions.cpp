@@ -36,7 +36,7 @@ namespace nations {
 		});
 	}
 	void add_accepted_culture_group(world_state& ws, country_tag n, cultures::culture_group_tag cg_t) {
-		auto g_range = ws.s.culture_m.culture_by_culture_group.get_row(cg_t);
+		auto g_range = ws.s.culture_m.culture_by_culture_group.get_range(cg_t);
 		auto& accepted_cultures = ws.w.nation_s.nations.get<nation::accepted_cultures>(n);
 
 		for(auto c : g_range)
@@ -465,7 +465,7 @@ namespace nations {
 
 	bool is_state_empty(world_state const& ws, state_tag sid) {
 		
-		for(auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(sid)); prange.first != prange.second; ++prange.first) {
+		for(auto prange = ws.s.province_m.states_to_province_index.get_range(ws.w.nation_s.states.get<state::region_id>(sid)); prange.first != prange.second; ++prange.first) {
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(*prange.first) == sid)
 				return false;
 		}
@@ -475,7 +475,7 @@ namespace nations {
 	bool is_state_coastal(world_state const& ws, nations::state_tag s) {
 		auto region = ws.w.nation_s.states.get<state::region_id>(s);
 		auto prange = is_valid_index(region)
-			? ws.s.province_m.states_to_province_index.get_row(region)
+			? ws.s.province_m.states_to_province_index.get_range(region)
 			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
 		auto const is_coastal_row = ws.s.province_m.province_container.get_row<province::is_coastal>();
 		for(auto p : prange) {
@@ -495,7 +495,7 @@ namespace nations {
 			remove_item(ws.w.nation_s.state_tag_arrays, ws.w.nation_s.nations.get<nation::national_focus_locations>(n), sid);
 		clear(ws.w.nation_s.nations_arrays, fp_focuses);
 
-		for(auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(sid)); prange.first != prange.second; ++prange.first) {
+		for(auto prange = ws.s.province_m.states_to_province_index.get_range(ws.w.nation_s.states.get<state::region_id>(sid)); prange.first != prange.second; ++prange.first) {
 			auto& state_tag_ref = ws.w.province_s.province_state_container.get<province_state::state_instance>(*prange.first);
 			if(state_tag_ref == sid)
 				state_tag_ref = state_tag();
@@ -554,7 +554,7 @@ namespace nations {
 				auto new_state = make_state(state_id, ws);
 				ws.w.province_s.province_state_container.set<province_state::state_instance>(this_prov_id, new_state);
 
-				auto same_region_range = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(new_state));
+				auto same_region_range = ws.s.province_m.states_to_province_index.get_range(ws.w.nation_s.states.get<state::region_id>(new_state));
 				for(auto same_region_prov : same_region_range) {
 					if((!is_valid_index(ws.w.province_s.province_state_container.get<province_state::owner>(same_region_prov))) &
 						(ws.s.province_m.province_container.get<province::is_sea>(same_region_prov) == false) &
@@ -629,7 +629,7 @@ namespace nations {
 				
 				ve::set_zero(demo_size, state_demo);
 
-				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_row(s->region_id);
+				const auto p_in_region_range = ws.s.province_m.states_to_province_index.get_range(s->region_id);
 				for(auto p = p_in_region_range.first; p != p_in_region_range.second; ++p) {
 					if(ws.w.province_s.province_state_container.get<province_state::owner>(*p) == n) {
 						auto province_demo = ws.w.province_s.province_demographics.get_row(*p);
@@ -1000,7 +1000,7 @@ namespace nations {
 
 		int32_t count_non_core = 0;
 
-		auto region_provs = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(this_state));
+		auto region_provs = ws.s.province_m.states_to_province_index.get_range(ws.w.nation_s.states.get<state::region_id>(this_state));
 		for(auto p : region_provs) {
 			if((ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == this_state)
 				& ((ws.w.province_s.province_state_container.get<province_state::has_owner_core>(p)) == false)) {
@@ -1066,7 +1066,7 @@ namespace nations {
 
 		auto owned_range = get_range(ws.w.province_s.province_arrays, ws.w.nation_s.nations.get<nation::owned_provinces>(this_nation));
 		for(auto p : owned_range) {
-			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_range(p);
 			for(auto a : adj_range) {
 				auto adj_owner = ws.w.province_s.province_state_container.get<province_state::owner>(a);
 				if(is_valid_index(adj_owner) && adj_owner != this_nation) {
@@ -1167,7 +1167,7 @@ namespace nations {
 			if(ws.w.province_s.province_state_container.get<province_state::is_blockaded>(tp))
 				++blockaded_count;
 
-			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(tp);
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_range(tp);
 			for(auto a : adj_range) {
 				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == this_nation && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
 					pending_neighbor_check.insert(a);
@@ -1469,7 +1469,7 @@ namespace nations {
 
 	provinces::province_tag find_state_capital(world_state const& ws, nations::state_tag s) {
 		if(auto rid = ws.w.nation_s.states.get<state::region_id>(s); is_valid_index(rid)) {
-			auto prange = ws.s.province_m.states_to_province_index.get_row(rid);
+			auto prange = ws.s.province_m.states_to_province_index.get_range(rid);
 			for(auto p : prange) {
 				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == s)
 					return p;
@@ -1483,10 +1483,10 @@ namespace nations {
 	}
 
 	bool are_states_physically_neighbors(world_state const& ws, nations::state_tag a, nations::state_tag b) {
-		auto prange = ws.s.province_m.states_to_province_index.get_row(ws.w.nation_s.states.get<state::region_id>(a));
+		auto prange = ws.s.province_m.states_to_province_index.get_range(ws.w.nation_s.states.get<state::region_id>(a));
 		for(auto p : prange) {
 			if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == a) {
-				auto prov_adj = ws.s.province_m.same_type_adjacency.get_row(p);
+				auto prov_adj = ws.s.province_m.same_type_adjacency.get_range(p);
 				for(auto ip : prov_adj) {
 					if(ws.w.province_s.province_state_container.get<province_state::state_instance>(ip) == b)
 						return true;

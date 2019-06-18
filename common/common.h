@@ -1797,7 +1797,7 @@ public:
 		return static_cast<uint32_t>(index.size());
 	}
 
-	std::pair<T*, T*> get_row(I i) {
+	std::pair<T*, T*> get_range(I i) {
 		std::pair<T*, T*> p;
 		p.first = elements.data() + *(index.data() + to_index(i));
 		if (to_index(i) + 1 < index.size()) {
@@ -1808,7 +1808,7 @@ public:
 		return p;
 	}
 
-	std::pair<T const*, T const*> get_row(I i) const {
+	std::pair<T const*, T const*> get_range(I i) const {
 		std::pair<T const*, T const*> p;
 		p.first = elements.data() + *(index.data() + to_index(i));
 		if (to_index(i) + 1 < index.size()) {
@@ -1819,8 +1819,17 @@ public:
 		return p;
 	}
 
+	tagged_array_view<T, int32_t> get_row(I i) {
+		auto const rng = get_range(i);
+		return tagged_array_view<T, int32_t>(rng.first, int32_t(rng.second - rng.first));
+	}
+	tagged_array_view<T const, int32_t> get_row(I i) const {
+		auto const rng = get_range(i);
+		return tagged_array_view<T const, int32_t>(rng.first, int32_t(rng.second - rng.first));
+	}
+
 	int32_t size(I i) const {
-		auto const r = get_row(i);
+		auto const r = get_range(i);
 		return int32_t(r.second - r.first);
 	}
 

@@ -19,7 +19,7 @@ namespace nations {
 	void for_each_province(world_state_t const& ws, state_tag s, F&& f) {
 		auto region = ws.get<state::region_id>(s);
 		auto prange = is_valid_index(region)
-			? ws.s.province_m.states_to_province_index.get_row(region)
+			? ws.s.province_m.states_to_province_index.get_range(region)
 			: std::pair<provinces::province_tag const*, provinces::province_tag const*>(nullptr, nullptr);
 		for(auto p : prange) {
 			if(ws.get<province_state::state_instance>(p) == s)
@@ -71,7 +71,7 @@ namespace nations {
 	void for_each_province(world_state_t& ws, state_tag s, F&& f) {
 		auto region = ws.get<state::region_id>(s);
 		auto prange = is_valid_index(region)
-			? ws.s.province_m.states_to_province_index.get_row(region)
+			? ws.s.province_m.states_to_province_index.get_range(region)
 			: std::pair<provinces::province_tag*, provinces::province_tag*>(nullptr, nullptr);
 
 		for(auto p : prange) {

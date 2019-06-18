@@ -87,7 +87,7 @@ namespace triggers {
 		}
 
 		void es_x_neighbor_province_scope(EFFECT_PARAMTERS) {
-			auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
+			auto neighbor_range = ws.s.province_m.same_type_adjacency.get_range(to_prov(primary_slot));
 
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
@@ -205,7 +205,7 @@ namespace triggers {
 			es_x_country_scope_nation(tval, ws, nations::country_tag(), this_slot, from_slot, gen);
 		}
 		void es_x_empty_neighbor_province_scope(EFFECT_PARAMTERS) {
-			auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
+			auto neighbor_range = ws.s.province_m.same_type_adjacency.get_range(to_prov(primary_slot));
 
 			if((tval[0] & effect_codes::is_random_scope) != 0) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
@@ -843,7 +843,7 @@ namespace triggers {
 			apply_subeffects(tval, ws, from_slot, this_slot, from_slot, gen);
 		}
 		void es_sea_zone_scope(EFFECT_PARAMTERS) {
-			auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_prov(primary_slot));
+			auto sea_zones = ws.s.province_m.coastal_adjacency.get_range(to_prov(primary_slot));
 			if(sea_zones.first != sea_zones.second)
 				apply_subeffects(tval, ws, *sea_zones.first, this_slot, from_slot, gen);
 		}
@@ -988,7 +988,7 @@ namespace triggers {
 		void es_region_scope(EFFECT_PARAMTERS) {
 			if((tval[0] & effect_codes::scope_has_limit) != 0) {
 				auto region = trigger_payload(tval[3]).state;
-				auto provinces = ws.s.province_m.states_to_province_index.get_row(region);
+				auto provinces = ws.s.province_m.states_to_province_index.get_range(region);
 
 				auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 				for(auto p : provinces) {
@@ -997,7 +997,7 @@ namespace triggers {
 				}
 			} else {
 				auto region = trigger_payload(tval[2]).state;
-				auto provinces = ws.s.province_m.states_to_province_index.get_row(region);
+				auto provinces = ws.s.province_m.states_to_province_index.get_range(region);
 
 				for(auto p : provinces)
 					apply_subeffects(tval, ws, p, this_slot, from_slot, gen);

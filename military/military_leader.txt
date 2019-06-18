@@ -18,3 +18,4 @@ military_leader::container_size,
 		experience, float,
 		reliability, float,
 		is_attached, bitfield_type
+		is_general, bitfield_type

@@ -1022,7 +1022,7 @@ namespace triggers {
 			}
 
 			lm.increase_indent(1);
-			auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_prov(primary_slot));
+			auto sea_zones = ws.s.province_m.coastal_adjacency.get_range(to_prov(primary_slot));
 			if(sea_zones.first != sea_zones.second) {
 				cursor_in = display_subtriggers(tval, ws, container, cursor_in, lm, fmt,
 					*sea_zones.first, this_slot, from_slot, show_condition);

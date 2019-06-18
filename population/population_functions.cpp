@@ -1367,7 +1367,7 @@ namespace population {
 		auto const cores = get_range(ws.w.province_s.province_arrays, ws.w.culture_s.national_tags_state[t].core_provinces);
 		auto const tag_group = ws.s.culture_m.tags_to_groups[t];
 
-		auto const group_cultures = ws.s.culture_m.culture_by_culture_group.get_row(tag_group);
+		auto const group_cultures = ws.s.culture_m.culture_by_culture_group.get_range(tag_group);
 		int32_t const cultures_count = int32_t(group_cultures.second - group_cultures.first);
 
 		using acc_pair = std::pair<decltype(make_movement_acc(ws, cultures::culture_tag())), decltype(make_rebel_acc(ws, cultures::culture_tag()))>;

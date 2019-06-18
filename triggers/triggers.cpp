@@ -268,8 +268,8 @@ namespace triggers {
 			if(!ws.w.province_s.province_state_container.is_valid_index(prov_id))
 				return false;
 			
-			auto p_same_range = ws.s.province_m.same_type_adjacency.get_row(prov_id);
-			auto p_diff_range = ws.s.province_m.coastal_adjacency.get_row(prov_id);
+			auto p_same_range = ws.s.province_m.same_type_adjacency.get_range(prov_id);
+			auto p_diff_range = ws.s.province_m.coastal_adjacency.get_range(prov_id);
 
 			if(*tval & trigger_codes::is_existance_scope) {
 				auto accumulator = existance_accumulator(ws, tval, t_slot, f_slot);
@@ -424,7 +424,7 @@ namespace triggers {
 			if(!is_valid_index(region_id))
 				return false;
 
-			auto region_provinces = ws.s.province_m.states_to_province_index.get_row(region_id);
+			auto region_provinces = ws.s.province_m.states_to_province_index.get_range(region_id);
 			if(*tval & trigger_codes::is_existance_scope) {
 				auto accumulator = existance_accumulator(ws, tval, t_slot, f_slot);
 
@@ -696,7 +696,7 @@ namespace triggers {
 			if(!is_valid_index(region_id))
 				return false;
 
-			auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
+			auto province_range = ws.s.province_m.states_to_province_index.get_range(region_id);
 			if(*tval & trigger_codes::is_existance_scope) {
 				auto accumulator = existance_accumulator(ws, tval, t_slot, f_slot);
 
@@ -776,7 +776,7 @@ namespace triggers {
 	}
 	TRIGGER_FUNCTION(tf_x_provinces_in_variable_region) {
 		auto region = trigger_payload(*(tval + 2)).state;
-		auto provinces = ws.s.province_m.states_to_province_index.get_row(region);
+		auto provinces = ws.s.province_m.states_to_province_index.get_range(region);
 
 		return ve::apply(this_slot, from_slot, [&ws, tval, provinces](const_parameter t_slot, const_parameter f_slot) {
 			if(*tval & trigger_codes::is_existance_scope) {
@@ -843,7 +843,7 @@ namespace triggers {
 		auto sea_zones = ve::apply(to_prov(primary_slot), [&ws, tval](provinces::province_tag pid) {
 			if(!ws.w.province_s.province_state_container.is_valid_index(pid))
 				return provinces::province_tag();
-			auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(pid);
+			auto sea_zones = ws.s.province_m.coastal_adjacency.get_range(pid);
 			if(sea_zones.first != sea_zones.second)
 				return *(sea_zones.first);
 			return provinces::province_tag();
@@ -1099,7 +1099,7 @@ namespace triggers {
 		auto results = ve::apply(primary_slot, [&ws](const_parameter p_slot) {
 			auto acc = empty_province_accumulator(ws);
 
-			auto adj_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(p_slot));
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_range(to_prov(p_slot));
 			for(auto p : adj_range) {
 				acc.add_value(p.value);
 				if(acc.result)
@@ -1122,11 +1122,11 @@ namespace triggers {
 			if(!is_valid_index(region_id))
 				return false;
 
-			auto province_range = ws.s.province_m.states_to_province_index.get_row(region_id);
+			auto province_range = ws.s.province_m.states_to_province_index.get_range(region_id);
 
 			for(auto p : province_range) {
 				if(ws.w.province_s.province_state_container.get<province_state::state_instance>(p) == state_id) {
-					auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+					auto adj_range = ws.s.province_m.same_type_adjacency.get_range(p);
 					for(auto q : adj_range) {
 						acc.add_value(q.value);
 						if(acc.result)
@@ -2739,7 +2739,7 @@ namespace triggers {
 		auto result = ve::apply(to_prov(primary_slot), [&ws](provinces::province_tag p) {
 			if(is_valid_index(p)) {
 				auto acc = empty_province_accumulator(ws);
-				auto adj_range = ws.s.province_m.same_type_adjacency.get_row(p);
+				auto adj_range = ws.s.province_m.same_type_adjacency.get_range(p);
 				for(auto a : adj_range) {
 					acc.add_value(a.value);
 					if(acc.result)
@@ -4068,7 +4068,7 @@ namespace triggers {
 		auto result = ve::apply(to_state(primary_slot), [&ws, g](nations::state_tag s) {
 			auto state_region = ws.w.nation_s.states.get<state::region_id>(s);
 			if(is_valid_index(state_region)) {
-				auto prov_range = ws.s.province_m.states_to_province_index.get_row(state_region);
+				auto prov_range = ws.s.province_m.states_to_province_index.get_range(state_region);
 				auto acc = province_rgo_production_accumulator(ws, g, s);
 
 				for(auto p : prov_range) {
@@ -4092,7 +4092,7 @@ namespace triggers {
 		auto result = ve::apply(si, [&ws, g](nations::state_tag s) {
 			auto state_region = ws.w.nation_s.states.get<state::region_id>(s);
 			if(is_valid_index(state_region)) {
-				auto prov_range = ws.s.province_m.states_to_province_index.get_row(state_region);
+				auto prov_range = ws.s.province_m.states_to_province_index.get_range(state_region);
 				auto acc = province_rgo_production_accumulator(ws, g, s);
 
 				for(auto p : prov_range) {

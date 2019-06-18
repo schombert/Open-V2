@@ -19,6 +19,8 @@ std::string extract_string(char const* & input, char const* end) {
 	while(input < end && (in_quote || (*input != ' '  && *input != '(' && *input != ')' && *input != '\t' && *input != '-' && *input != '\r' && *input != '\n'))) {
 		if(*input == '\"')
 			in_quote = !in_quote;
+		else if(*input == '\'')
+			result += '\"';
 		else
 			result += *input;
 		++input;

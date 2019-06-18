@@ -260,7 +260,7 @@ namespace triggers {
 			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && is_valid_index(to_prov(primary_slot))) {
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
-				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
+				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_range(to_prov(primary_slot));
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
 					auto limit = ws.s.trigger_m.trigger_data.data() + to_index(trigger_payload(tval[2]).trigger);
 					for(auto p : neighbor_range) {
@@ -408,7 +408,7 @@ namespace triggers {
 		}
 		ui::xy_pair es_x_empty_neighbor_province_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if((tval[0] & effect_codes::is_random_scope) != 0 && show_condition && bool(to_prov(primary_slot))) {
-				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_row(to_prov(primary_slot));
+				auto neighbor_range = ws.s.province_m.same_type_adjacency.get_range(to_prov(primary_slot));
 				boost::container::small_vector<provinces::province_tag, 16, concurrent_allocator<provinces::province_tag>> rlist;
 
 				if((tval[0] & effect_codes::scope_has_limit) != 0) {
@@ -1205,7 +1205,7 @@ namespace triggers {
 		}
 		ui::xy_pair es_sea_zone_scope(EFFECT_DISPLAY_PARAMS, bool show_condition) {
 			if(show_condition && bool(to_prov(primary_slot))) {
-				auto sea_zones = ws.s.province_m.coastal_adjacency.get_row(to_prov(primary_slot));
+				auto sea_zones = ws.s.province_m.coastal_adjacency.get_range(to_prov(primary_slot));
 				if(sea_zones.first != sea_zones.second) {
 					cursor_in = ui::add_text(cursor_in, ws.w.province_s.province_state_container.get<province_state::name>(*sea_zones.first), fmt, ws, container, lm);
 					cursor_in = ui::advance_cursor_to_newline(cursor_in, ws.s.gui_m, fmt);

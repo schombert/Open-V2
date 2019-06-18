@@ -3,7 +3,7 @@
 #include "commands/commands.h"
 
 namespace economy {
-	void close_button::button_function(ui::simple_button<close_button>&, world_state& ws) {
+	void close_button_s::button_function(ui::simple_button<close_button_s>&, world_state& ws) {
 		ws.w.production_w.hide(ws.w.gui_m);
 	}
 	production_window::production_window() : win(std::make_unique<production_window_t>()) {}
@@ -14,7 +14,7 @@ namespace economy {
 	void production_window::init(world_state & ws) {
 		factory_goods_filters.resize(ws.s.economy_m.goods_count);
 		std::fill(factory_goods_filters.begin(), factory_goods_filters.end(), 1ui8);
-		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_production"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+		create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["country_production"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 	void production_window::update(ui::gui_manager & gui_m) {
 		win->template get<CT_STRING("investment_browser")>().template get<CT_STRING("country_listbox")>().new_list(nullptr, nullptr);
@@ -113,7 +113,7 @@ namespace economy {
 		foreign_investment_nation = target;
 		show(gui_m);
 	}
-	void production_tab_button_group::on_select(world_state & ws, uint32_t i) {
+	void production_tab_button_group_b::on_select(world_state & ws, uint32_t i) {
 		if(i == 0)
 			ws.w.production_w.show_factories(ws.w.gui_m);
 		else if(i == 1)
@@ -758,7 +758,7 @@ namespace economy {
 		ui::hide(*(win->associated_object));
 	}
 	void build_factory_window::init(world_state & ws) {
-		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_factory"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
+		create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["build_factory"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, *win);
 	}
 	void build_factory_window::update(ui::gui_manager & gui_m, nations::state_tag s, economy::goods_tag g) {
 		in_state = s;

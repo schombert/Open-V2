@@ -247,6 +247,7 @@ namespace military_leader {
 	struct reliability;
 
 	struct is_attached;
+	struct is_general;
 
 	constexpr int32_t container_size = 6000;
 

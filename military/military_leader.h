@@ -29,6 +29,7 @@ namespace military_leader {
 	struct experience;
 	struct reliability;
 	struct is_attached;
+	struct is_general;
 
 	class alignas(64) container {
 		 int32_t size_used = 0;
@@ -113,6 +114,11 @@ namespace military_leader {
 			 bitfield_type values[((uint32_t(military_leader::container_size + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
 			 dtype_14() { std::fill_n(values - 1, 1 + ((uint32_t(military_leader::container_size + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_14;
+		 struct alignas(64) dtype_15 { 
+			 bitfield_type padding[64]; 
+			 bitfield_type values[((uint32_t(military_leader::container_size + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_15() { std::fill_n(values - 1, 1 + ((uint32_t(military_leader::container_size + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+		 } m_15;
 
 		 public:
 		 friend class serialization::serializer<container>;
@@ -475,6 +481,22 @@ namespace military_leader {
 		 std::enable_if_t<std::is_same_v<INDEX, military_leader::is_attached>, tagged_array_view<bitfield_type const, military::leader_tag>> get_row() const {
 			 return tagged_array_view<bitfield_type const, military::leader_tag>(m_14.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, military_leader::is_general>, bool> get(military::leader_tag i) const {
+			 return bit_vector_test(m_15.values, to_index(i));
+		 }
+		 template<typename INDEX>
+		 auto set(military::leader_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, military_leader::is_general>> {
+			 bit_vector_set(m_15.values, to_index(i), v);
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, military_leader::is_general>, tagged_array_view<bitfield_type, military::leader_tag>> get_row() {
+			 return tagged_array_view<bitfield_type, military::leader_tag>(m_15.values, int32_t(uint32_t(size_used + 7) / 8ui32));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, military_leader::is_general>, tagged_array_view<bitfield_type const, military::leader_tag>> get_row() const {
+			 return tagged_array_view<bitfield_type const, military::leader_tag>(m_15.values, int32_t(uint32_t(size_used + 7) / 8ui32));
+		 }
 
 		 military::leader_tag get_new() {
 #ifdef _DEBUG
@@ -505,6 +527,7 @@ namespace military_leader {
 			 set<military_leader::experience>(i, float());
 			 set<military_leader::reliability>(i, float());
 			 set<military_leader::is_attached>(i, false);
+			 set<military_leader::is_general>(i, false);
 			 m_index.values[to_index(i)] = first_free;
 			 first_free = i;
 			 if(size_used - 1 == to_index(i)) {
@@ -656,6 +679,14 @@ struct supports_index<military_leader::container, military_leader::reliability> 
 };
 template<>
 struct supports_index<military_leader::container, military_leader::is_attached> {
+	static constexpr bool value = true;
+	 using type = bool;
+	 using const_type = bool;
+	 using row = tagged_array_view<bitfield_type, military::leader_tag>;
+	 using const_row = tagged_array_view<bitfield_type const, military::leader_tag>;
+};
+template<>
+struct supports_index<military_leader::container, military_leader::is_general> {
 	static constexpr bool value = true;
 	 using type = bool;
 	 using const_type = bool;
@@ -904,6 +935,7 @@ class serialization::serializer<military_leader::container> {
 			 }
 		}
 		 serialization::serialize_array(output, obj.m_14.values, uint32_t(obj.size_used + 7) / 8ui32);
+		 serialization::serialize_array(output, obj.m_15.values, uint32_t(obj.size_used + 7) / 8ui32);
 	 }
 	 template<typename ... CONTEXT>
 	 static void deserialize_object(std::byte const* &input, military_leader::container& obj, CONTEXT&& ... c) {
@@ -1146,6 +1178,7 @@ class serialization::serializer<military_leader::container> {
 			 }
 		}
 		 serialization::deserialize_array(input, obj.m_14.values, uint32_t(obj.size_used + 7) / 8ui32);
+		 serialization::deserialize_array(input, obj.m_15.values, uint32_t(obj.size_used + 7) / 8ui32);
 	 }
 	 template<typename ... CONTEXT>
 	 static size_t size(military_leader::container const& obj, CONTEXT&& ... c) {
@@ -1331,7 +1364,7 @@ class serialization::serializer<military_leader::container> {
 				 })); 
 			 }
 		 }()
-+ sizeof(bitfield_type) * (uint32_t(obj.size_used + 7) / 8ui32));
++ sizeof(bitfield_type) * (uint32_t(obj.size_used + 7) / 8ui32)+ sizeof(bitfield_type) * (uint32_t(obj.size_used + 7) / 8ui32));
 	 }
 };
 #pragma warning( pop )
