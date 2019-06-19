@@ -1,0 +1,41 @@
+trade_windows
+
+trade_window_base ui::draggable_region(c)
+tw_close_button simple_button(f)
+tw_good_item_base ui::visible_region(c)
+	tag goods_tag
+tw_good_item_background simple_button(wft)
+	tag goods_tag
+tw_good_item_icon simple_button(w)
+tw_good_item_price text(w)
+tw_good_item_trend_icon icon(w)
+tw_good_item_buying_selling_icon icon(w)
+tw_good_item_automation_icon icon(w)
+tw_good_item tw_good_item_base
+	entry_button ui::simple_button<tw_good_item_background>
+	goods_type ui::simple_button<tw_good_item_icon>
+	price ui::display_text<tw_good_item_price>
+	trend_indicator ui::dynamic_icon<tw_good_item_trend_icon>
+	selling_indicator ui::dynamic_icon<tw_good_item_buying_selling_icon>
+	automation_indicator ui::dynamic_icon<tw_good_item_automation_icon>
+trade_details_pane_base ui::window_pane(c)
+tw_selected_good_icon icon(w)
+tw_selected_good_name text(w)
+tw_selected_good_price text(w)
+tw_good_global_max_price text(w)
+tw_good_global_min_price text(w)
+prices_barchart barchart(w)
+trade_details_pane trade_details_pane_base
+	goods_icon ui::dynamic_icon<tw_selected_good_icon>
+	goods_title ui::display_text<tw_selected_good_name>
+	goods_price ui::display_text<tw_selected_good_price>
+	price_linechart ui::display_barchart<prices_barchart>
+	price_chart_low ui::display_text<tw_good_global_min_price>
+	price_chart_high ui::display_text<tw_good_global_max_price>
+trade_window_t trade_window_base
+	close_button ui::simple_button<tw_close_button>
+	group_raw_material_goods "ui::gui_window<goods_group_window_base<group_raw_material_goods_a, sizeof(group_raw_material_goods_a) - 1>>"
+	group_industrial_goods "ui::gui_window<goods_group_window_base<group_industrial_goods_a, sizeof(group_industrial_goods_a) - 1>>"
+	group_consumer_goods "ui::gui_window<goods_group_window_base<group_consumer_goods_a, sizeof(group_consumer_goods_a) - 1>>"
+	group_military_goods "ui::gui_window<goods_group_window_base<group_military_goods_a, sizeof(group_military_goods_a) - 1>>"
+	trade_details trade_details_pane

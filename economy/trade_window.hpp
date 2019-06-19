@@ -6,6 +6,26 @@
 #include "economy\\economy_functions.h"
 
 namespace economy {
+	class tw_good_item;
+
+	template<const char* group_name, size_t length>
+	class goods_group_window_base : public ui::window_pane {
+	public:
+		std::vector<tw_good_item> member_goods;
+
+		template<typename window_type>
+		void on_create(window_type& win, world_state& ws);
+	};
+
+	inline const char group_raw_material_goods_a[] = "raw_material_goods";
+	inline const char group_industrial_goods_a[] = "industrial_goods";
+	inline const char group_consumer_goods_a[] = "consumer_goods";
+	inline const char group_military_goods_a[] = "military_goods";
+
+#include "trade_windows.h"
+
+	/*
+
 	class trade_window_base : public ui::draggable_region {
 	public:
 		template<typename window_type>
@@ -65,7 +85,8 @@ namespace economy {
 		template<typename window_type>
 		void windowed_update(ui::dynamic_icon<tw_good_item_automation_icon>& self, window_type& win, world_state& ws);
 	};
-
+	*/
+	/*
 	using tw_good_item = ui::gui_window<
 		CT_STRING("entry_button"), ui::simple_button<tw_good_item_background>,
 		CT_STRING("goods_type"), ui::simple_button<tw_good_item_icon>,
@@ -75,21 +96,13 @@ namespace economy {
 		CT_STRING("automation_indicator"), ui::dynamic_icon<tw_good_item_automation_icon>,
 		tw_good_item_base
 	>;
+	*/
 
-	template<const char* group_name, size_t length>
-	class goods_group_window_base : public ui::window_pane {
-	public:
-		std::vector<tw_good_item> member_goods;
 
-		template<typename window_type>
-		void on_create(window_type& win, world_state& ws);
-	};
 
-	inline const char group_raw_material_goods[] = "raw_material_goods";
-	inline const char group_industrial_goods[] = "industrial_goods";
-	inline const char group_consumer_goods[] = "consumer_goods";
-	inline const char group_military_goods[] = "military_goods";
+	/*
 
+	
 	class trade_details_pane_base : public ui::window_pane {
 	public:
 		template<typename window_type>
@@ -131,7 +144,8 @@ namespace economy {
 		template<typename window_type>
 		void windowed_update(ui::display_barchart<prices_barchart>& self, window_type& win, world_state& ws);
 	};
-
+	*/
+	/*
 	using trade_details_pane = ui::gui_window<
 		CT_STRING("goods_icon"), ui::dynamic_icon<tw_selected_good_icon>,
 		CT_STRING("goods_title"), ui::display_text<tw_selected_good_name>,
@@ -151,7 +165,9 @@ namespace economy {
 		CT_STRING("trade_details"), trade_details_pane,
 		trade_window_base
 	> {};
-
+	
+#include "trade_windows_b.h"
+*/
 	template<typename window_type>
 	void trade_window_base::on_create(window_type & win, world_state & ws) {
 		ui::hide(*associated_object);
@@ -230,7 +246,7 @@ namespace economy {
 		for(goods_tag::value_base_t i = 0; i < ws.s.economy_m.goods_count; ++i) {
 			if(ws.s.economy_m.goods[goods_tag(i)].type == goods_category) {
 				member_goods[nth_good].tag = goods_tag(i);
-				ui::move_to_front(ws.w.gui_m, ui::create_static_element(
+				ui::move_to_front(ws.w.gui_m, create_static_element(
 					ws, common_tag,
 					ui::tagged_gui_object{ *associated_object, win.window_object },
 					member_goods[nth_good]));

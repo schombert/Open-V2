@@ -1,3 +1,27 @@
+#pragma warning( push )
+#pragma warning( disable : 4189 )
+
+class good_filter_item;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, good_filter_item& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, good_filter_item& b);
+class gp_investment_subwindow;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, gp_investment_subwindow& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, gp_investment_subwindow& b);
+class state_pop_display_window;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, state_pop_display_window& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, state_pop_display_window& b);
+class factory_display;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, factory_display& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, factory_display& b);
+class goods_category_label;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, goods_category_label& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, goods_category_label& b);
+class production_info;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, production_info& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, production_info& b);
+class production_info_pane;
+ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, production_info_pane& b);
+ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, production_info_pane& b);
 class investment_country_item;
 ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, investment_country_item& b);
 ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, investment_country_item& b);
@@ -32,6 +56,2718 @@ class build_factory_window_t;
 ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, build_factory_window_t& b);
 ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, build_factory_window_t& b);
 
+class production_window_base : public ui::draggable_region {
+public:
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class close_button_s {
+public:
+
+	 void button_function(ui::simple_button<close_button_s>& self, world_state& ws);
+};
+class production_tab_button_group_b {
+public:
+
+	 void on_select(world_state& ws, uint32_t i);
+};
+class empty_text_box {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_pane_base : public ui::window_pane {
+public:
+
+};
+class filter_all_button {
+public:
+
+	 void update(ui::simple_button<filter_all_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_all_button>& self, world_state& ws);
+};
+class filter_north_america_button {
+public:
+
+	 void update(ui::simple_button<filter_north_america_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_north_america_button>& self, world_state& ws);
+};
+class filter_south_america_button {
+public:
+
+	 void update(ui::simple_button<filter_south_america_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_south_america_button>& self, world_state& ws);
+};
+class filter_europe_button {
+public:
+
+	 void update(ui::simple_button<filter_europe_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_europe_button>& self, world_state& ws);
+};
+class filter_africa_button {
+public:
+
+	 void update(ui::simple_button<filter_africa_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_africa_button>& self, world_state& ws);
+};
+class filter_asia_button {
+public:
+
+	 void update(ui::simple_button<filter_asia_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_asia_button>& self, world_state& ws);
+};
+class filter_oceania_button {
+public:
+
+	 void update(ui::simple_button<filter_oceania_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_oceania_button>& self, world_state& ws);
+};
+class filter_neighbours_button {
+public:
+
+	 void update(ui::simple_button<filter_neighbours_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_neighbours_button>& self, world_state& ws);
+};
+class filter_sphere_button {
+public:
+
+	 void update(ui::simple_button<filter_sphere_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_sphere_button>& self, world_state& ws);
+};
+class filter_enemies_button {
+public:
+
+	 void update(ui::simple_button<filter_enemies_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_enemies_button>& self, world_state& ws);
+};
+class filter_allies_button {
+public:
+
+	 void update(ui::simple_button<filter_allies_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<filter_allies_button>& self, world_state& ws);
+};
+class clear_text_button {
+public:
+
+	 void on_create(ui::simple_button<clear_text_button>& self, world_state& ws);
+};
+class sort_by_country_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_country_button>& self, world_state& ws);
+};
+class sort_by_my_flag_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_my_flag_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_my_flag_button>& self, world_state& ws);
+};
+class sort_by_gpflag0_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag0_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag0_button>& self, world_state& ws);
+};
+class sort_by_gpflag1_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag1_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag1_button>& self, world_state& ws);
+};
+class sort_by_gpflag2_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag2_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag2_button>& self, world_state& ws);
+};
+class sort_by_gpflag3_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag3_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag3_button>& self, world_state& ws);
+};
+class sort_by_gpflag4_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag4_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag4_button>& self, world_state& ws);
+};
+class sort_by_gpflag5_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag5_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag5_button>& self, world_state& ws);
+};
+class sort_by_gpflag6_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag6_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag6_button>& self, world_state& ws);
+};
+class sort_by_gpflag7_button {
+public:
+
+	 void update(ui::masked_flag<sort_by_gpflag7_button>& self, world_state& ws);
+	 void button_function(ui::masked_flag<sort_by_gpflag7_button>& self, world_state& ws);
+};
+class sort_by_boss_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_boss_button>& self, world_state& ws);
+};
+class sort_by_prestige_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_prestige_button>& self, world_state& ws);
+};
+class sort_by_economic_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_economic_button>& self, world_state& ws);
+};
+class sort_by_military_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_military_button>& self, world_state& ws);
+};
+class sort_by_total_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_total_button>& self, world_state& ws);
+};
+class sort_by_opinion_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_opinion_button>& self, world_state& ws);
+};
+class sort_by_relation_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_relation_button>& self, world_state& ws);
+};
+class sort_by_invest_factories_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_invest_factories_button>& self, world_state& ws);
+};
+class sort_by_project_state_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_project_state_button>& self, world_state& ws);
+};
+class sort_by_project_type_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_project_type_button>& self, world_state& ws);
+};
+class sort_by_project_completion_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_project_completion_button>& self, world_state& ws);
+};
+class sort_by_project_investors_button {
+public:
+
+	 void button_function(ui::simple_button<sort_by_project_investors_button>& self, world_state& ws);
+};
+class investment_country_item_base : public ui::visible_region {
+public:
+	 nations::country_tag tag;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+	 void set_value(nations::country_tag t) {
+		 tag = t;
+	 }
+};
+class investment_country_item_background_button {
+public:
+	 nations::country_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<investment_country_item_background_button>& self, window_type& w, world_state& ws);
+	 void button_function(ui::simple_button<investment_country_item_background_button>& self, world_state& ws);
+};
+class investment_country_item_flag {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::masked_flag<investment_country_item_flag>& self, window_type& w, world_state& ws);
+};
+class investment_country_item_name {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_self_investment_text {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_sphere_leader_flag {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::masked_flag<investment_country_item_sphere_leader_flag>& self, window_type& w, world_state& ws);
+};
+class investment_country_item_military_rank {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_industrial_rank {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_prestige_rank {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_overall_rank {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_opinion_type {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_relations_value {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_item_factories_count {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_country_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class subsidize_all_button {
+public:
+
+	 void update(ui::simple_button<subsidize_all_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<subsidize_all_button>& self, world_state& ws);
+};
+class unsubsidize_all_button {
+public:
+
+	 void update(ui::simple_button<unsubsidize_all_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<unsubsidize_all_button>& self, world_state& ws);
+};
+class open_all_factories_button {
+public:
+
+	 void update(ui::simple_button<open_all_factories_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<open_all_factories_button>& self, world_state& ws);
+};
+class close_all_factories_button {
+public:
+
+	 void update(ui::simple_button<close_all_factories_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<close_all_factories_button>& self, world_state& ws);
+};
+class select_all_factories_filters_button {
+public:
+
+	 void button_function(ui::simple_button<select_all_factories_filters_button>& self, world_state& ws);
+};
+class deselect_all_factories_filters_button {
+public:
+
+	 void button_function(ui::simple_button<deselect_all_factories_filters_button>& self, world_state& ws);
+};
+class show_hide_empty_states_button {
+public:
+
+	 void update(ui::button<show_hide_empty_states_button>& self, world_state& ws);
+	 void button_function(ui::button<show_hide_empty_states_button>& self, world_state& ws);
+};
+class sort_factories_by_state_name {
+public:
+
+	 void button_function(ui::simple_button<sort_factories_by_state_name>& self, world_state& ws);
+};
+class sort_factories_by_worker_a {
+public:
+
+	 void button_function(ui::button<sort_factories_by_worker_a>& self, world_state& ws);
+};
+class sort_factories_by_worker_b {
+public:
+
+	 void button_function(ui::button<sort_factories_by_worker_b>& self, world_state& ws);
+};
+class sort_factories_by_owner {
+public:
+
+	 void button_function(ui::button<sort_factories_by_owner>& self, world_state& ws);
+};
+class sort_factories_by_count {
+public:
+
+	 void button_function(ui::simple_button<sort_factories_by_count>& self, world_state& ws);
+};
+class sort_factories_by_infrastructure {
+public:
+
+	 void button_function(ui::simple_button<sort_factories_by_infrastructure>& self, world_state& ws);
+};
+class factory_filter_buttons_base : public ui::window_pane {
+public:
+	 ui::button<sort_factories_by_worker_a> workers_a;
+	 ui::button<sort_factories_by_worker_b> workers_b;
+	 ui::button<sort_factories_by_owner> owner;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class good_filter_item_base : public ui::visible_region {
+public:
+	 economy::goods_tag tag;
+
+};
+class good_filter_item_button {
+public:
+	 economy::goods_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<good_filter_item_button>& self, window_type& w, world_state& ws);
+	 void button_function(ui::simple_button<good_filter_item_button>& self, world_state& ws);
+};
+class good_filter_item_enabled_bg {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<good_filter_item_enabled_bg>& self, window_type& w, world_state& ws);
+};
+class good_filter_item_type {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<good_filter_item_type>& self, window_type& w, world_state& ws);
+};
+class gp_investment_subwindow_base : public ui::visible_region {
+public:
+	 int32_t nth_nation = 0;
+
+};
+class gp_subwindow_flag {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::masked_flag<gp_subwindow_flag>& self, window_type& w, world_state& ws);
+};
+class gp_subwindow_investment_value {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class state_pop_display_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<state_pop_display_icon>& self, window_type& w, world_state& ws);
+};
+class state_pop_display_amount {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class state_pop_display_window_base : public ui::visible_region {
+public:
+	 population::pop_type_tag type;
+	 nations::state_tag in_state;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+template<typename = void>
+class good_filter_item_internal_class : public good_filter_item_base {
+public:
+	 ui::simple_button<good_filter_item_button> filter_button;
+	 ui::dynamic_icon<good_filter_item_enabled_bg> filter_enabled;
+	 ui::dynamic_icon<good_filter_item_type> goods_type;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("filter_button"),index > ,ui::simple_button<good_filter_item_button>&> get() {
+		 return filter_button;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("filter_button"),index > ,ui::simple_button<good_filter_item_button> const&> get() const {
+		 return filter_button;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("filter_enabled"),index > ,ui::dynamic_icon<good_filter_item_enabled_bg>&> get() {
+		 return filter_enabled;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("filter_enabled"),index > ,ui::dynamic_icon<good_filter_item_enabled_bg> const&> get() const {
+		 return filter_enabled;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("goods_type"),index > ,ui::dynamic_icon<good_filter_item_type>&> get() {
+		 return goods_type;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("goods_type"),index > ,ui::dynamic_icon<good_filter_item_type> const&> get() const {
+		 return goods_type;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<good_filter_item_base, world_state&>) {
+			 good_filter_item_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<good_filter_item_base, good_filter_item_internal_class&, world_state&>) {
+			 good_filter_item_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<good_filter_item_base, world_state&>) 
+			 good_filter_item_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<good_filter_item_button>, good_filter_item_internal_class&, world_state&>) 
+			 filter_button.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<good_filter_item_enabled_bg>, good_filter_item_internal_class&, world_state&>) 
+			 filter_enabled.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<good_filter_item_type>, good_filter_item_internal_class&, world_state&>) 
+			 goods_type.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 good_filter_item_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("filter_button")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<good_filter_item_button>> vhelper(filter_button, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<good_filter_item_button>> vhelper(filter_button, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("filter_enabled")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<good_filter_item_enabled_bg>> vhelper(filter_enabled, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<good_filter_item_enabled_bg>> vhelper(filter_enabled, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("goods_type")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<good_filter_item_type>> vhelper(goods_type, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<good_filter_item_type>> vhelper(goods_type, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<good_filter_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!good_filter_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<good_filter_item_button>, good_filter_item_internal_class&, world_state&>)
+			 filter_button.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<good_filter_item_enabled_bg>, good_filter_item_internal_class&, world_state&>)
+			 filter_enabled.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<good_filter_item_type>, good_filter_item_internal_class&, world_state&>)
+			 goods_type.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 good_filter_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<good_filter_item_base, world_state&>) {
+			 good_filter_item_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<good_filter_item_base, good_filter_item_internal_class&, world_state&>) {
+			 good_filter_item_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class good_filter_item : public good_filter_item_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, good_filter_item& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, good_filter_item& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+template<typename = void>
+class gp_investment_subwindow_internal_class : public gp_investment_subwindow_base {
+public:
+	 ui::masked_flag<gp_subwindow_flag> country_flag;
+	 ui::display_text<gp_subwindow_investment_value> nongp_country_investment;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("country_flag"),index > ,ui::masked_flag<gp_subwindow_flag>&> get() {
+		 return country_flag;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("country_flag"),index > ,ui::masked_flag<gp_subwindow_flag> const&> get() const {
+		 return country_flag;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("nongp_country_investment"),index > ,ui::display_text<gp_subwindow_investment_value>&> get() {
+		 return nongp_country_investment;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("nongp_country_investment"),index > ,ui::display_text<gp_subwindow_investment_value> const&> get() const {
+		 return nongp_country_investment;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<gp_investment_subwindow_base, world_state&>) {
+			 gp_investment_subwindow_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<gp_investment_subwindow_base, gp_investment_subwindow_internal_class&, world_state&>) {
+			 gp_investment_subwindow_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<gp_investment_subwindow_base, world_state&>) 
+			 gp_investment_subwindow_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::masked_flag<gp_subwindow_flag>, gp_investment_subwindow_internal_class&, world_state&>) 
+			 country_flag.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<gp_subwindow_investment_value>, gp_investment_subwindow_internal_class&, world_state&>) 
+			 nongp_country_investment.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 gp_investment_subwindow_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("country_flag")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::masked_flag<gp_subwindow_flag>> vhelper(country_flag, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::masked_flag<gp_subwindow_flag>> vhelper(country_flag, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("nongp_country_investment")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<gp_subwindow_investment_value>> vhelper(nongp_country_investment, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<gp_subwindow_investment_value>> vhelper(nongp_country_investment, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<gp_investment_subwindow_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!gp_investment_subwindow_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<gp_subwindow_flag>, gp_investment_subwindow_internal_class&, world_state&>)
+			 country_flag.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_subwindow_investment_value>, gp_investment_subwindow_internal_class&, world_state&>)
+			 nongp_country_investment.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 gp_investment_subwindow_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<gp_investment_subwindow_base, world_state&>) {
+			 gp_investment_subwindow_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<gp_investment_subwindow_base, gp_investment_subwindow_internal_class&, world_state&>) {
+			 gp_investment_subwindow_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class gp_investment_subwindow : public gp_investment_subwindow_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, gp_investment_subwindow& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, gp_investment_subwindow& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+template<typename = void>
+class state_pop_display_window_internal_class : public state_pop_display_window_base {
+public:
+	 ui::dynamic_icon<state_pop_display_icon> pop_icon;
+	 ui::display_text<state_pop_display_amount, 4> pop_amount;
+	 ui::display_text<empty_text_box> pop_amount_2;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_icon"),index > ,ui::dynamic_icon<state_pop_display_icon>&> get() {
+		 return pop_icon;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_icon"),index > ,ui::dynamic_icon<state_pop_display_icon> const&> get() const {
+		 return pop_icon;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_amount"),index > ,ui::display_text<state_pop_display_amount, 4>&> get() {
+		 return pop_amount;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_amount"),index > ,ui::display_text<state_pop_display_amount, 4> const&> get() const {
+		 return pop_amount;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_amount_2"),index > ,ui::display_text<empty_text_box>&> get() {
+		 return pop_amount_2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_amount_2"),index > ,ui::display_text<empty_text_box> const&> get() const {
+		 return pop_amount_2;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<state_pop_display_window_base, world_state&>) {
+			 state_pop_display_window_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<state_pop_display_window_base, state_pop_display_window_internal_class&, world_state&>) {
+			 state_pop_display_window_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<state_pop_display_window_base, world_state&>) 
+			 state_pop_display_window_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<state_pop_display_icon>, state_pop_display_window_internal_class&, world_state&>) 
+			 pop_icon.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<state_pop_display_amount, 4>, state_pop_display_window_internal_class&, world_state&>) 
+			 pop_amount.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<empty_text_box>, state_pop_display_window_internal_class&, world_state&>) 
+			 pop_amount_2.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 state_pop_display_window_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("pop_icon")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<state_pop_display_icon>> vhelper(pop_icon, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<state_pop_display_icon>> vhelper(pop_icon, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("pop_amount")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<state_pop_display_amount, 4>> vhelper(pop_amount, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<state_pop_display_amount, 4>> vhelper(pop_amount, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("pop_amount_2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<empty_text_box>> vhelper(pop_amount_2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<empty_text_box>> vhelper(pop_amount_2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<state_pop_display_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!state_pop_display_window_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<state_pop_display_icon>, state_pop_display_window_internal_class&, world_state&>)
+			 pop_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<state_pop_display_amount, 4>, state_pop_display_window_internal_class&, world_state&>)
+			 pop_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, state_pop_display_window_internal_class&, world_state&>)
+			 pop_amount_2.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 state_pop_display_window_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<state_pop_display_window_base, world_state&>) {
+			 state_pop_display_window_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<state_pop_display_window_base, state_pop_display_window_internal_class&, world_state&>) {
+			 state_pop_display_window_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class state_pop_display_window : public state_pop_display_window_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, state_pop_display_window& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, state_pop_display_window& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+class goods_filters_base : public ui::window_pane {
+public:
+	 std::vector<good_filter_item> filter_buttons;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class investment_filter_buttons_base : public ui::window_pane {
+public:
+	 ui::button<sort_factories_by_worker_a> workers_a;
+	 ui::button<sort_factories_by_worker_b> workers_b;
+	 ui::button<sort_factories_by_owner> owner;
+	 gp_investment_subwindow gp_windows[8];
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class investment_target_flag {
+public:
+
+	 void update(ui::masked_flag<investment_target_flag>& self, world_state& ws);
+};
+class investment_target_flag_overlay {
+public:
+
+	 void update(ui::dynamic_icon<investment_target_flag_overlay>& self, world_state& ws);
+};
+class investment_target_name {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_target_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class investment_target_back_button {
+public:
+
+	 void button_function(ui::simple_button<investment_target_back_button>& self, world_state& ws);
+};
+class factory_display_base : public ui::visible_region {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class factory_open_background {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_open_background>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class factory_closed_background {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_closed_background>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class factory_construction_progress_bar {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::progress_bar<factory_construction_progress_bar>& self, window_type& w, world_state& ws);
+};
+class factory_cancel_construction_button {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_cancel_construction_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<factory_cancel_construction_button>& self, world_state& ws);
+};
+class factory_upgrade_progress_bar {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::progress_bar<factory_upgrade_progress_bar>& self, window_type& w, world_state& ws);
+};
+class factory_upgrade_progress_overlay {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_upgrade_progress_overlay>& self, window_type& w, world_state& ws);
+};
+class factory_level_text {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_upgrade_button {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename window_type>
+	 void windowed_update(ui::button<factory_upgrade_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::button<factory_upgrade_button>& self, key_modifiers mod, world_state& ws);
+};
+class hidden_icon {
+public:
+
+	 void update(ui::dynamic_icon<hidden_icon>& self, world_state& ws);
+};
+class factory_income_arrow {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_income_arrow>& self, window_type& w, world_state& ws);
+};
+class factory_income_text {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_subsidize_button {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_subsidize_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<factory_subsidize_button>& self, world_state& ws);
+};
+class hidden_button {
+public:
+
+	 void update(ui::simple_button<hidden_button>& self, world_state& ws);
+};
+class factory_workers_display {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_workers_display>& self, window_type& w, world_state& ws);
+};
+class factory_closed_overlay {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_closed_overlay>& self, window_type& w, world_state& ws);
+};
+class factory_output {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_output>& self, window_type& w, world_state& ws);
+};
+class factory_delete_button {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_delete_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<factory_delete_button>& self, world_state& ws);
+};
+class factory_open_or_close_button {
+public:
+	 nations::state_tag location;
+	 int32_t index = -1;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_open_or_close_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<factory_open_or_close_button>& self, world_state& ws);
+};
+class factory_closed_text_s {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class goods_category_label_base : public ui::visible_region {
+public:
+	 economy::goods_type_tag category;
+
+};
+class goods_category_name {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class production_info_base : public ui::window_pane {
+public:
+	 economy::goods_tag tag;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class production_backkground {
+public:
+	 economy::goods_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<production_backkground>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class production_pop_icon {
+public:
+	 population::pop_type_tag type;
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<production_pop_icon>& self, window_type& w, world_state& ws);
+};
+class production_pop_output {
+public:
+	 population::pop_type_tag type;
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class production_input_icon {
+public:
+	 economy::goods_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<production_input_icon>& self, window_type& w, world_state& ws);
+};
+class production_total_output {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class production_output_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<production_output_icon>& self, window_type& w, world_state& ws);
+};
+class production_no_production_overlay {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<production_no_production_overlay>& self, window_type& w, world_state& ws);
+};
+template<typename = void>
+class factory_display_internal_class : public factory_display_base {
+public:
+	 ui::dynamic_icon<factory_open_background> prod_factory_bg;
+	 ui::dynamic_icon<factory_closed_background> prod_factory_inprogress_bg;
+	 ui::progress_bar<factory_construction_progress_bar> build_factory_progress;
+	 ui::simple_button<factory_cancel_construction_button> prod_cancel_progress;
+	 ui::progress_bar<factory_upgrade_progress_bar> upgrade_factory_progress;
+	 ui::dynamic_icon<factory_upgrade_progress_overlay> progress_overlay_16_64;
+	 ui::display_text<factory_level_text> level;
+	 ui::button<factory_upgrade_button> upgrade;
+	 ui::dynamic_icon<hidden_icon> input_0_lack2;
+	 ui::dynamic_icon<hidden_icon> input_1_lack2;
+	 ui::dynamic_icon<hidden_icon> input_2_lack2;
+	 ui::dynamic_icon<hidden_icon> input_3_lack2;
+	 ui::dynamic_icon<factory_input<0>> input_0;
+	 ui::dynamic_icon<factory_input<1>> input_1;
+	 ui::dynamic_icon<factory_input<2>> input_2;
+	 ui::dynamic_icon<factory_input<3>> input_3;
+	 ui::dynamic_icon<factory_income_arrow> income_icon;
+	 ui::display_text<factory_income_text, -14> income;
+	 ui::simple_button<factory_subsidize_button> subsidise;
+	 ui::simple_button<hidden_button> priority;
+	 ui::dynamic_icon<factory_workers_display> employment_ratio;
+	 ui::dynamic_icon<factory_closed_overlay> closed_overlay;
+	 ui::simple_button<factory_output> output;
+	 ui::simple_button<factory_delete_button> delete_factory;
+	 ui::simple_button<factory_open_or_close_button> open_close;
+	 ui::display_text<factory_closed_text_s> factory_closed_text;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_factory_bg"),index > ,ui::dynamic_icon<factory_open_background>&> get() {
+		 return prod_factory_bg;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_factory_bg"),index > ,ui::dynamic_icon<factory_open_background> const&> get() const {
+		 return prod_factory_bg;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_factory_inprogress_bg"),index > ,ui::dynamic_icon<factory_closed_background>&> get() {
+		 return prod_factory_inprogress_bg;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_factory_inprogress_bg"),index > ,ui::dynamic_icon<factory_closed_background> const&> get() const {
+		 return prod_factory_inprogress_bg;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("build_factory_progress"),index > ,ui::progress_bar<factory_construction_progress_bar>&> get() {
+		 return build_factory_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("build_factory_progress"),index > ,ui::progress_bar<factory_construction_progress_bar> const&> get() const {
+		 return build_factory_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_cancel_progress"),index > ,ui::simple_button<factory_cancel_construction_button>&> get() {
+		 return prod_cancel_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_cancel_progress"),index > ,ui::simple_button<factory_cancel_construction_button> const&> get() const {
+		 return prod_cancel_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("upgrade_factory_progress"),index > ,ui::progress_bar<factory_upgrade_progress_bar>&> get() {
+		 return upgrade_factory_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("upgrade_factory_progress"),index > ,ui::progress_bar<factory_upgrade_progress_bar> const&> get() const {
+		 return upgrade_factory_progress;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("progress_overlay_16_64"),index > ,ui::dynamic_icon<factory_upgrade_progress_overlay>&> get() {
+		 return progress_overlay_16_64;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("progress_overlay_16_64"),index > ,ui::dynamic_icon<factory_upgrade_progress_overlay> const&> get() const {
+		 return progress_overlay_16_64;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("level"),index > ,ui::display_text<factory_level_text>&> get() {
+		 return level;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("level"),index > ,ui::display_text<factory_level_text> const&> get() const {
+		 return level;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("upgrade"),index > ,ui::button<factory_upgrade_button>&> get() {
+		 return upgrade;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("upgrade"),index > ,ui::button<factory_upgrade_button> const&> get() const {
+		 return upgrade;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_0_lack2"),index > ,ui::dynamic_icon<hidden_icon>&> get() {
+		 return input_0_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_0_lack2"),index > ,ui::dynamic_icon<hidden_icon> const&> get() const {
+		 return input_0_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_1_lack2"),index > ,ui::dynamic_icon<hidden_icon>&> get() {
+		 return input_1_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_1_lack2"),index > ,ui::dynamic_icon<hidden_icon> const&> get() const {
+		 return input_1_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_2_lack2"),index > ,ui::dynamic_icon<hidden_icon>&> get() {
+		 return input_2_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_2_lack2"),index > ,ui::dynamic_icon<hidden_icon> const&> get() const {
+		 return input_2_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_3_lack2"),index > ,ui::dynamic_icon<hidden_icon>&> get() {
+		 return input_3_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_3_lack2"),index > ,ui::dynamic_icon<hidden_icon> const&> get() const {
+		 return input_3_lack2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_0"),index > ,ui::dynamic_icon<factory_input<0>>&> get() {
+		 return input_0;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_0"),index > ,ui::dynamic_icon<factory_input<0>> const&> get() const {
+		 return input_0;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_1"),index > ,ui::dynamic_icon<factory_input<1>>&> get() {
+		 return input_1;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_1"),index > ,ui::dynamic_icon<factory_input<1>> const&> get() const {
+		 return input_1;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_2"),index > ,ui::dynamic_icon<factory_input<2>>&> get() {
+		 return input_2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_2"),index > ,ui::dynamic_icon<factory_input<2>> const&> get() const {
+		 return input_2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_3"),index > ,ui::dynamic_icon<factory_input<3>>&> get() {
+		 return input_3;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_3"),index > ,ui::dynamic_icon<factory_input<3>> const&> get() const {
+		 return input_3;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("income_icon"),index > ,ui::dynamic_icon<factory_income_arrow>&> get() {
+		 return income_icon;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("income_icon"),index > ,ui::dynamic_icon<factory_income_arrow> const&> get() const {
+		 return income_icon;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("income"),index > ,ui::display_text<factory_income_text, -14>&> get() {
+		 return income;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("income"),index > ,ui::display_text<factory_income_text, -14> const&> get() const {
+		 return income;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("subsidise"),index > ,ui::simple_button<factory_subsidize_button>&> get() {
+		 return subsidise;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("subsidise"),index > ,ui::simple_button<factory_subsidize_button> const&> get() const {
+		 return subsidise;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("priority"),index > ,ui::simple_button<hidden_button>&> get() {
+		 return priority;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("priority"),index > ,ui::simple_button<hidden_button> const&> get() const {
+		 return priority;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("employment_ratio"),index > ,ui::dynamic_icon<factory_workers_display>&> get() {
+		 return employment_ratio;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("employment_ratio"),index > ,ui::dynamic_icon<factory_workers_display> const&> get() const {
+		 return employment_ratio;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("closed_overlay"),index > ,ui::dynamic_icon<factory_closed_overlay>&> get() {
+		 return closed_overlay;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("closed_overlay"),index > ,ui::dynamic_icon<factory_closed_overlay> const&> get() const {
+		 return closed_overlay;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output"),index > ,ui::simple_button<factory_output>&> get() {
+		 return output;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output"),index > ,ui::simple_button<factory_output> const&> get() const {
+		 return output;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("delete_factory"),index > ,ui::simple_button<factory_delete_button>&> get() {
+		 return delete_factory;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("delete_factory"),index > ,ui::simple_button<factory_delete_button> const&> get() const {
+		 return delete_factory;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("open_close"),index > ,ui::simple_button<factory_open_or_close_button>&> get() {
+		 return open_close;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("open_close"),index > ,ui::simple_button<factory_open_or_close_button> const&> get() const {
+		 return open_close;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("factory_closed_text"),index > ,ui::display_text<factory_closed_text_s>&> get() {
+		 return factory_closed_text;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("factory_closed_text"),index > ,ui::display_text<factory_closed_text_s> const&> get() const {
+		 return factory_closed_text;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<factory_display_base, world_state&>) {
+			 factory_display_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<factory_display_base, factory_display_internal_class&, world_state&>) {
+			 factory_display_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<factory_display_base, world_state&>) 
+			 factory_display_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_open_background>, factory_display_internal_class&, world_state&>) 
+			 prod_factory_bg.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_closed_background>, factory_display_internal_class&, world_state&>) 
+			 prod_factory_inprogress_bg.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::progress_bar<factory_construction_progress_bar>, factory_display_internal_class&, world_state&>) 
+			 build_factory_progress.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<factory_cancel_construction_button>, factory_display_internal_class&, world_state&>) 
+			 prod_cancel_progress.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::progress_bar<factory_upgrade_progress_bar>, factory_display_internal_class&, world_state&>) 
+			 upgrade_factory_progress.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_upgrade_progress_overlay>, factory_display_internal_class&, world_state&>) 
+			 progress_overlay_16_64.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<factory_level_text>, factory_display_internal_class&, world_state&>) 
+			 level.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::button<factory_upgrade_button>, factory_display_internal_class&, world_state&>) 
+			 upgrade.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>) 
+			 input_0_lack2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>) 
+			 input_1_lack2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>) 
+			 input_2_lack2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>) 
+			 input_3_lack2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_input<0>>, factory_display_internal_class&, world_state&>) 
+			 input_0.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_input<1>>, factory_display_internal_class&, world_state&>) 
+			 input_1.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_input<2>>, factory_display_internal_class&, world_state&>) 
+			 input_2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_input<3>>, factory_display_internal_class&, world_state&>) 
+			 input_3.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_income_arrow>, factory_display_internal_class&, world_state&>) 
+			 income_icon.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<factory_income_text, -14>, factory_display_internal_class&, world_state&>) 
+			 income.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<factory_subsidize_button>, factory_display_internal_class&, world_state&>) 
+			 subsidise.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<hidden_button>, factory_display_internal_class&, world_state&>) 
+			 priority.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_workers_display>, factory_display_internal_class&, world_state&>) 
+			 employment_ratio.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<factory_closed_overlay>, factory_display_internal_class&, world_state&>) 
+			 closed_overlay.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<factory_output>, factory_display_internal_class&, world_state&>) 
+			 output.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<factory_delete_button>, factory_display_internal_class&, world_state&>) 
+			 delete_factory.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<factory_open_or_close_button>, factory_display_internal_class&, world_state&>) 
+			 open_close.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<factory_closed_text_s>, factory_display_internal_class&, world_state&>) 
+			 factory_closed_text.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 factory_display_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("prod_factory_bg")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_open_background>> vhelper(prod_factory_bg, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_open_background>> vhelper(prod_factory_bg, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("prod_factory_inprogress_bg")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_closed_background>> vhelper(prod_factory_inprogress_bg, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_closed_background>> vhelper(prod_factory_inprogress_bg, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("build_factory_progress")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::progress_bar<factory_construction_progress_bar>> vhelper(build_factory_progress, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::progress_bar<factory_construction_progress_bar>> vhelper(build_factory_progress, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("prod_cancel_progress")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<factory_cancel_construction_button>> vhelper(prod_cancel_progress, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<factory_cancel_construction_button>> vhelper(prod_cancel_progress, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("upgrade_factory_progress")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::progress_bar<factory_upgrade_progress_bar>> vhelper(upgrade_factory_progress, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::progress_bar<factory_upgrade_progress_bar>> vhelper(upgrade_factory_progress, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("progress_overlay_16_64")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_upgrade_progress_overlay>> vhelper(progress_overlay_16_64, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_upgrade_progress_overlay>> vhelper(progress_overlay_16_64, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("level")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<factory_level_text>> vhelper(level, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<factory_level_text>> vhelper(level, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("upgrade")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::button<factory_upgrade_button>> vhelper(upgrade, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::button<factory_upgrade_button>> vhelper(upgrade, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_0_lack2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_0_lack2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_0_lack2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_1_lack2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_1_lack2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_1_lack2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_2_lack2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_2_lack2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_2_lack2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_3_lack2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_3_lack2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<hidden_icon>> vhelper(input_3_lack2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_0")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<0>>> vhelper(input_0, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<0>>> vhelper(input_0, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_1")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<1>>> vhelper(input_1, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<1>>> vhelper(input_1, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<2>>> vhelper(input_2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<2>>> vhelper(input_2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_3")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<3>>> vhelper(input_3, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_input<3>>> vhelper(input_3, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("income_icon")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_income_arrow>> vhelper(income_icon, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_income_arrow>> vhelper(income_icon, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("income")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<factory_income_text, -14>> vhelper(income, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<factory_income_text, -14>> vhelper(income, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("subsidise")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<factory_subsidize_button>> vhelper(subsidise, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<factory_subsidize_button>> vhelper(subsidise, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("priority")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<hidden_button>> vhelper(priority, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<hidden_button>> vhelper(priority, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("employment_ratio")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_workers_display>> vhelper(employment_ratio, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_workers_display>> vhelper(employment_ratio, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("closed_overlay")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_closed_overlay>> vhelper(closed_overlay, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<factory_closed_overlay>> vhelper(closed_overlay, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("output")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<factory_output>> vhelper(output, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<factory_output>> vhelper(output, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("delete_factory")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<factory_delete_button>> vhelper(delete_factory, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<factory_delete_button>> vhelper(delete_factory, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("open_close")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<factory_open_or_close_button>> vhelper(open_close, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<factory_open_or_close_button>> vhelper(open_close, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("factory_closed_text")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<factory_closed_text_s>> vhelper(factory_closed_text, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<factory_closed_text_s>> vhelper(factory_closed_text, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<factory_display_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!factory_display_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_open_background>, factory_display_internal_class&, world_state&>)
+			 prod_factory_bg.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_closed_background>, factory_display_internal_class&, world_state&>)
+			 prod_factory_inprogress_bg.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::progress_bar<factory_construction_progress_bar>, factory_display_internal_class&, world_state&>)
+			 build_factory_progress.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_cancel_construction_button>, factory_display_internal_class&, world_state&>)
+			 prod_cancel_progress.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::progress_bar<factory_upgrade_progress_bar>, factory_display_internal_class&, world_state&>)
+			 upgrade_factory_progress.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_upgrade_progress_overlay>, factory_display_internal_class&, world_state&>)
+			 progress_overlay_16_64.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_level_text>, factory_display_internal_class&, world_state&>)
+			 level.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button<factory_upgrade_button>, factory_display_internal_class&, world_state&>)
+			 upgrade.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>)
+			 input_0_lack2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>)
+			 input_1_lack2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>)
+			 input_2_lack2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<hidden_icon>, factory_display_internal_class&, world_state&>)
+			 input_3_lack2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_input<0>>, factory_display_internal_class&, world_state&>)
+			 input_0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_input<1>>, factory_display_internal_class&, world_state&>)
+			 input_1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_input<2>>, factory_display_internal_class&, world_state&>)
+			 input_2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_input<3>>, factory_display_internal_class&, world_state&>)
+			 input_3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_income_arrow>, factory_display_internal_class&, world_state&>)
+			 income_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_income_text, -14>, factory_display_internal_class&, world_state&>)
+			 income.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_subsidize_button>, factory_display_internal_class&, world_state&>)
+			 subsidise.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<hidden_button>, factory_display_internal_class&, world_state&>)
+			 priority.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_workers_display>, factory_display_internal_class&, world_state&>)
+			 employment_ratio.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_closed_overlay>, factory_display_internal_class&, world_state&>)
+			 closed_overlay.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_output>, factory_display_internal_class&, world_state&>)
+			 output.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_delete_button>, factory_display_internal_class&, world_state&>)
+			 delete_factory.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_open_or_close_button>, factory_display_internal_class&, world_state&>)
+			 open_close.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_closed_text_s>, factory_display_internal_class&, world_state&>)
+			 factory_closed_text.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 factory_display_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<factory_display_base, world_state&>) {
+			 factory_display_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<factory_display_base, factory_display_internal_class&, world_state&>) {
+			 factory_display_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class factory_display : public factory_display_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, factory_display& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, factory_display& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+template<typename = void>
+class goods_category_label_internal_class : public goods_category_label_base {
+public:
+	 ui::display_text<goods_category_name> cat_name;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("cat_name"),index > ,ui::display_text<goods_category_name>&> get() {
+		 return cat_name;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("cat_name"),index > ,ui::display_text<goods_category_name> const&> get() const {
+		 return cat_name;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<goods_category_label_base, world_state&>) {
+			 goods_category_label_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<goods_category_label_base, goods_category_label_internal_class&, world_state&>) {
+			 goods_category_label_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<goods_category_label_base, world_state&>) 
+			 goods_category_label_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<goods_category_name>, goods_category_label_internal_class&, world_state&>) 
+			 cat_name.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 goods_category_label_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("cat_name")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<goods_category_name>> vhelper(cat_name, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<goods_category_name>> vhelper(cat_name, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<goods_category_label_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!goods_category_label_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<goods_category_name>, goods_category_label_internal_class&, world_state&>)
+			 cat_name.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 goods_category_label_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<goods_category_label_base, world_state&>) {
+			 goods_category_label_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<goods_category_label_base, goods_category_label_internal_class&, world_state&>) {
+			 goods_category_label_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class goods_category_label : public goods_category_label_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, goods_category_label& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, goods_category_label& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+template<typename = void>
+class production_info_internal_class : public production_info_base {
+public:
+	 ui::dynamic_icon<production_backkground> prod_producing_entry;
+	 ui::dynamic_icon<production_pop_icon> pop_factory;
+	 ui::dynamic_icon<production_pop_icon> pop_factory2;
+	 ui::display_text<production_pop_output> output;
+	 ui::display_text<production_pop_output> output2;
+	 ui::dynamic_icon<production_input_icon> input_factory_0;
+	 ui::dynamic_icon<production_input_icon> input_factory_1;
+	 ui::dynamic_icon<production_input_icon> input_factory_2;
+	 ui::dynamic_icon<production_input_icon> input_factory_3;
+	 ui::display_text<production_total_output> output_total;
+	 ui::dynamic_icon<production_no_production_overlay> prod_producing_not_total;
+	 ui::simple_button<production_output_icon> output_factory;
+	 ui::gui_object_tag window_object;
+
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_producing_entry"),index > ,ui::dynamic_icon<production_backkground>&> get() {
+		 return prod_producing_entry;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_producing_entry"),index > ,ui::dynamic_icon<production_backkground> const&> get() const {
+		 return prod_producing_entry;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_factory"),index > ,ui::dynamic_icon<production_pop_icon>&> get() {
+		 return pop_factory;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_factory"),index > ,ui::dynamic_icon<production_pop_icon> const&> get() const {
+		 return pop_factory;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_factory2"),index > ,ui::dynamic_icon<production_pop_icon>&> get() {
+		 return pop_factory2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("pop_factory2"),index > ,ui::dynamic_icon<production_pop_icon> const&> get() const {
+		 return pop_factory2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output"),index > ,ui::display_text<production_pop_output>&> get() {
+		 return output;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output"),index > ,ui::display_text<production_pop_output> const&> get() const {
+		 return output;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output2"),index > ,ui::display_text<production_pop_output>&> get() {
+		 return output2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output2"),index > ,ui::display_text<production_pop_output> const&> get() const {
+		 return output2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_0"),index > ,ui::dynamic_icon<production_input_icon>&> get() {
+		 return input_factory_0;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_0"),index > ,ui::dynamic_icon<production_input_icon> const&> get() const {
+		 return input_factory_0;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_1"),index > ,ui::dynamic_icon<production_input_icon>&> get() {
+		 return input_factory_1;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_1"),index > ,ui::dynamic_icon<production_input_icon> const&> get() const {
+		 return input_factory_1;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_2"),index > ,ui::dynamic_icon<production_input_icon>&> get() {
+		 return input_factory_2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_2"),index > ,ui::dynamic_icon<production_input_icon> const&> get() const {
+		 return input_factory_2;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_3"),index > ,ui::dynamic_icon<production_input_icon>&> get() {
+		 return input_factory_3;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("input_factory_3"),index > ,ui::dynamic_icon<production_input_icon> const&> get() const {
+		 return input_factory_3;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output_total"),index > ,ui::display_text<production_total_output>&> get() {
+		 return output_total;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output_total"),index > ,ui::display_text<production_total_output> const&> get() const {
+		 return output_total;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_producing_not_total"),index > ,ui::dynamic_icon<production_no_production_overlay>&> get() {
+		 return prod_producing_not_total;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("prod_producing_not_total"),index > ,ui::dynamic_icon<production_no_production_overlay> const&> get() const {
+		 return prod_producing_not_total;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output_factory"),index > ,ui::simple_button<production_output_icon>&> get() {
+		 return output_factory;
+	 }
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("output_factory"),index > ,ui::simple_button<production_output_icon> const&> get() const {
+		 return output_factory;
+	 }
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<production_info_base, world_state&>) {
+			 production_info_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<production_info_base, production_info_internal_class&, world_state&>) {
+			 production_info_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<production_info_base, world_state&>) 
+			 production_info_base::update(ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_backkground>, production_info_internal_class&, world_state&>) 
+			 prod_producing_entry.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_pop_icon>, production_info_internal_class&, world_state&>) 
+			 pop_factory.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_pop_icon>, production_info_internal_class&, world_state&>) 
+			 pop_factory2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<production_pop_output>, production_info_internal_class&, world_state&>) 
+			 output.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<production_pop_output>, production_info_internal_class&, world_state&>) 
+			 output2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>) 
+			 input_factory_0.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>) 
+			 input_factory_1.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>) 
+			 input_factory_2.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>) 
+			 input_factory_3.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::display_text<production_total_output>, production_info_internal_class&, world_state&>) 
+			 output_total.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::dynamic_icon<production_no_production_overlay>, production_info_internal_class&, world_state&>) 
+			 prod_producing_not_total.windowed_update(*this, ws);
+		 if constexpr(ui::detail::has_windowed_update<ui::simple_button<production_output_icon>, production_info_internal_class&, world_state&>) 
+			 output_factory.windowed_update(*this, ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 production_info_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+			 if(compile_time_str_compare_ci<CT_STRING("prod_producing_entry")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_backkground>> vhelper(prod_producing_entry, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_backkground>> vhelper(prod_producing_entry, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("pop_factory")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_pop_icon>> vhelper(pop_factory, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_pop_icon>> vhelper(pop_factory, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("pop_factory2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_pop_icon>> vhelper(pop_factory2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_pop_icon>> vhelper(pop_factory2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("output")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<production_pop_output>> vhelper(output, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<production_pop_output>> vhelper(output, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("output2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<production_pop_output>> vhelper(output2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<production_pop_output>> vhelper(output2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_factory_0")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_0, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_0, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_factory_1")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_1, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_1, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_factory_2")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_2, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_2, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("input_factory_3")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_3, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_input_icon>> vhelper(input_factory_3, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("output_total")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::display_text<production_total_output>> vhelper(output_total, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::display_text<production_total_output>> vhelper(output_total, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("prod_producing_not_total")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_no_production_overlay>> vhelper(prod_producing_not_total, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::dynamic_icon<production_no_production_overlay>> vhelper(prod_producing_not_total, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else if(compile_time_str_compare_ci<CT_STRING("output_factory")>(rn_s, rn_e) == 0) {
+#ifdef _DEBUG
+				 ui::detail::visitor_helper<ui::simple_button<production_output_icon>> vhelper(output_factory, window, ws, rn_s, rn_e);
+#else
+				 ui::detail::visitor_helper<ui::simple_button<production_output_icon>> vhelper(output_factory, window, ws);
+#endif
+				 std::visit(vhelper, *i);
+			 } else {
+				 if constexpr(ui::detail::can_create_dynamic<production_info_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!production_info_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+			 }
+		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_backkground>, production_info_internal_class&, world_state&>)
+			 prod_producing_entry.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_pop_icon>, production_info_internal_class&, world_state&>)
+			 pop_factory.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_pop_icon>, production_info_internal_class&, world_state&>)
+			 pop_factory2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<production_pop_output>, production_info_internal_class&, world_state&>)
+			 output.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<production_pop_output>, production_info_internal_class&, world_state&>)
+			 output2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>)
+			 input_factory_0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>)
+			 input_factory_1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>)
+			 input_factory_2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_input_icon>, production_info_internal_class&, world_state&>)
+			 input_factory_3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<production_total_output>, production_info_internal_class&, world_state&>)
+			 output_total.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<production_no_production_overlay>, production_info_internal_class&, world_state&>)
+			 prod_producing_not_total.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<production_output_icon>, production_info_internal_class&, world_state&>)
+			 output_factory.initialize_in_window(*this, ws);
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 production_info_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<production_info_base, world_state&>) {
+			 production_info_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<production_info_base, production_info_internal_class&, world_state&>) {
+			 production_info_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class production_info : public production_info_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, production_info& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, production_info& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+class state_window_base : public ui::window_pane {
+public:
+	 nations::state_tag tag;
+	 state_pop_display_window workers_a;
+	 state_pop_display_window workers_b;
+	 state_pop_display_window owner;
+	 factory_display factories[state::factories_count];
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+	 void set_value(nations::state_tag t);
+	 void update(world_state& ws);
+};
+class state_focus_button {
+public:
+	 nations::state_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<state_focus_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<state_focus_button>& self, world_state& ws);
+};
+class state_name_s {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class state_factory_count {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class state_build_factory_button {
+public:
+	 nations::state_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<state_build_factory_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<state_build_factory_button>& self, world_state& ws);
+};
+class state_average_infrastructure {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class state_details_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class investment_state_details_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class production_info_pane_base : public ui::window_pane {
+public:
+	 std::vector<goods_category_label> categories;
+	 std::vector<production_info> production_details;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+template<typename = void>
+class production_info_pane_internal_class : public production_info_pane_base {
+public:
+	 ui::gui_object_tag window_object;
+
+
+	 void on_create(world_state& ws) {
+		 if constexpr(ui::detail::has_on_create<production_info_pane_base, world_state&>) {
+			 production_info_pane_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<production_info_pane_base, production_info_pane_internal_class&, world_state&>) {
+			 production_info_pane_base::on_create(*this, ws);
+		 }
+	 }
+	 virtual void update_data(ui::gui_object_tag, world_state& ws) override {
+		 if constexpr(ui::detail::has_update<production_info_pane_base, world_state&>) 
+			 production_info_pane_base::update(ws);
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::window_def const& definition) {
+		 const auto window = ws.w.gui_m.gui_objects.emplace();
+		 window.object.align = alignment_from_definition(definition);
+		 if (is_valid_index(definition.background_handle)) {
+			 const auto& bgdefinition = ws.s.gui_m.ui_definitions.buttons[definition.background_handle];
+			 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, window, bgdefinition.graphical_object_handle);
+		 } else {
+			 window.object.type_dependant_handle.store(0, std::memory_order_release);
+		 }
+		 window.object.associated_behavior = this;
+		 production_info_pane_base::associated_object = &window.object;
+		 window.object.size = definition.size;
+		 window.object.position = definition.position;
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
+			 const char* rn_e = rn_s + rn.length();
+				 if constexpr(ui::detail::can_create_dynamic<production_info_pane_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
+					 if(!production_info_pane_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
+						 std::visit([&ws, &window](auto tag) {
+							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+								 ui::create_dynamic_element(ws, tag, window);
+						 }, *i);
+					 }
+				 } else {
+					 std::visit([&ws, &window](auto tag) {
+						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
+							 ui::create_dynamic_element(ws, tag, window);
+					 }, *i);
+				 }
+		 }
+		 window_object = window.id;
+		 return window;
+	 }
+	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
+		 const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+		 const uint16_t rotation =
+			 (icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			 ui::gui_object::rotation_upright :
+			 ((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+		 new_gobj.object.position = icon_def.position;
+		 new_gobj.object.flags.fetch_or(rotation, std::memory_order_acq_rel);
+		 new_gobj.object.align = alignment_from_definition(icon_def);
+		 ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, icon_def.frame != 0 ? int32_t(icon_def.frame) - 1 : 0);
+		 if(rotation == ui::gui_object::rotation_right) {
+			 new_gobj.object.position = ui::xy_pair{
+				 int16_t(new_gobj.object.position.x - new_gobj.object.size.y),
+				 int16_t(new_gobj.object.position.y + new_gobj.object.size.y - new_gobj.object.size.x) };
+			 new_gobj.object.size = ui::xy_pair{ new_gobj.object.size.y, new_gobj.object.size.x };
+		 }
+		 new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+		 new_gobj.object.associated_behavior = this;
+		 production_info_pane_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
+		 return new_gobj;
+	 }
+	 template<typename def_type>
+	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
+		 const auto win = create_gui_obj(ws, definition);
+		 if constexpr(ui::detail::has_on_create<production_info_pane_base, world_state&>) {
+			 production_info_pane_base::on_create(ws);
+		 } else if constexpr(ui::detail::has_on_create<production_info_pane_base, production_info_pane_internal_class&, world_state&>) {
+			 production_info_pane_base::on_create(*this, ws);
+		 }
+		 return win;
+	 }
+};
+class production_info_pane : public production_info_pane_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, production_info_pane& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, production_info_pane& b) {
+	 const auto& window_definition = ws.s.gui_m.ui_definitions.icons[handle];
+	 const auto res = b.create(ws, window_definition);
+	 ui::add_to_back(ws.w.gui_m, parent, res);
+	 ws.w.gui_m.flag_minimal_update();
+	 return res;
+}
+class project_item_base : public ui::visible_region {
+public:
+	 nations::state_tag location;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+	 void set_value(nations::state_tag t) {
+		 location = t;
+	 }
+};
+class project_state_name {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class project_resource_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<project_resource_icon>& self, window_type& w, world_state& ws);
+};
+class project_infrastructure_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<project_infrastructure_icon>& self, window_type& w, world_state& ws);
+};
+class project_name_s {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class project_cost_s {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class project_investor_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<project_investor_icon>& self, window_type& w, world_state& ws);
+};
+class project_investor_amount {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class project_invest_button {
+public:
+	 nations::state_tag location;
+
+	 template<typename window_type>
+	 void windowed_update(ui::button<project_invest_button>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::button<project_invest_button>& self, key_modifiers mod, world_state& ws);
+};
+class projects_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class factory_worker_item_base : public ui::gui_behavior {
+public:
+	 factory_worker_value value;
+
+	 void set_value(factory_worker_value t) {
+		 value = t;
+	 }
+};
+class factory_worker_item_icon {
+public:
+	 population::pop_type_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_worker_item_icon>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class factory_worker_item_amount {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_construction_cost_item_base : public ui::gui_behavior {
+public:
+	 factory_construction_cost_value value;
+
+	 void set_value(factory_construction_cost_value t) {
+		 value = t;
+	 }
+};
+class factory_construction_cost_item_icon {
+public:
+	 goods_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_construction_cost_item_icon>& self, window_type& w, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class factory_construction_cost_item_cost {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_construction_cost_item_stockpile_amount {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_type_item_base : public ui::gui_behavior {
+public:
+	 economy::goods_tag value;
+
+	 void set_value(economy::goods_tag t) {
+		 value = t;
+	 }
+};
+class factory_item_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<factory_item_icon>& self, window_type& w, world_state& ws);
+};
+class factory_item_name {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_item_cost {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_item_time {
+public:
+
+	 template<typename W>
+	 void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_item_bg {
+public:
+	 goods_tag tag;
+
+	 template<typename window_type>
+	 void windowed_update(ui::simple_button<factory_item_bg>& self, window_type& w, world_state& ws);
+	 void button_function(ui::simple_button<factory_item_bg>& self, world_state& ws);
+};
+class build_factory_window_base : public ui::draggable_region {
+public:
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class bf_state_name {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_output_icon {
+public:
+
+	 void update(ui::dynamic_icon<bf_output_icon>& self, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+};
+class bf_factory_name {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_types_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class bf_profit_label {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_profit_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_description {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_total_workers_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class factory_workers_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class factory_construction_costs_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class bf_base_price_label {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_input_price_label {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_total_label {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_base_price_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_input_price_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_total_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_treasury_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_stockpile_lack_label {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_stockpile_lack_amount {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class bf_cancel {
+public:
+
+	 void button_function(ui::simple_button<bf_cancel>& self, world_state& ws);
+};
+class bf_build {
+public:
+
+	 void update(ui::simple_button<bf_build>& self, world_state& ws);
+	 bool has_tooltip(world_state&) { return true; }
+	 void create_tooltip(world_state& ws, ui::tagged_gui_object tw);
+	 void button_function(ui::simple_button<bf_build>& self, world_state& ws);
+};
 template<typename = void>
 class investment_country_item_internal_class : public investment_country_item_base {
 public:
@@ -442,6 +3178,47 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<investment_country_item_background_button>, investment_country_item_internal_class&, world_state&>)
+			 country_select.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<investment_country_item_flag>, investment_country_item_internal_class&, world_state&>)
+			 country_flag.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_name>, investment_country_item_internal_class&, world_state&>)
+			 country_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_self_investment_text>, investment_country_item_internal_class&, world_state&>)
+			 invest.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<0>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<1>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<2>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<3>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<4>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp4.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<5>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp5.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<6>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp6.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<gp_investment_text<7>>, investment_country_item_internal_class&, world_state&>)
+			 country_gp7.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<investment_country_item_sphere_leader_flag>, investment_country_item_internal_class&, world_state&>)
+			 country_boss_flag.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_prestige_rank>, investment_country_item_internal_class&, world_state&>)
+			 country_prestige.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_industrial_rank>, investment_country_item_internal_class&, world_state&>)
+			 country_economic.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_military_rank>, investment_country_item_internal_class&, world_state&>)
+			 country_military.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_overall_rank>, investment_country_item_internal_class&, world_state&>)
+			 country_total.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_opinion_type>, investment_country_item_internal_class&, world_state&>)
+			 country_opinion.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_relations_value>, investment_country_item_internal_class&, world_state&>)
+			 country_relation.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_country_item_factories_count>, investment_country_item_internal_class&, world_state&>)
+			 factories.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -464,12 +3241,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 investment_country_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<investment_country_item_base, world_state&>) {
 			 investment_country_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<investment_country_item_base, investment_country_item_internal_class&, world_state&>) {
@@ -741,6 +3518,29 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<subsidize_all_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 prod_subsidize_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<unsubsidize_all_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 prod_unsubsidize_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<open_all_factories_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 prod_open_all_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<close_all_factories_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 prod_close_all_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<select_all_factories_filters_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 select_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<deselect_all_factories_filters_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 deselect_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button<show_hide_empty_states_button>, factory_filter_buttons_internal_class&, world_state&>)
+			 show_empty_states.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_state_name>, factory_filter_buttons_internal_class&, world_state&>)
+			 sort_by_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_count>, factory_filter_buttons_internal_class&, world_state&>)
+			 sort_by_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_infrastructure>, factory_filter_buttons_internal_class&, world_state&>)
+			 sort_by_infra.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::gui_window<goods_filters_base>, factory_filter_buttons_internal_class&, world_state&>)
+			 filter_bounds.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -763,12 +3563,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 factory_filter_buttons_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<factory_filter_buttons_base, world_state&>) {
 			 factory_filter_buttons_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<factory_filter_buttons_base, factory_filter_buttons_internal_class&, world_state&>) {
@@ -1058,6 +3858,31 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<investment_target_flag>, investment_filter_buttons_internal_class&, world_state&>)
+			 country_flag.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<investment_target_flag_overlay>, investment_filter_buttons_internal_class&, world_state&>)
+			 country_flag_overlay.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_target_name>, investment_filter_buttons_internal_class&, world_state&>)
+			 country_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<investment_target_amount>, investment_filter_buttons_internal_class&, world_state&>)
+			 country_investment.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<investment_target_back_button>, investment_filter_buttons_internal_class&, world_state&>)
+			 invest_country_browse.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<select_all_factories_filters_button>, investment_filter_buttons_internal_class&, world_state&>)
+			 select_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<deselect_all_factories_filters_button>, investment_filter_buttons_internal_class&, world_state&>)
+			 deselect_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button<show_hide_empty_states_button>, investment_filter_buttons_internal_class&, world_state&>)
+			 show_empty_states.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_state_name>, investment_filter_buttons_internal_class&, world_state&>)
+			 sort_by_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_count>, investment_filter_buttons_internal_class&, world_state&>)
+			 sort_by_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_factories_by_infrastructure>, investment_filter_buttons_internal_class&, world_state&>)
+			 sort_by_infra.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::gui_window<goods_filters_base>, investment_filter_buttons_internal_class&, world_state&>)
+			 filter_bounds.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -1080,12 +3905,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 investment_filter_buttons_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<investment_filter_buttons_base, world_state&>) {
 			 investment_filter_buttons_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<investment_filter_buttons_base, investment_filter_buttons_internal_class&, world_state&>) {
@@ -1861,6 +4686,85 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_all_button>, investment_pane_internal_class&, world_state&>)
+			 filter_all.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_north_america_button>, investment_pane_internal_class&, world_state&>)
+			 filter_north_america.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_south_america_button>, investment_pane_internal_class&, world_state&>)
+			 filter_south_america.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_europe_button>, investment_pane_internal_class&, world_state&>)
+			 filter_europe.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_africa_button>, investment_pane_internal_class&, world_state&>)
+			 filter_africa.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_asia_button>, investment_pane_internal_class&, world_state&>)
+			 filter_asia.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_oceania_button>, investment_pane_internal_class&, world_state&>)
+			 filter_oceania.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_neighbours_button>, investment_pane_internal_class&, world_state&>)
+			 filter_neighbours.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_sphere_button>, investment_pane_internal_class&, world_state&>)
+			 filter_sphere.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_enemies_button>, investment_pane_internal_class&, world_state&>)
+			 filter_enemies.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<filter_allies_button>, investment_pane_internal_class&, world_state&>)
+			 filter_allies.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_country_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_country.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_my_invest.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_my_flag_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_my_flag.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag0_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag1_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag2_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag3_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp4.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag4_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag4.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp5.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag5_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag5.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp6.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag6_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag6.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<clear_text_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gp7.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<sort_by_gpflag7_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_gpflag7.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_boss_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_boss.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_prestige_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_prestige.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_economic_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_economic.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_military_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_military.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_total_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_total.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_opinion_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_opinion.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_relation_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_relation.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_invest_factories_button>, investment_pane_internal_class&, world_state&>)
+			 sort_by_invest_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<investment_country_lb, investment_country_item, nations::country_tag>, investment_pane_internal_class&, world_state&>)
+			 country_listbox.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -1883,12 +4787,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 investment_pane_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<investment_pane_base, world_state&>) {
 			 investment_pane_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<investment_pane_base, investment_pane_internal_class&, world_state&>) {
@@ -2052,6 +4956,17 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<state_focus_button>, state_window_internal_class&, world_state&>)
+			 state_focus.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<state_name_s, 4>, state_window_internal_class&, world_state&>)
+			 state_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<state_factory_count, 4>, state_window_internal_class&, world_state&>)
+			 factory_count.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<state_build_factory_button>, state_window_internal_class&, world_state&>)
+			 build_new_factory.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<state_average_infrastructure>, state_window_internal_class&, world_state&>)
+			 avg_infra_text.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -2074,12 +4989,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 state_window_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<state_window_base, world_state&>) {
 			 state_window_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<state_window_base, state_window_internal_class&, world_state&>) {
@@ -2297,6 +5212,23 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<project_state_name>, project_item_internal_class&, world_state&>)
+			 state_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<project_resource_icon>, project_item_internal_class&, world_state&>)
+			 project_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<project_infrastructure_icon>, project_item_internal_class&, world_state&>)
+			 infra.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<project_name_s>, project_item_internal_class&, world_state&>)
+			 project_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<project_cost_s>, project_item_internal_class&, world_state&>)
+			 project_cost.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<project_investor_icon>, project_item_internal_class&, world_state&>)
+			 pop_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<project_investor_amount>, project_item_internal_class&, world_state&>)
+			 pop_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button<project_invest_button>, project_item_internal_class&, world_state&>)
+			 invest_project.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -2319,12 +5251,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 project_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<project_item_base, world_state&>) {
 			 project_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<project_item_base, project_item_internal_class&, world_state&>) {
@@ -2776,6 +5708,49 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<close_button_s>, production_window_t_internal_class&, world_state&>)
+			 close_button.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button_group_member, production_window_t_internal_class&, world_state&>)
+			 tab_factories.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button_group_member, production_window_t_internal_class&, world_state&>)
+			 tab_invest.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button_group_member, production_window_t_internal_class&, world_state&>)
+			 tab_goodsproduction.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button_group_member, production_window_t_internal_class&, world_state&>)
+			 tab_popprojects.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button_group<CT_STRING("tab_factories"), CT_STRING("tab_invest"), CT_STRING("tab_goodsproduction"), CT_STRING("tab_popprojects"), production_tab_button_group_b>, production_window_t_internal_class&, world_state&>)
+			 production_tab_button_group.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, production_window_t_internal_class&, world_state&>)
+			 tab_factories_text.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, production_window_t_internal_class&, world_state&>)
+			 tab_invest_text.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, production_window_t_internal_class&, world_state&>)
+			 tab_goodsproduction_text.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, production_window_t_internal_class&, world_state&>)
+			 tab_popprojects_text.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<investment_pane, production_window_t_internal_class&, world_state&>)
+			 investment_browser.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_project_state_button>, production_window_t_internal_class&, world_state&>)
+			 sort_by_state.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_project_type_button>, production_window_t_internal_class&, world_state&>)
+			 sort_by_projects.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_project_completion_button>, production_window_t_internal_class&, world_state&>)
+			 sort_by_completion.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<sort_by_project_investors_button>, production_window_t_internal_class&, world_state&>)
+			 sort_by_projecteers.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<factory_filter_buttons, production_window_t_internal_class&, world_state&>)
+			 factory_buttons.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<investment_filter_buttons, production_window_t_internal_class&, world_state&>)
+			 invest_buttons.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<state_details_lb, state_window, nations::state_tag>, production_window_t_internal_class&, world_state&>)
+			 state_listbox.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<investment_state_details_lb, state_window, nations::state_tag>, production_window_t_internal_class&, world_state&>)
+			 state_listbox_invest.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<production_info_pane, production_window_t_internal_class&, world_state&>)
+			 good_production.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<projects_lb, project_item, nations::state_tag>, production_window_t_internal_class&, world_state&>)
+			 project_listbox.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -2798,12 +5773,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 production_window_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<production_window_base, world_state&>) {
 			 production_window_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<production_window_base, production_window_t_internal_class&, world_state&>) {
@@ -2931,6 +5906,13 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_worker_item_icon>, factory_worker_item_internal_class&, world_state&>)
+			 pop_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<empty_text_box>, factory_worker_item_internal_class&, world_state&>)
+			 pop_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_worker_item_amount>, factory_worker_item_internal_class&, world_state&>)
+			 pop_amount_2.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -2953,12 +5935,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 factory_worker_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<factory_worker_item_base, world_state&>) {
 			 factory_worker_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<factory_worker_item_base, factory_worker_item_internal_class&, world_state&>) {
@@ -3086,6 +6068,13 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_construction_cost_item_icon>, factory_construction_cost_item_internal_class&, world_state&>)
+			 goods_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_construction_cost_item_cost>, factory_construction_cost_item_internal_class&, world_state&>)
+			 goods_cost.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_construction_cost_item_stockpile_amount>, factory_construction_cost_item_internal_class&, world_state&>)
+			 you_have.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -3108,12 +6097,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 factory_construction_cost_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<factory_construction_cost_item_base, world_state&>) {
 			 factory_construction_cost_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<factory_construction_cost_item_base, factory_construction_cost_item_internal_class&, world_state&>) {
@@ -3277,6 +6266,17 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<factory_item_bg>, factory_type_item_internal_class&, world_state&>)
+			 bg.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<factory_item_icon>, factory_type_item_internal_class&, world_state&>)
+			 output.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_item_name>, factory_type_item_internal_class&, world_state&>)
+			 name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_item_cost>, factory_type_item_internal_class&, world_state&>)
+			 total_build_cost.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<factory_item_time>, factory_type_item_internal_class&, world_state&>)
+			 buildtime.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -3299,12 +6299,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 factory_type_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<factory_type_item_base, world_state&>) {
 			 factory_type_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<factory_type_item_base, factory_type_item_internal_class&, world_state&>) {
@@ -3900,6 +6900,65 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_state_name, 8>, build_factory_window_t_internal_class&, world_state&>)
+			 state_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_amount<0>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_0_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_amount<1>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_1_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_amount<2>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_2_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_amount<3>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_3_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<bf_output_icon>, build_factory_window_t_internal_class&, world_state&>)
+			 output.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_factory_name>, build_factory_window_t_internal_class&, world_state&>)
+			 building_name.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<factory_types_lb, factory_type_item, economy::goods_tag>, build_factory_window_t_internal_class&, world_state&>)
+			 factory_type.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_profit_label>, build_factory_window_t_internal_class&, world_state&>)
+			 output_label.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_profit_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 output_amount.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<bf_input_icon<0>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_0.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<bf_input_icon<1>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_1.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<bf_input_icon<2>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_2.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<bf_input_icon<3>>, build_factory_window_t_internal_class&, world_state&>)
+			 input_3.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::multiline_text<bf_description>, build_factory_window_t_internal_class&, world_state&>)
+			 description_text.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_total_workers_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 needed_workers_count.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<factory_workers_lb, factory_worker_item, factory_worker_value>, build_factory_window_t_internal_class&, world_state&>)
+			 employment_info.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<factory_construction_costs_lb, factory_construction_cost_item, factory_construction_cost_value>, build_factory_window_t_internal_class&, world_state&>)
+			 goods_cost_info.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_base_price_label>, build_factory_window_t_internal_class&, world_state&>)
+			 base_price_label.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_price_label>, build_factory_window_t_internal_class&, world_state&>)
+			 input_price_label.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_total_label>, build_factory_window_t_internal_class&, world_state&>)
+			 total_label.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_base_price_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 base_price.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_input_price_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 input_price.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_total_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 total_price.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_treasury_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 you_have.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_stockpile_lack_label>, build_factory_window_t_internal_class&, world_state&>)
+			 prod_label.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<bf_stockpile_lack_amount>, build_factory_window_t_internal_class&, world_state&>)
+			 prod_cost.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<bf_cancel>, build_factory_window_t_internal_class&, world_state&>)
+			 Cancel.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<bf_build>, build_factory_window_t_internal_class&, world_state&>)
+			 Build.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -3922,12 +6981,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 build_factory_window_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<build_factory_window_base, world_state&>) {
 			 build_factory_window_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<build_factory_window_base, build_factory_window_t_internal_class&, world_state&>) {
@@ -3951,3 +7010,5 @@ inline ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag
 	 ws.w.gui_m.flag_minimal_update();
 	 return res;
 }
+#pragma warning( pop )
+

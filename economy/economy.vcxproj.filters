@@ -42,10 +42,7 @@
     <ClInclude Include="economy_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="good_filter_item_window.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="economy_windows_b.h">
+    <ClInclude Include="trade_windows.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -70,10 +67,7 @@
     <CustomBuild Include="economy_windows.txt">
       <Filter>Header Files</Filter>
     </CustomBuild>
-    <CustomBuild Include="good_filter_item_window.txt">
-      <Filter>Header Files</Filter>
-    </CustomBuild>
-    <CustomBuild Include="economy_windows_b.txt">
+    <CustomBuild Include="trade_windows.txt">
       <Filter>Header Files</Filter>
     </CustomBuild>
   </ItemGroup>

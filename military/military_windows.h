@@ -5,25 +5,100 @@ class fabricate_cb_window_t;
 ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, fabricate_cb_window_t& b);
 ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, fabricate_cb_window_t& b);
 
+class fabricate_cb_types_lb {
+public:
+
+	 template<typename lb_type>
+	 void populate_list(lb_type& lb, world_state& ws);
+	 ui::window_tag element_tag(ui::gui_static& m);
+};
+class cb_item_base : public ui::visible_region {
+public:
+	 military::cb_type_tag type;
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+	 void set_value(military::cb_type_tag t) {
+		 type = t;
+	 }
+};
+class cb_type_icon {
+public:
+
+	 template<typename window_type>
+	 void windowed_update(ui::dynamic_icon<cb_type_icon>& self, window_type& w, world_state& ws);
+};
+class cb_type_button {
+public:
+	 military::cb_type_tag type;
+
+	 template<typename window_type>
+	 void windowed_update(ui::button<cb_type_button>& self, window_type& w, world_state& ws);
+	 void button_function(ui::button<cb_type_button>& self, world_state& ws);
+};
+class fabricate_cb_window_base : public ui::draggable_region {
+public:
+
+	 template<typename W>
+	 void on_create(W& w, world_state& ws);
+};
+class hidden_button {
+public:
+
+	 void update(ui::simple_button<hidden_button>& self, world_state& ws);
+};
+class self_flag {
+public:
+
+	 void update(ui::masked_flag<self_flag>& self, world_state& ws);
+};
+class target_flag {
+public:
+
+	 void update(ui::masked_flag<target_flag>& self, world_state& ws);
+};
+class ok_button {
+public:
+
+	 void update(ui::simple_button<ok_button>& self, world_state& ws);
+	 void button_function(ui::simple_button<ok_button>& self, world_state& ws);
+};
+class cancel_button {
+public:
+
+	 void button_function(ui::simple_button<cancel_button>& self, world_state& ws);
+};
+class dialog_title {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
+class description {
+public:
+
+	 void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+};
 template<typename = void>
 class cb_item_internal_class : public cb_item_base {
 public:
 	 ui::dynamic_icon<cb_type_icon> wargoal_icon;
 	 ui::button<cb_type_button> select_cb;
 	 ui::gui_object_tag window_object;
-;
+
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("wargoal_icon"),index > ,ui::dynamic_icon<cb_type_icon>&> get() {
 		 return wargoal_icon;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("wargoal_icon"),index > ,ui::dynamic_icon<cb_type_icon> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("wargoal_icon"),index > ,ui::dynamic_icon<cb_type_icon> const&> get() const {
 		 return wargoal_icon;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("select_cb"),index > ,ui::button<cb_type_button>&> get() {
 		 return select_cb;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("select_cb"),index > ,ui::button<cb_type_button> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("select_cb"),index > ,ui::button<cb_type_button> const&> get() const {
 		 return select_cb;
 	 }
 
@@ -55,7 +130,8 @@ public:
 		 cb_item_base::associated_object = &window.object;
 		 window.object.size = definition.size;
 		 window.object.position = definition.position;
-		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
 			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
 			 const char* rn_e = rn_s + rn.length();
 			 if(compile_time_str_compare_ci<CT_STRING("wargoal_icon")>(rn_s, rn_e) == 0) {
@@ -88,6 +164,11 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::dynamic_icon<cb_type_icon>, cb_item_internal_class&, world_state&>)
+			 wargoal_icon.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::button<cb_type_button>, cb_item_internal_class&, world_state&>)
+			 select_cb.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -110,12 +191,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 cb_item_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<cb_item_base, world_state&>) {
 			 cb_item_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<cb_item_base, cb_item_internal_class&, world_state&>) {
@@ -124,7 +205,8 @@ public:
 		 return win;
 	 }
 };
-class cb_item : public cb_item_internal_class<void> {};inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, cb_item& b) {
+class cb_item : public cb_item_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, cb_item& b) {
 	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
 	 const auto res = b.create(ws, window_definition);
 	 ui::add_to_back(ws.w.gui_m, parent, res);
@@ -150,61 +232,69 @@ public:
 	 ui::multiline_text<description> Description;
 	 ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24> cb_list;
 	 ui::gui_object_tag window_object;
-;
+
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("Background"),index > ,ui::simple_button<hidden_button>&> get() {
 		 return Background;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("Background"),index > ,ui::simple_button<hidden_button> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("Background"),index > ,ui::simple_button<hidden_button> const&> get() const {
 		 return Background;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("AgreeButton"),index > ,ui::simple_button<ok_button>&> get() {
 		 return AgreeButton;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("AgreeButton"),index > ,ui::simple_button<ok_button> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("AgreeButton"),index > ,ui::simple_button<ok_button> const&> get() const {
 		 return AgreeButton;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("DeclineButton"),index > ,ui::simple_button<cancel_button>&> get() {
 		 return DeclineButton;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("DeclineButton"),index > ,ui::simple_button<cancel_button> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("DeclineButton"),index > ,ui::simple_button<cancel_button> const&> get() const {
 		 return DeclineButton;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("LeftShield"),index > ,ui::masked_flag<self_flag>&> get() {
 		 return LeftShield;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("LeftShield"),index > ,ui::masked_flag<self_flag> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("LeftShield"),index > ,ui::masked_flag<self_flag> const&> get() const {
 		 return LeftShield;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("RightShield"),index > ,ui::masked_flag<target_flag>&> get() {
 		 return RightShield;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("RightShield"),index > ,ui::masked_flag<target_flag> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("RightShield"),index > ,ui::masked_flag<target_flag> const&> get() const {
 		 return RightShield;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("Title"),index > ,ui::display_text<dialog_title>&> get() {
 		 return Title;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("Title"),index > ,ui::display_text<dialog_title> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("Title"),index > ,ui::display_text<dialog_title> const&> get() const {
 		 return Title;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("Description"),index > ,ui::multiline_text<description>&> get() {
 		 return Description;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("Description"),index > ,ui::multiline_text<description> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("Description"),index > ,ui::multiline_text<description> const&> get() const {
 		 return Description;
 	 }
 	 template<typename index>
 	 std::enable_if_t<std::is_same_v<CT_STRING("cb_list"),index > ,ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24>&> get() {
 		 return cb_list;
 	 }
-	 template<typename index>	 std::enable_if_t<std::is_same_v<CT_STRING("cb_list"),index > ,ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24> const&> get() const {
+	 template<typename index>
+	 std::enable_if_t<std::is_same_v<CT_STRING("cb_list"),index > ,ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24> const&> get() const {
 		 return cb_list;
 	 }
 
@@ -248,7 +338,8 @@ public:
 		 fabricate_cb_window_base::associated_object = &window.object;
 		 window.object.size = definition.size;
 		 window.object.position = definition.position;
-		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
+		 for(auto i = definition.sub_object_definitions.crbegin(); i != definition.sub_object_definitions.crend(); ++i) {
+			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
 			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
 			 const char* rn_e = rn_s + rn.length();
 			 if(compile_time_str_compare_ci<CT_STRING("Background")>(rn_s, rn_e) == 0) {
@@ -323,6 +414,23 @@ public:
 				 }
 			 }
 		 }
+		 window_object = window.id;
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<hidden_button>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 Background.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<ok_button>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 AgreeButton.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::simple_button<cancel_button>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 DeclineButton.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<self_flag>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 LeftShield.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::masked_flag<target_flag>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 RightShield.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::display_text<dialog_title>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 Title.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::multiline_text<description>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 Description.initialize_in_window(*this, ws);
+		 if constexpr(ui::detail::has_initialize_in_window<ui::discrete_listbox<fabricate_cb_types_lb, cb_item, military::cb_type_tag, 24>, fabricate_cb_window_t_internal_class&, world_state&>)
+			 cb_list.initialize_in_window(*this, ws);
 		 return window;
 	 }
 	 ui::tagged_gui_object create_gui_obj(world_state& ws, ui::icon_def const& icon_def) {
@@ -345,12 +453,12 @@ public:
 		 new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
 		 new_gobj.object.associated_behavior = this;
 		 fabricate_cb_window_base::associated_object = &new_gobj.object;
+		 window_object = new_gobj.id;
 		 return new_gobj;
 	 }
 	 template<typename def_type>
 	 ui::tagged_gui_object create(world_state& ws, def_type const& definition) {
 		 const auto win = create_gui_obj(ws, definition);
-		 window_object = win.id;
 		 if constexpr(ui::detail::has_on_create<fabricate_cb_window_base, world_state&>) {
 			 fabricate_cb_window_base::on_create(ws);
 		 } else if constexpr(ui::detail::has_on_create<fabricate_cb_window_base, fabricate_cb_window_t_internal_class&, world_state&>) {
@@ -359,7 +467,8 @@ public:
 		 return win;
 	 }
 };
-class fabricate_cb_window_t : public fabricate_cb_window_t_internal_class<void> {};inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, fabricate_cb_window_t& b) {
+class fabricate_cb_window_t : public fabricate_cb_window_t_internal_class<void> {};
+inline ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, fabricate_cb_window_t& b) {
 	 const auto& window_definition = ws.s.gui_m.ui_definitions.windows[handle];
 	 const auto res = b.create(ws, window_definition);
 	 ui::add_to_back(ws.w.gui_m, parent, res);

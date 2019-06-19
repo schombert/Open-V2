@@ -72,6 +72,7 @@ struct gui_item {
 struct window_def {
 	std::string name;
 	std::string base;
+	std::string options;
 	std::vector<gui_item> members;
 };
 
@@ -103,6 +104,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 				contents.back().name = extract_string(input, buffer + sz);
 				contents.back().base = extract_string(input, buffer + sz);
+				contents.back().options = extract_optional(input, buffer + sz);
 
 				while(input < buffer + sz && *input == '\t') {
 					++input;
@@ -117,15 +119,319 @@ int wmain(int argc, wchar_t *argv[]) {
 
 			std::string output;
 
+			output += "#pragma warning( push )\r\n";
+			output += "#pragma warning( disable : 4189 )\r\n";
+			output += "\r\n";
+
 			for(auto& win : contents) {
-				output += "class " + win.name + ";\r\n";
-				output += "ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, " + win.name + "& b);\r\n";
-				output += "ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, " + win.name + "& b);\r\n";
+				if(win.name.length() > 0 && win.base != "simple_button" && win.base != "listbox" && win.base != "list_box"
+					&& win.base != "ui::visible_region"
+					&& win.base != "ui::gui_behavior"
+					&& win.base != "ui::draggable_region"
+					&& win.base != "ui::window_pane"
+					&& win.base != "ui::fixed_region"
+					&& win.base != "icon"
+					&& win.base != "button"
+					&& win.base != "simple_button"
+					&& win.base != "masked_flag"
+					&& win.base != "text"
+					&& win.base != "button_group"
+					&& win.base != "bar"
+					&& win.base != "barchart"
+					) {
+					output += "class " + win.name + ";\r\n";
+					output += "ui::tagged_gui_object create_static_element(world_state& ws, ui::window_tag handle, ui::tagged_gui_object parent, " + win.name + "& b);\r\n";
+					output += "ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, " + win.name + "& b);\r\n";
+				}
 			}
 			output += "\r\n";
 
 			for(auto& win : contents) {
 				if(win.name.length() > 0) {
+					if(win.base == "listbox" || win.base == "list_box") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename lb_type, typename window_type>\r\n";
+							output += "\t void populate_list(lb_type& lb, window_type& win, world_state& ws);\r\n";
+						} else {
+							output += "\t template<typename lb_type>\r\n";
+							output += "\t void populate_list(lb_type& lb, world_state& ws);\r\n";
+						}
+						output += "\t ui::window_tag element_tag(ui::gui_static& m);\r\n";
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "button_group") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						output += "\t void on_select(world_state& ws, uint32_t i);\r\n";
+							
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "ui::visible_region"
+						|| win.base == "ui::gui_behavior"
+						|| win.base == "ui::draggable_region"
+						|| win.base == "ui::window_pane"
+						|| win.base == "ui::fixed_region") {
+						output += "class " + win.name + " : public " + win.base + " {\r\n";
+						output += "public:\r\n";
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t template<typename W>\r\n";
+							output += "\t void on_create(W& w, world_state& ws);\r\n";
+						}
+						if(win.options.find('v') != std::string::npos) {
+							output += "\t void set_value(" + win.members[0].type + " t) {\r\n";
+							output += "\t\t " + win.members[0].name + " = t;\r\n";
+							output += "\t }\r\n";
+						} else if(win.options.find('V') != std::string::npos) {
+							output += "\t void set_value(" + win.members[0].type + " t);\r\n";
+						}
+
+						if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(world_state& ws);\r\n";
+						}
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "icon") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::dynamic_icon<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::dynamic_icon<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::dynamic_icon<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "bar") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::progress_bar<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::progress_bar<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::progress_bar<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "barchart") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::display_barchart<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::display_barchart<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::display_barchart<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "button") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::button<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('f') != std::string::npos) {
+							output += "\t void button_function(ui::button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+						if(win.options.find('k') != std::string::npos) {
+							output += "\t void button_function(ui::button<" + win.name + ">& self, key_modifiers mod, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "simple_button") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::simple_button<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::simple_button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('f') != std::string::npos) {
+							output += "\t void button_function(ui::simple_button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::simple_button<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "masked_flag") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename window_type>\r\n";
+							output += "\t void windowed_update(ui::masked_flag<" + win.name + ">& self, window_type& w, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::masked_flag<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+						if(win.options.find('f') != std::string::npos) {
+							output += "\t void button_function(ui::masked_flag<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('c') != std::string::npos) {
+							output += "\t void on_create(ui::masked_flag<" + win.name + ">& self, world_state& ws);\r\n";
+						}
+
+						output += "};\r\n";
+						continue;
+					}
+					if(win.base == "text") {
+						output += "class " + win.name + " {\r\n";
+						output += "public:\r\n";
+
+						for(auto& i : win.members)
+							output += "\t " + i.type + " " + i.name + ";\r\n";
+						output += "\r\n";
+
+						if(win.options.find('w') != std::string::npos) {
+							output += "\t template<typename W>\r\n";
+							output += "\t void windowed_update(W& w, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);\r\n";
+						} else if(win.options.find('u') != std::string::npos) {
+							output += "\t void update(ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);\r\n";
+						}
+
+						if(win.options.find('T') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state& ws);\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						} else if(win.options.find('t') != std::string::npos) {
+							output += "\t bool has_tooltip(world_state&) { return true; }\r\n";
+							output += "\t void create_tooltip(world_state& ws, ui::tagged_gui_object tw);\r\n";
+						}
+
+
+						output += "};\r\n";
+						continue;
+					}
+
 					output += "template<typename = void>\r\n";
 					output += "class " + win.name + "_internal_class" + " : public " + win.base + " {\r\n";
 					output += "public:\r\n";
@@ -227,7 +533,11 @@ int wmain(int argc, wchar_t *argv[]) {
 						output += "\t\t\t }\r\n";
 
 					output += "\t\t }\r\n";
-
+					output += "\t\t window_object = window.id;\r\n";
+					for(auto &i : win.members) {
+						output += "\t\t if constexpr(ui::detail::has_initialize_in_window<" + i.type + ", " + win.name + "_internal_class&, world_state&>)\r\n";
+						output += "\t\t\t " + i.name + ".initialize_in_window(*this, ws);\r\n";
+					}
 					output += "\t\t return window;\r\n";
 					output += "\t }\r\n";
 
@@ -253,6 +563,7 @@ int wmain(int argc, wchar_t *argv[]) {
 					output += "\t\t new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);\r\n";
 					output += "\t\t new_gobj.object.associated_behavior = this;\r\n";
 					output += "\t\t " + win.base + "::associated_object = &new_gobj.object;\r\n";
+					output += "\t\t window_object = new_gobj.id;\r\n";
 					output += "\t\t return new_gobj;\r\n";
 					output += "\t }\r\n";
 
@@ -260,7 +571,6 @@ int wmain(int argc, wchar_t *argv[]) {
 					output += "\t ui::tagged_gui_object create(world_state& ws, def_type const& definition) {\r\n";
 					// creation
 					output += "\t\t const auto win = create_gui_obj(ws, definition);\r\n";
-					output += "\t\t window_object = win.id;\r\n";
 					output += "\t\t if constexpr(ui::detail::has_on_create<" + win.base + ", world_state&>) {\r\n";
 					output += "\t\t\t " + win.base + "::on_create(ws);\r\n";
 					output += "\t\t } else if constexpr(ui::detail::has_on_create<" + win.base + ", " + win.name + "_internal_class" + "&, world_state&>) {\r\n";
@@ -290,6 +600,8 @@ int wmain(int argc, wchar_t *argv[]) {
 				}
 			}
 
+			output += "#pragma warning( pop )\r\n";
+			output += "\r\n";
 
 			std::wstring output_name;
 			for(auto c : out_name) {

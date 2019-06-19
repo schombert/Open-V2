@@ -839,3 +839,40 @@ TEST(military_tests, trait_calculation) {
 	EXPECT_EQ(88.0f, test_state.get<military_leader::experience>(military::leader_tag(0)));
 	EXPECT_EQ(22.0f, test_state.get<military_leader::reliability>(military::leader_tag(0)));
 }
+
+inline int32_t count_new_armies = 0;
+military::army_tag fake_new_amry(test_ws<world_state>&) {
+	return military::army_tag(count_new_armies++);
+}
+
+TEST(military_tests, army_creation_no_hq) {
+	test_ws<world_state> test_state;
+
+	auto pre_a = count_new_armies;
+
+	auto res = internal_make_army<test_ws<world_state>, fake_new_amry>(test_state, nations::country_tag(4), provinces::province_tag(2));
+
+	EXPECT_NE(military::army_tag(), res);
+	EXPECT_EQ(pre_a + 1, count_new_armies);
+	EXPECT_EQ(test_state.get<army::location>(res), provinces::province_tag(2));
+	EXPECT_EQ(test_state.get<army::owner>(res), nations::country_tag(4));
+	EXPECT_TRUE(test_state.contains_item(test_state.get<nation::armies>(nations::country_tag(4)), res));
+	EXPECT_EQ(military::strategic_hq_tag(), test_state.get<army::hq>(res));
+}
+
+TEST(military_tests, army_creation_with_hq) {
+	test_ws<world_state> test_state;
+
+	test_state.set<province_state::strat_hq>(provinces::province_tag(2), military::strategic_hq_tag(3));
+
+	auto pre_a = count_new_armies;
+	auto res = internal_make_army<test_ws<world_state>, fake_new_amry>(test_state, nations::country_tag(4), provinces::province_tag(2));
+
+	EXPECT_NE(military::army_tag(), res);
+	EXPECT_EQ(pre_a + 1, count_new_armies);
+	EXPECT_EQ(test_state.get<army::location>(res), provinces::province_tag(2));
+	EXPECT_EQ(test_state.get<army::owner>(res), nations::country_tag(4));
+	EXPECT_TRUE(test_state.contains_item(test_state.get<nation::armies>(nations::country_tag(4)), res));
+	EXPECT_EQ(military::strategic_hq_tag(3), test_state.get<army::hq>(res));
+	EXPECT_TRUE(test_state.contains_item(test_state.get<strategic_hq::army_set>(military::strategic_hq_tag(3)), res));
+}

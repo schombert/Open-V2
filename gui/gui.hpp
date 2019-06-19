@@ -193,7 +193,7 @@ namespace ui {
 		template<typename RESULT, typename tag_type, typename object_type>
 		struct can_create_s : public std::false_type {};
 		template<typename tag_type, typename object_type>
-		struct can_create_s<decltype(void(ui::create_static_element(std::declval<world_state&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
+		struct can_create_s<decltype(void(create_static_element(std::declval<world_state&>(), tag_type(), std::declval<tagged_gui_object>(), std::declval<object_type&>()))), tag_type, object_type> : public std::true_type {};
 		
 		template<typename tag_type, typename object_type>
 		constexpr bool can_create = can_create_s<void, tag_type, object_type>::value;

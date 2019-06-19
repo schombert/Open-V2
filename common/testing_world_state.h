@@ -64,7 +64,7 @@ public:
 template<typename T>
 class type_erased_storage : public type_erased_storage_base {
 public:
-	stable_variable_vector_storage_mk_2<T, 8, 2048, alignment_type::padded_cache_aligned> storage;
+	stable_variable_vector_storage_mk_2<T, 64 / sizeof(T), 2048, alignment_type::padded_cache_aligned> storage;
 
 	virtual void* ptr() { return &storage; };
 	virtual ~type_erased_storage() {}
@@ -101,15 +101,15 @@ public:
 	}
 
 	template<typename val_type>
-	stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>& get_storage() const {
+	stable_variable_vector_storage_mk_2<val_type, 64 / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>& get_storage() const {
 		auto v_location = [_this = this]() {
-			if(auto it = _this->stored_values.find(detail::addr_struct<val_type>::value()); it != _this->stored_values.end()) {
+			if(auto it = _this->storage.find(detail::addr_struct<val_type>::value()); it != _this->storage.end()) {
 				return it;
 			} else {
-				return _this->stored_values.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>()).first;
+				return _this->storage.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>()).first;
 			}
 		}();
-		return *((stable_variable_vector_storage_mk_2<val_type, 8, 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
+		return *((stable_variable_vector_storage_mk_2<val_type, 64 / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
 	}
 
 	template<typename index, typename tag_type>
@@ -252,8 +252,8 @@ public:
 		::remove_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	void contains_item(index_tag i, value_type const& v) const {
-		::contains_item(get_storage<individuator_of<index_tag>>(), i, v);
+	auto contains_item(index_tag i, value_type const& v) const {
+		return ::contains_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag>
 	void resize(index_tag& i, uint32_t sz) {

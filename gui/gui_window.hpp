@@ -171,7 +171,7 @@ namespace ui {
 			template<typename TAG>
 			void operator()(TAG tag) {
 				if constexpr(ui::detail::can_create<TAG, MOBJECT> == true)
-					ui::create_static_element(ws, tag, win, object);
+					create_static_element(ws, tag, win, object);
 				else {
 #ifdef _DEBUG
 					OutputDebugStringA("Unable to instantiate window element: bad tag type\n");

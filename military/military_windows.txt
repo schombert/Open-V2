@@ -1,5 +1,19 @@
 military_windows
 
+fabricate_cb_types_lb listbox
+cb_item_base ui::visible_region(cv)
+	type military::cb_type_tag
+cb_type_icon icon(w)
+cb_type_button button(wf)
+	type military::cb_type_tag
+fabricate_cb_window_base ui::draggable_region(c)
+hidden_button simple_button(u)
+self_flag masked_flag(u)
+target_flag masked_flag(u)
+ok_button simple_button(uf)
+cancel_button simple_button(f)
+dialog_title text(u)
+description text(u)
 cb_item cb_item_base
 	wargoal_icon ui::dynamic_icon<cb_type_icon>
 	select_cb ui::button<cb_type_button>

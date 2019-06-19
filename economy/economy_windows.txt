@@ -1,5 +1,277 @@
 economy_windows
 
+production_window_base ui::draggable_region(c)
+close_button_s simple_button(f)
+production_tab_button_group_b button_group
+empty_text_box text(u)
+investment_pane_base ui::window_pane
+filter_all_button simple_button(fu)
+filter_north_america_button simple_button(fu)
+filter_south_america_button simple_button(fu)
+filter_europe_button simple_button(fu)
+filter_africa_button simple_button(fu)
+filter_asia_button simple_button(fu)
+filter_oceania_button simple_button(fu)
+filter_neighbours_button simple_button(fu)
+filter_sphere_button simple_button(fu)
+filter_enemies_button simple_button(fu)
+filter_allies_button simple_button(fu)
+clear_text_button simple_button(c)
+sort_by_country_button simple_button(f)
+sort_by_my_flag_button masked_flag(uf)
+sort_by_gpflag0_button masked_flag(uf)
+sort_by_gpflag1_button masked_flag(uf)
+sort_by_gpflag2_button masked_flag(uf)
+sort_by_gpflag3_button masked_flag(uf)
+sort_by_gpflag4_button masked_flag(uf)
+sort_by_gpflag5_button masked_flag(uf)
+sort_by_gpflag6_button masked_flag(uf)
+sort_by_gpflag7_button masked_flag(uf)
+sort_by_boss_button simple_button(f)
+sort_by_prestige_button simple_button(f)
+sort_by_economic_button simple_button(f)
+sort_by_military_button simple_button(f)
+sort_by_total_button simple_button(f)
+sort_by_opinion_button simple_button(f)
+sort_by_relation_button simple_button(f)
+sort_by_invest_factories_button simple_button(f)
+sort_by_project_state_button simple_button(f)
+sort_by_project_type_button simple_button(f)
+sort_by_project_completion_button simple_button(f)
+sort_by_project_investors_button simple_button(f)
+investment_country_item_base ui::visible_region(cv)
+	tag nations::country_tag
+investment_country_item_background_button simple_button(wf)
+	tag nations::country_tag
+investment_country_item_flag masked_flag(w)
+investment_country_item_name text(w)
+investment_country_item_self_investment_text text(w)
+investment_country_item_sphere_leader_flag masked_flag(w)
+investment_country_item_military_rank text(w)
+investment_country_item_industrial_rank text(w)
+investment_country_item_prestige_rank text(w)
+investment_country_item_overall_rank text(w)
+investment_country_item_opinion_type text(w)
+investment_country_item_relations_value text(w)
+investment_country_item_factories_count text(w)
+investment_country_lb listbox
+subsidize_all_button simple_button(uf)
+unsubsidize_all_button simple_button(uf)
+open_all_factories_button simple_button(uf)
+close_all_factories_button simple_button(uf)
+select_all_factories_filters_button simple_button(f)
+deselect_all_factories_filters_button simple_button(f)
+show_hide_empty_states_button button(uf)
+sort_factories_by_state_name simple_button(f)
+sort_factories_by_worker_a button(f)
+sort_factories_by_worker_b button(f)
+sort_factories_by_owner button(f)
+sort_factories_by_count simple_button(f)
+sort_factories_by_infrastructure simple_button(f)
+factory_filter_buttons_base ui::window_pane(c)
+	workers_a ui::button<sort_factories_by_worker_a>
+	workers_b ui::button<sort_factories_by_worker_b>
+	owner ui::button<sort_factories_by_owner>
+good_filter_item_base ui::visible_region
+	tag economy::goods_tag
+good_filter_item_button simple_button(wf)
+	tag economy::goods_tag
+good_filter_item_enabled_bg icon(w)
+good_filter_item_type icon(w)
+gp_investment_subwindow_base ui::visible_region
+	"nth_nation = 0" int32_t
+gp_subwindow_flag masked_flag(w)
+gp_subwindow_investment_value text(w)
+state_pop_display_icon icon(w)
+state_pop_display_amount text(w)
+state_pop_display_window_base ui::visible_region(c)
+	type population::pop_type_tag
+	in_state nations::state_tag
+good_filter_item good_filter_item_base
+	filter_button ui::simple_button<good_filter_item_button>
+	filter_enabled ui::dynamic_icon<good_filter_item_enabled_bg>
+	goods_type ui::dynamic_icon<good_filter_item_type>
+gp_investment_subwindow gp_investment_subwindow_base
+	country_flag ui::masked_flag<gp_subwindow_flag>
+	nongp_country_investment ui::display_text<gp_subwindow_investment_value>
+state_pop_display_window state_pop_display_window_base
+	pop_icon ui::dynamic_icon<state_pop_display_icon>
+	pop_amount "ui::display_text<state_pop_display_amount, 4>"
+	pop_amount_2 ui::display_text<empty_text_box>
+goods_filters_base ui::window_pane(c)
+	filter_buttons std::vector<good_filter_item>
+investment_filter_buttons_base ui::window_pane(c)
+	workers_a ui::button<sort_factories_by_worker_a>
+	workers_b ui::button<sort_factories_by_worker_b>
+	owner ui::button<sort_factories_by_owner>
+	gp_windows[8] gp_investment_subwindow
+investment_target_flag masked_flag(u)
+investment_target_flag_overlay icon(u)
+investment_target_name text(u)
+investment_target_amount text(u)
+investment_target_back_button simple_button(f)
+factory_display_base ui::visible_region(c)
+	location nations::state_tag
+	"index = -1" int32_t
+factory_open_background icon(wt)
+factory_closed_background icon(wt)
+factory_construction_progress_bar bar(w)
+factory_cancel_construction_button simple_button(wft)
+	location nations::state_tag
+	"index = -1" int32_t
+factory_upgrade_progress_bar bar(w)
+factory_upgrade_progress_overlay icon(w)
+factory_level_text text(w)
+factory_upgrade_button button(wkt)
+	location nations::state_tag
+	"index = -1" int32_t
+hidden_icon icon(u)
+factory_income_arrow icon(w)
+factory_income_text text(w)
+factory_subsidize_button simple_button(wft)
+	location nations::state_tag
+	"index = -1" int32_t
+hidden_button simple_button(u)
+factory_workers_display icon(w)
+factory_closed_overlay icon(w)
+factory_output simple_button(w)
+factory_delete_button simple_button(wft)
+	location nations::state_tag
+	"index = -1" int32_t
+factory_open_or_close_button simple_button(wft)
+	location nations::state_tag
+	"index = -1" int32_t
+factory_closed_text_s text(w)
+goods_category_label_base ui::visible_region
+	category economy::goods_type_tag
+goods_category_name text(w)
+production_info_base ui::window_pane(c)
+	tag economy::goods_tag
+production_backkground icon(wt)
+	tag economy::goods_tag
+production_pop_icon icon(w)
+	type population::pop_type_tag
+production_pop_output text(w)
+	type population::pop_type_tag
+production_input_icon icon(w)
+	tag economy::goods_tag
+production_total_output text(w)
+production_output_icon simple_button(w)
+production_no_production_overlay icon(w)
+factory_display factory_display_base
+	prod_factory_bg ui::dynamic_icon<factory_open_background>
+	prod_factory_inprogress_bg ui::dynamic_icon<factory_closed_background>
+	build_factory_progress ui::progress_bar<factory_construction_progress_bar>
+	prod_cancel_progress ui::simple_button<factory_cancel_construction_button>
+	upgrade_factory_progress ui::progress_bar<factory_upgrade_progress_bar>
+	progress_overlay_16_64 ui::dynamic_icon<factory_upgrade_progress_overlay>
+	level ui::display_text<factory_level_text>
+	upgrade ui::button<factory_upgrade_button>
+	input_0_lack2 ui::dynamic_icon<hidden_icon>
+	input_1_lack2 ui::dynamic_icon<hidden_icon>
+	input_2_lack2 ui::dynamic_icon<hidden_icon>
+	input_3_lack2 ui::dynamic_icon<hidden_icon>
+	input_0 ui::dynamic_icon<factory_input<0>>
+	input_1 ui::dynamic_icon<factory_input<1>>
+	input_2 ui::dynamic_icon<factory_input<2>>
+	input_3 ui::dynamic_icon<factory_input<3>>
+	income_icon ui::dynamic_icon<factory_income_arrow>
+	income "ui::display_text<factory_income_text, -14>"
+	subsidise ui::simple_button<factory_subsidize_button>
+	priority ui::simple_button<hidden_button>
+	employment_ratio ui::dynamic_icon<factory_workers_display>
+	closed_overlay ui::dynamic_icon<factory_closed_overlay>
+	output ui::simple_button<factory_output>
+	delete_factory ui::simple_button<factory_delete_button>
+	open_close ui::simple_button<factory_open_or_close_button>
+	factory_closed_text ui::display_text<factory_closed_text_s>
+goods_category_label goods_category_label_base
+	cat_name ui::display_text<goods_category_name>
+production_info production_info_base
+	prod_producing_entry ui::dynamic_icon<production_backkground>
+	pop_factory ui::dynamic_icon<production_pop_icon>
+	pop_factory2 ui::dynamic_icon<production_pop_icon>
+	output ui::display_text<production_pop_output>
+	output2 ui::display_text<production_pop_output>
+	input_factory_0 ui::dynamic_icon<production_input_icon>
+	input_factory_1 ui::dynamic_icon<production_input_icon>
+	input_factory_2 ui::dynamic_icon<production_input_icon>
+	input_factory_3 ui::dynamic_icon<production_input_icon>
+	output_total ui::display_text<production_total_output>
+	prod_producing_not_total ui::dynamic_icon<production_no_production_overlay>
+	output_factory ui::simple_button<production_output_icon>
+state_window_base ui::window_pane(Vuc)
+	tag nations::state_tag
+	workers_a state_pop_display_window
+	workers_b state_pop_display_window
+	owner state_pop_display_window
+	factories[state::factories_count] factory_display
+state_focus_button simple_button(wft)
+	tag nations::state_tag
+state_name_s text(w)
+state_factory_count text(w)
+state_build_factory_button simple_button(wft)
+	tag nations::state_tag
+state_average_infrastructure text(w)
+state_details_lb listbox
+investment_state_details_lb listbox
+production_info_pane_base ui::window_pane(c)
+	categories std::vector<goods_category_label>
+	production_details std::vector<production_info>
+production_info_pane production_info_pane_base
+project_item_base ui::visible_region(vc)
+	location nations::state_tag
+project_state_name text(w)
+project_resource_icon icon(w)
+project_infrastructure_icon icon(w)
+project_name_s text(w)
+project_cost_s text(w)
+project_investor_icon icon(w)
+project_investor_amount text(w)
+project_invest_button button(wkt)
+	location nations::state_tag
+projects_lb listbox
+factory_worker_item_base ui::gui_behavior(v)
+	value factory_worker_value
+factory_worker_item_icon icon(wt)
+	tag population::pop_type_tag
+factory_worker_item_amount text(w)
+factory_construction_cost_item_base ui::gui_behavior(v)
+	value factory_construction_cost_value
+factory_construction_cost_item_icon icon(wt)
+	tag goods_tag
+factory_construction_cost_item_cost text(w)
+factory_construction_cost_item_stockpile_amount text(w)
+factory_type_item_base ui::gui_behavior(v)
+	value economy::goods_tag
+factory_item_icon icon(w)
+factory_item_name text(w)
+factory_item_cost text(w)
+factory_item_time text(w)
+factory_item_bg simple_button(wf)
+	tag goods_tag
+build_factory_window_base ui::draggable_region(c)
+bf_state_name text(u)
+bf_output_icon icon(ut)
+bf_factory_name text(u)
+factory_types_lb listbox
+bf_profit_label text(u)
+bf_profit_amount text(u)
+bf_description text(u)
+bf_total_workers_amount text(u)
+factory_workers_lb listbox
+factory_construction_costs_lb listbox
+bf_base_price_label text(u)
+bf_input_price_label text(u)
+bf_total_label text(u)
+bf_base_price_amount text(u)
+bf_input_price_amount text(u)
+bf_total_amount text(u)
+bf_treasury_amount text(u)
+bf_stockpile_lack_label text(u)
+bf_stockpile_lack_amount text(u)
+bf_cancel simple_button(f)
+bf_build simple_button(uft)
 investment_country_item investment_country_item_base
 	country_select ui::simple_button<investment_country_item_background_button>
 	country_flag ui::masked_flag<investment_country_item_flag>

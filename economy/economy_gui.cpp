@@ -610,6 +610,12 @@ namespace economy {
 	void factory_delete_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
 	void factory_open_or_close_button::button_function(ui::simple_button<factory_open_or_close_button>& self, world_state & ws) {}
 	void factory_open_or_close_button::create_tooltip(world_state & ws, ui::tagged_gui_object tw) {}
+	void state_window_base::set_value(nations::state_tag t) {
+		tag = t;
+		workers_a.in_state = t;
+		workers_b.in_state = t;
+		owner.in_state = t;
+	}
 	void state_window_base::update(world_state & ws) {
 		if(is_valid_index(tag)) {
 			uint32_t fcounter = 0;

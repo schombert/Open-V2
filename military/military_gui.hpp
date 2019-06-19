@@ -6,6 +6,7 @@
 #include "military_functions.h"
 
 namespace military {
+	/*
 	class fabricate_cb_types_lb {
 	public:
 		template<typename lb_type>
@@ -39,7 +40,7 @@ namespace military {
 		void windowed_update(ui::button<cb_type_button>& self, window_type& w, world_state& ws);
 		void button_function(ui::button<cb_type_button>& self, world_state& ws);
 	};
-
+	*/
 	/*
 	using cb_item = ui::gui_window<
 		CT_STRING("wargoal_icon"), ui::dynamic_icon<cb_type_icon>,
@@ -47,7 +48,7 @@ namespace military {
 		cb_item_base
 	>;*/
 
-
+	/*
 	class fabricate_cb_window_base : public ui::draggable_region {
 	public:
 		template<typename W>
@@ -89,6 +90,7 @@ namespace military {
 	public:
 		void update(ui::tagged_gui_object box, ui::line_manager& lm, ui::text_format& fmt, world_state& ws);
 	};
+	*/
 
 	/*
 	class fabricate_cb_window_t : public ui::gui_window <

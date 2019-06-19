@@ -55,7 +55,7 @@ namespace ui {
 
 		new_gobj.object.flags.fetch_or(ui::gui_object::type_barchart, std::memory_order_acq_rel);
 		const auto new_dt = ws.w.gui_m.data_textures.emplace(graphic_object_def.size.x, 4ui16);
-		new_gobj.object.type_dependant_handle.store(to_index(new_dt.id), std::memory_order_release);
+		new_gobj.object.type_dependant_handle.store(uint16_t(to_index(new_dt.id)), std::memory_order_release);
 
 		if(rotation == ui::gui_object::rotation_right) {
 			new_gobj.object.position = ui::xy_pair{
