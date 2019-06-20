@@ -49,6 +49,7 @@ namespace cb_type {
 	struct sprite_index;
 	struct months;
 	struct truce_months;
+	struct id;
 
 	struct construction_speed_direct;
 }
@@ -119,32 +120,33 @@ namespace military {
 }
 
 START_STRUCT(military::cb_type)
-STRUCT_MEMBER(cb_type::flags, flags)
-STRUCT_MEMBER(cb_type::badboy_factor, badboy_factor)
-STRUCT_MEMBER(cb_type::prestige_factor, prestige_factor)
-STRUCT_MEMBER(cb_type::peace_cost_factor, peace_cost_factor)
-STRUCT_MEMBER(cb_type::penalty_factor, penalty_factor)
-STRUCT_MEMBER(cb_type::break_truce_prestige_factor, break_truce_prestige_factor)
-STRUCT_MEMBER(cb_type::break_truce_infamy_factor, break_truce_infamy_factor)
-STRUCT_MEMBER(cb_type::break_truce_militancy_factor, break_truce_militancy_factor)
-STRUCT_MEMBER(cb_type::good_relation_prestige_factor, good_relation_prestige_factor)
-STRUCT_MEMBER(cb_type::good_relation_infamy_factor, good_relation_infamy_factor)
-STRUCT_MEMBER(cb_type::good_relation_militancy_factor, good_relation_militancy_factor)
-STRUCT_MEMBER(cb_type::construction_speed, construction_speed)
-STRUCT_MEMBER(cb_type::tws_battle_factor, tws_battle_factor)
-STRUCT_MEMBER(cb_type::name, name)
-STRUCT_MEMBER(cb_type::explanation, explanation)
-STRUCT_MEMBER(cb_type::war_name, war_name)
-STRUCT_MEMBER(cb_type::allowed_states, allowed_states)
-STRUCT_MEMBER(cb_type::allowed_states_in_crisis, allowed_states_in_crisis)
-STRUCT_MEMBER(cb_type::allowed_substate_regions, allowed_substate_regions)
-STRUCT_MEMBER(cb_type::allowed_countries, allowed_countries)
-STRUCT_MEMBER(cb_type::can_use, can_use)
-STRUCT_MEMBER(cb_type::on_add, on_add)
-STRUCT_MEMBER(cb_type::on_po_accepted, on_po_accepted)
-STRUCT_MEMBER(cb_type::sprite_index, sprite_index)
-STRUCT_MEMBER(cb_type::months, months)
-STRUCT_MEMBER(cb_type::truce_months, truce_months)
+STRUCT_MEMBER(::cb_type::flags, flags)
+STRUCT_MEMBER(::cb_type::badboy_factor, badboy_factor)
+STRUCT_MEMBER(::cb_type::prestige_factor, prestige_factor)
+STRUCT_MEMBER(::cb_type::peace_cost_factor, peace_cost_factor)
+STRUCT_MEMBER(::cb_type::penalty_factor, penalty_factor)
+STRUCT_MEMBER(::cb_type::break_truce_prestige_factor, break_truce_prestige_factor)
+STRUCT_MEMBER(::cb_type::break_truce_infamy_factor, break_truce_infamy_factor)
+STRUCT_MEMBER(::cb_type::break_truce_militancy_factor, break_truce_militancy_factor)
+STRUCT_MEMBER(::cb_type::good_relation_prestige_factor, good_relation_prestige_factor)
+STRUCT_MEMBER(::cb_type::good_relation_infamy_factor, good_relation_infamy_factor)
+STRUCT_MEMBER(::cb_type::good_relation_militancy_factor, good_relation_militancy_factor)
+STRUCT_MEMBER(::cb_type::construction_speed, construction_speed)
+STRUCT_MEMBER(::cb_type::tws_battle_factor, tws_battle_factor)
+STRUCT_MEMBER(::cb_type::name, name)
+STRUCT_MEMBER(::cb_type::explanation, explanation)
+STRUCT_MEMBER(::cb_type::war_name, war_name)
+STRUCT_MEMBER(::cb_type::allowed_states, allowed_states)
+STRUCT_MEMBER(::cb_type::allowed_states_in_crisis, allowed_states_in_crisis)
+STRUCT_MEMBER(::cb_type::allowed_substate_regions, allowed_substate_regions)
+STRUCT_MEMBER(::cb_type::allowed_countries, allowed_countries)
+STRUCT_MEMBER(::cb_type::can_use, can_use)
+STRUCT_MEMBER(::cb_type::on_add, on_add)
+STRUCT_MEMBER(::cb_type::on_po_accepted, on_po_accepted)
+STRUCT_MEMBER(::cb_type::sprite_index, sprite_index)
+STRUCT_MEMBER(::cb_type::months, months)
+STRUCT_MEMBER(::cb_type::truce_months, truce_months)
+STRUCT_MEMBER(::cb_type::id, id)
 END_STRUCT
 
 namespace military {
@@ -403,4 +405,7 @@ namespace military {
 	struct leader_trait_values;
 	struct personality_traits;
 	struct background_traits;
+
+	constexpr static leader_trait_tag no_personality_trait = leader_trait_tag(0);
+	constexpr static leader_trait_tag no_background_trait = leader_trait_tag(1);
 }

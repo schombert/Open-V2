@@ -20,6 +20,10 @@
 #include "provinces\province_containers.h"
 #include "population\population_containers.h"
 
+
+template<typename T>
+using name_map_t = boost::container::flat_map<text_data::text_tag, T>;
+
 namespace scenario {
 	namespace fixed_ui {
 		constexpr uint32_t expires_on = 0ui32;
@@ -885,6 +889,80 @@ namespace scenario {
 		std::vector<text_data::text_tag> fixed_ui_text;
 
 		scenario_manager() {}
+
+		GET_SET_STV(culture_m.culture_groups)
+		GET_SET_STV(culture_m.religions)
+		GET_SET_STV(culture_m.culture_container)
+		GET_SET_STV(culture_m.national_tags)
+		GET_SET_TV(::culture::union_tag, culture_m.cultures_to_tags)
+		GET_SET_TV(::culture::group_direct, culture_m.cultures_to_groups)
+		GET_SET_TV(::culture_group::union_tag_direct, culture_m.groups_to_tags)
+		GET_SET_TV(::nation_tag::culture_group, culture_m.tags_to_groups)
+		GET_SET_TFV(::nation_tag::government_names, culture_m.country_names_by_government)
+		GET_SET_TFV(::culture::first_names, culture_m.first_names_by_culture)
+		GET_SET_TFV(::culture::last_names, culture_m.last_names_by_culture)
+		GET_SET_TFV(::culture_group::cultures, culture_m.culture_by_culture_group)
+		GET_SET_TV(::cultures::leader_pictures, culture_m.leader_pictures)
+		GET_SET_GEN(province_m.province_container)
+		GET_SET_TV(state_region::name, province_m.state_names)
+		GET_SET_TFV(state_region::provinces, province_m.states_to_province_index)
+		GET_SET_TFV(province::same_type_adjacency, province_m.same_type_adjacency)
+		GET_SET_TFV(province::coastal_adjacency, province_m.coastal_adjacency)
+		GET_SET_STV(military_m.cb_types)
+		GET_SET_TV(military::leader_trait_name, military_m.leader_traits)
+		GET_SET_TV(::military::personality_traits, military_m.personality_traits)
+		GET_SET_TV(::military::background_traits, military_m.background_traits)
+		GET_SET_TFV(military::leader_trait_values, military_m.leader_trait_definitions)
+		GET_SET_TV(::cb_type::construction_speed_direct, military_m.cb_type_to_speed)
+
+
+		text_data::text_tag get_text_handle(const char* key_start, const char* key_end) {
+			return text_data::get_text_handle(gui_m.text_data_sequences, key_start, key_end);
+		}
+		text_data::text_tag get_thread_safe_text_handle(const char* key_start, const char* key_end) {
+			return text_data::get_thread_safe_text_handle(gui_m.text_data_sequences, key_start, key_end);
+		}
+		text_data::text_tag get_existing_text_handle(const char* key_start, const char* key_end) {
+			return text_data::get_existing_text_handle(gui_m.text_data_sequences, key_start, key_end);
+		}
+		text_data::text_tag get_thread_safe_existing_text_handle(const char* key_start, const char* key_end) {
+			return text_data::get_thread_safe_existing_text_handle(gui_m.text_data_sequences, key_start, key_end);
+		}
+
+		template<size_t N>
+		text_data::text_tag get_thread_safe_existing_text_handle(const char(&t)[N]) {
+			return get_thread_safe_existing_text_handle(t, t + N - 1);
+		}
+		template<size_t N>
+		text_data::text_tag get_existing_text_handle(const char(&t)[N]) {
+			return get_existing_text_handle(t, t + N - 1);
+		}
+		template<size_t N>
+		text_data::text_tag get_thread_safe_text_handle(const char(&t)[N]) {
+			return get_thread_safe_text_handle(t, t + N - 1);
+		}
+		template<size_t N>
+		text_data::text_tag get_text_handle(const char(&t)[N]) {
+			return get_text_handle(t, t + N - 1);
+		}
+
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, military::cb_type_tag>, name_map_t<military::cb_type_tag>&> name_map() {
+			return military_m.named_cb_type_index;
+		}
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, military::cb_type_tag>, name_map_t<military::cb_type_tag> const&> name_map() const {
+			return military_m.named_cb_type_index;
+		}
+
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag>&> name_map() {
+			return military_m.named_leader_trait_index;
+		}
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag> const&> name_map() const {
+			return military_m.named_leader_trait_index;
+		}
 	};
 
 	void ready_scenario(scenario_manager& s, const directory& root);

@@ -46,8 +46,6 @@ namespace military {
 
 		tagged_vector<leader_trait_tag, int32_t> personality_traits;
 		tagged_vector<leader_trait_tag, int32_t> background_traits;
-		constexpr static leader_trait_tag no_personality_trait = leader_trait_tag(0);
-		constexpr static leader_trait_tag no_background_trait = leader_trait_tag(1);
 
 		boost::container::flat_map<text_data::text_tag, cb_type_tag> named_cb_type_index;
 		boost::container::flat_map<text_data::text_tag, leader_trait_tag> named_leader_trait_index;

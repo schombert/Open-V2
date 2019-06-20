@@ -16,6 +16,7 @@
 #include "scenario\\scenario_io.h"
 #include "common\\testing_world_state.h"
 #include "military\military_internals.hpp"
+#include "military\military_io_internals.hpp"
 
 #define RANGE(x) (x), (x) + (sizeof((x))/sizeof((x)[0])) - 1
 
@@ -257,31 +258,11 @@ public:
 
 using namespace military;
 
-/*
-TEST(military_tests, test_units_preparse) {
-	preparse_test_files real_fs;
-	file_system f;
 
-	f.set_root(u"F:");
-
-	military_manager m;
-	text_data::text_sequences tex;
-
-	parsing_state state(tex, m);
-	
-	pre_parse_unit_types(state, f.get_root());
-
-	EXPECT_EQ(5ui64, m.unit_types.size());
-	EXPECT_EQ(5ui64, m.named_unit_type_index.size());
-
-	EXPECT_EQ(unit_type_tag(2), m.unit_types[unit_type_tag(2)].id);
-	EXPECT_EQ(unit_type_tag(3), m.unit_types[unit_type_tag(3)].id);
-	EXPECT_EQ(unit_type_tag(4), m.unit_types[unit_type_tag(4)].id);
-	EXPECT_EQ(unit_type_tag(2), m.named_unit_type_index[text_data::get_thread_safe_existing_text_handle(tex, "dragoon")]);
-	EXPECT_EQ(unit_type_tag(3), m.named_unit_type_index[m.unit_types[unit_type_tag(3)].name]);
-	EXPECT_EQ(unit_type_tag(4), m.named_unit_type_index[m.unit_types[unit_type_tag(4)].name]);
+inline int32_t created_cb_count = 0;
+cb_type_tag fake_create_new_cb(test_ws<scenario::scenario_manager>& s) {
+	return cb_type_tag(created_cb_count++);
 }
-*/
 
 TEST(military_tests, test_cb_preparse) {
 	preparse_test_files real_fs;
@@ -289,23 +270,32 @@ TEST(military_tests, test_cb_preparse) {
 
 	f.set_root(u"F:\\test1");
 
-	scenario::scenario_manager s;
-	events::event_creation_manager ecm;
-	military_manager& m = s.military_m;
 
-	parsing_state state(s, ecm);
+	test_ws<scenario::scenario_manager> test_state;
+	events::fake_event_creation_manager ecm;
+	created_cb_count = 0;
 
-	pre_parse_cb_types(state, f.get_root());
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager, fake_create_new_cb> state(test_state, ecm);
 
-	EXPECT_EQ(3ui64, m.cb_types.size());
-	EXPECT_EQ(3ui64, m.named_cb_type_index.size());
+	internal_pre_parse_cb_types(state, f.get_root());
 
-	EXPECT_EQ(cb_type_tag(0), m.cb_types[cb_type_tag(0)].id);
-	EXPECT_EQ(cb_type_tag(1), m.cb_types[cb_type_tag(1)].id);
-	EXPECT_EQ(cb_type_tag(2), m.cb_types[cb_type_tag(2)].id);
-	EXPECT_EQ(cb_type_tag(0), m.named_cb_type_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "cb_a")]);
-	EXPECT_EQ(cb_type_tag(1), m.named_cb_type_index[m.cb_types[cb_type_tag(1)].name]);
-	EXPECT_EQ(cb_type_tag(2), m.named_cb_type_index[m.cb_types[cb_type_tag(2)].name]);
+	EXPECT_EQ(3, created_cb_count);
+
+	EXPECT_EQ(3ui64, test_state.size<::cb_type::name>());
+	EXPECT_EQ(3ui64, test_state.name_map<military::cb_type_tag>().size());
+
+	EXPECT_EQ(cb_type_tag(0), test_state.get<::cb_type::id>(cb_type_tag(0)));
+	EXPECT_EQ(cb_type_tag(1), test_state.get<::cb_type::id>(cb_type_tag(1)));
+	EXPECT_EQ(cb_type_tag(2), test_state.get<::cb_type::id>(cb_type_tag(2)));
+	auto const resa = test_state.name_map<military::cb_type_tag>()[test_state.get_thread_safe_existing_text_handle("cb_a")];
+	EXPECT_EQ(cb_type_tag(0), resa);
+	EXPECT_EQ(cb_type_tag(1), test_state.name_map<military::cb_type_tag>()[test_state.get<::cb_type::name>(cb_type_tag(1))]);
+	EXPECT_EQ(cb_type_tag(2), test_state.name_map<military::cb_type_tag>()[test_state.get<::cb_type::name>(cb_type_tag(2))]);
+}
+
+int32_t resize_traits_called_count = 0;
+void fake_resize_trait_count(test_ws<scenario::scenario_manager>& ) {
+	++resize_traits_called_count;
 }
 
 TEST(military_tests, traits_personality) {
@@ -314,28 +304,30 @@ TEST(military_tests, traits_personality) {
 
 	f.set_root(u"F:\\test2");
 
-	scenario::scenario_manager s;
-	events::event_creation_manager ecm;
-	military_manager& m = s.military_m;
+	test_ws<scenario::scenario_manager> test_state;
+	events::fake_event_creation_manager ecm;
+	created_cb_count = 0;
+	resize_traits_called_count = 0;
 
-	parsing_state state(s, ecm);
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager, fake_create_new_cb> state(test_state, ecm);
 
-	read_leader_traits(state, f.get_root());
+	internal_read_leader_traits<fake_resize_trait_count>(state, f.get_root());
 
-	EXPECT_EQ(3ui64, m.leader_traits.size());
-	EXPECT_EQ(1ui64, m.personality_traits.size());
-	EXPECT_EQ(0ui64, m.background_traits.size());
+	EXPECT_EQ(1, resize_traits_called_count);
+	EXPECT_EQ(3ui64, test_state.size<leader_trait_name>());
+	EXPECT_EQ(1ui64, test_state.size<personality_traits>());
+	EXPECT_EQ(0ui64, test_state.size<background_traits>());
 
-	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality")]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality")]);
-	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality"), m.leader_traits[m.no_personality_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality"), m.leader_traits[leader_trait_tag(2)]);
+	EXPECT_EQ(military::no_personality_trait, test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle("no_personality")]);
+	EXPECT_EQ(leader_trait_tag(2), test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle("test_personality")]);
+	EXPECT_EQ(leader_trait_tag(2), test_state.get<personality_traits>(0));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("no_personality"), test_state.get<leader_trait_name>(military::no_personality_trait));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("test_personality"), test_state.get<leader_trait_name>(leader_trait_tag(2)));
 
-	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
-	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::defence));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::reliability));
+	EXPECT_EQ(0.5f, test_state.get<leader_trait_values>(military::no_personality_trait, traits::morale));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(military::no_personality_trait, traits::organisation));
+	EXPECT_EQ(1.0f, test_state.get<leader_trait_values>(leader_trait_tag(2), traits::defence));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(2), traits::reliability));
 }
 
 TEST(military_tests, traits_mixed) {
@@ -355,9 +347,9 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(5ui64, m.leader_traits.size());
 	EXPECT_EQ(1ui64, m.personality_traits.size());
 	EXPECT_EQ(2ui64, m.background_traits.size());
-	EXPECT_EQ(m.no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality")]);
+	EXPECT_EQ(military::no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality")]);
 	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality")]);
-	EXPECT_EQ(m.no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background")]);
+	EXPECT_EQ(military::no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background")]);
 	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b1")]);
 	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b2")]);
 
@@ -365,19 +357,19 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(leader_trait_tag(3), m.background_traits[0]);
 	EXPECT_EQ(leader_trait_tag(4), m.background_traits[1]);
 
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality"), m.leader_traits[m.no_personality_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality"), m.leader_traits[military::no_personality_trait]);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality"), m.leader_traits[leader_trait_tag(2)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background"), m.leader_traits[m.no_background_trait]);
+	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background"), m.leader_traits[military::no_background_trait]);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b1"), m.leader_traits[leader_trait_tag(3)]);
 	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b2"), m.leader_traits[leader_trait_tag(4)]);
 
-	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(m.no_personality_trait, traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_personality_trait, traits::organisation));
+	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(military::no_personality_trait, traits::morale));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_personality_trait, traits::organisation));
 	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::defence));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::reliability));
 
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_background_trait, traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(m.no_background_trait, traits::organisation));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_background_trait, traits::morale));
+	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_background_trait, traits::organisation));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::defence));
 	EXPECT_EQ(2.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::reliability));
 	EXPECT_EQ(4.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::speed));
@@ -385,99 +377,6 @@ TEST(military_tests, traits_mixed) {
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(4), traits::reliability));
 	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(4), traits::speed));
 }
-
-/*
-TEST(military_tests, full_unit_read) {
-	preparse_test_files real_fs;
-	file_system f;
-
-	f.set_root(u"F:\\test4");
-
-	military_manager military_m;
-	economy::economic_scenario econ_m;
-	sound::sound_manager sound_m;
-	text_data::text_sequences tex;
-
-	economy::read_goods(econ_m, f.get_root(), tex);
-	sound::read_effects(sound_m, tex, f.get_root());
-
-	parsing_state state(tex, military_m);
-
-	pre_parse_unit_types(state, f.get_root());
-
-	read_unit_types(state, military_m, econ_m, sound_m, tex);
-
-	const auto cement_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, "cement"));
-	const auto canned_food_tag = tag_from_text(econ_m.named_goods_index, text_data::get_thread_safe_existing_text_handle(tex, "canned_food"));
-
-	const auto army_move_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, "army_move"));
-	const auto click_tag = tag_from_text(sound_m.named_sound_effects, text_data::get_thread_safe_existing_text_handle(tex, "click"));
-
-	const auto guard_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "guard"));
-	const auto cruiser_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "cruiser"));
-	const auto plane_tag = tag_from_text(military_m.named_unit_type_index, text_data::get_thread_safe_existing_text_handle(tex, "plane"));
-
-	EXPECT_EQ(18ui8, military_m.unit_types[guard_tag].icon);
-	EXPECT_EQ(uint8_t(unit_type::class_infantry | unit_type::primary_culture), military_m.unit_types[guard_tag].flags);
-	EXPECT_EQ(3.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::strength]);
-	EXPECT_EQ(30.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::organization]);
-	EXPECT_EQ(4.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::speed]);
-	EXPECT_EQ(90.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::build_time]);
-	EXPECT_EQ(1.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::supply_consumption]);
-	EXPECT_EQ(0.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::reconnaissance]);
-	EXPECT_EQ(8.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::attack]);
-	EXPECT_EQ(2.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::defense]);
-	EXPECT_EQ(1.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::discipline]);
-	EXPECT_EQ(0.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::support]);
-	EXPECT_EQ(2.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::maneuver]);
-	EXPECT_EQ(0.0f, military_m.unit_types[guard_tag].base_attributes[unit_attribute::enabled]);
-	EXPECT_EQ(5.0, military_m.unit_build_costs.get(guard_tag, cement_tag));
-	EXPECT_EQ(10.0, military_m.unit_build_costs.get(guard_tag, canned_food_tag));
-	EXPECT_EQ(0.25, military_m.unit_base_supply_costs.get(guard_tag, canned_food_tag));
-
-	EXPECT_EQ(11ui8, military_m.unit_types[cruiser_tag].icon);
-	EXPECT_EQ(8ui8, military_m.unit_types[cruiser_tag].naval_icon);
-	EXPECT_EQ(4ui8, military_m.unit_types[cruiser_tag].min_port_level);
-	EXPECT_EQ(1i8, military_m.unit_types[cruiser_tag].limit_per_port);
-	EXPECT_EQ(20ui8, military_m.unit_types[cruiser_tag].supply_consumption_score);
-	EXPECT_EQ(16ui8, military_m.unit_types[cruiser_tag].colonial_points);
-	EXPECT_EQ(army_move_tag, military_m.unit_types[cruiser_tag].move_sound);
-	EXPECT_EQ(click_tag, military_m.unit_types[cruiser_tag].select_sound);
-	EXPECT_EQ(uint8_t(unit_type::class_light_ship | unit_type::is_sail | unit_type::cant_build_overseas), military_m.unit_types[cruiser_tag].flags);
-	EXPECT_EQ(100.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::strength]);
-	EXPECT_EQ(30.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::organization]);
-	EXPECT_EQ(12.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::speed]);
-	EXPECT_EQ(240.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::build_time]);
-	EXPECT_EQ(1.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::supply_consumption]);
-	EXPECT_EQ(50.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::hull]);
-	EXPECT_EQ(30.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::gun_power]);
-	EXPECT_EQ(7.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::fire_range]);
-	EXPECT_EQ(6.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::evasion]);
-	EXPECT_EQ(2.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::torpedo_attack]);
-	EXPECT_EQ(1.0f, military_m.unit_types[cruiser_tag].base_attributes[unit_attribute::enabled]);
-	EXPECT_EQ(0.0, military_m.unit_build_costs.get(cruiser_tag, cement_tag));
-	EXPECT_EQ(0.0, military_m.unit_build_costs.get(cruiser_tag, canned_food_tag));
-	EXPECT_EQ(0.0, military_m.unit_base_supply_costs.get(cruiser_tag, canned_food_tag));
-
-	EXPECT_EQ(19ui8, military_m.unit_types[plane_tag].icon);
-	EXPECT_EQ(uint8_t(unit_type::class_cavalry), military_m.unit_types[plane_tag].flags);
-	EXPECT_EQ(3.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::strength]);
-	EXPECT_EQ(30.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::organization]);
-	EXPECT_EQ(5.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::speed]);
-	EXPECT_EQ(120.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::build_time]);
-	EXPECT_EQ(1.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::supply_consumption]);
-	EXPECT_EQ(4.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::reconnaissance]);
-	EXPECT_EQ(1.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::attack]);
-	EXPECT_EQ(10.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::defense]);
-	EXPECT_EQ(3.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::discipline]);
-	EXPECT_EQ(2.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::support]);
-	EXPECT_EQ(2.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::maneuver]);
-	EXPECT_EQ(0.0f, military_m.unit_types[plane_tag].base_attributes[unit_attribute::enabled]);
-	EXPECT_EQ(0.0, military_m.unit_build_costs.get(plane_tag, cement_tag));
-	EXPECT_EQ(0.0, military_m.unit_build_costs.get(plane_tag, canned_food_tag));
-	EXPECT_EQ(9.0, military_m.unit_base_supply_costs.get(plane_tag, canned_food_tag));
-}
-*/
 
 TEST(military_tests, full_cb_read) {
 	preparse_test_files real_fs;

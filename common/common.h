@@ -658,13 +658,18 @@ RELEASE_INLINE auto set(tag_type t, value_type const& v) noexcept -> std::enable
 	return container_name.set<INDEX>(t, v); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container)::public_tag_type())), void>, int32_t> { \
+RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container_name)::public_tag_type())), void>, int32_t> { \
 	return int32_t(container_name.size<INDEX>()); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container)::public_tag_type())), void>, void> { \
+RELEASE_INLINE auto resize(int32_t sz) const noexcept -> std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container_name)::public_tag_type())), void>, void> { \
 	int32_t(container_name.resize<INDEX>(sz)); \
-}
+} \
+template<typename INDEX> \
+std::enable_if_t<!std::is_same_v<decltype(container_name.get<INDEX>(decltype(container_name)::public_tag_type())), void>, \
+std::vector<std::remove_reference_t<decltype(container_name.get<INDEX>(decltype(container_name)::public_tag_type()))>>& > \
+get_row() noexcept;
+
 
 #define GET_SET_TV(index_name, container_name) \
 template<typename INDEX, typename tag_type> \
@@ -696,8 +701,16 @@ RELEASE_INLINE auto size() const noexcept -> std::enable_if_t<std::is_same_v<IND
 	return int32_t(container_name.size<INDEX>()); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto resize(int32_t sz) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(int32_t(container_name.resize<INDEX>(sz)))> { \
+RELEASE_INLINE auto resize(int32_t sz) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.view()), void>, decltype(container_name.resize<INDEX>(sz))> { \
 	return container_name.resize<INDEX>(sz); \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto as_vector() noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, decltype(container_name)> { \
+	return container_name; \
+} \
+template<typename INDEX> \
+RELEASE_INLINE auto as_vector() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, decltype(container_name)> { \
+	return container_name; \
 }
 
 #define GET_SET_MAPPED(map_name, container_name) \
@@ -763,6 +776,10 @@ RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<std::
 template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, int32_t> { \
 	return int32_t(container_name.size(t)); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto resize(tag_type t, int32_t sz) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, void> { \
+	container_name.resize(sz); \
 }
 
 #define ARRAY_BACKING(container_name) \

@@ -163,6 +163,21 @@ namespace events {
 		event_tag register_triggered_event(event_manager& m, int32_t event_id, triggers::trigger_scope_state scope);
 	};
 
+	struct fake_event_creation_manager {
+		boost::container::flat_map<id_scope_pair, event_tag> created_events;
+		int32_t created_count = 0;
+
+		event_tag register_triggered_event(event_manager& m, int32_t event_id, triggers::trigger_scope_state scope) {
+			const auto created_find_result = created_events.find(id_scope_pair{ event_id, scope });
+			if(created_find_result != created_events.end())
+				return created_find_result->second;
+
+			const auto new_event_tag = event_tag(created_count++);
+			created_events.emplace(id_scope_pair{ event_id, scope }, new_event_tag);
+			return new_event_tag;
+		}
+	};
+
 	std::pair<int32_t, bool> pre_parse_event(const token_group* start, const token_group* end); // returns id &  bool is triggered
 	token_and_type get_issue_group_for_event(const token_group* start, const token_group* end);
 	event_tag read_single_event(

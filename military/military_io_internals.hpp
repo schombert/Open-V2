@@ -239,24 +239,7 @@ namespace military {
 		}
 	};
 
-	template<typename SCENARIO>
-	struct parsing_environment {
-		SCENARIO& s;
-		events::event_creation_manager& ecm;
-		unparsed_data cb_file;
-
-		text_data::text_tag lib_name_a;
-		text_data::text_tag lib_name_b;
-		text_data::text_tag take_from_sphere;
-
-		std::vector<std::pair<cb_type_tag, text_range>> pending_cb_parse;
-
-		parsing_environment(SCENARIO& m, events::event_creation_manager& e) : s(m), ecm(e) {
-			lib_name_a = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "free_peoples");
-			lib_name_b = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "liberate_country");
-			take_from_sphere = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, "take_from_sphere");
-		}
-	};
+	
 
 
 	template<typename ERR, typename S>
@@ -417,13 +400,13 @@ namespace military {
 	struct peace_order {
 		template<typename ERR, typename WS>
 		void add_cb(const token_and_type& t, ERR& err, WS& s) {
-			const auto name = text_data::get_thread_safe_text_handle(s.s.gui_m.text_data_sequences, t.start, t.end);
-			if(0 == s.s.military_m.named_cb_type_index.count(name)) {
-				const auto cbid = s.s.military_m.cb_types.emplace_back();
-				s.s.military_m.cb_types[cbid].id = cbid;
-				s.s.military_m.cb_types[cbid].name = name;
+			const auto name = s.s.get_thread_safe_text_handle(t.start, t.end);
+			if(0 == s.s.name_map<cb_type_tag>().count(name)) {
+				auto const cbid = s.internal_new_cb_fn(s.s);
+				s.s.set<::cb_type::id>(cbid, cbid);
+				s.s.set<::cb_type::name>(cbid, name);
 
-				s.s.military_m.named_cb_type_index.emplace(name, cbid);
+				s.s.name_map<cb_type_tag>().emplace(name, cbid);
 			}
 		}
 	};
@@ -431,34 +414,35 @@ namespace military {
 	struct cb_file {
 		template<typename ERR, typename WS>
 		void peace_order(const peace_order&, ERR& err, WS& s) {}
+
 		template<typename ERR, typename WS>
 		void reserve_cb(token_and_type const& t, text_range r, ERR& err, WS& s) {
-			const auto name = text_data::get_thread_safe_text_handle(s.s.gui_m.text_data_sequences, t.start, t.end);
-			const auto cbtag = tag_from_text(s.s.military_m.named_cb_type_index, name);
+			const auto name = s.s.get_thread_safe_text_handle(t.start, t.end);
+			const auto cbtag = tag_from_text(s.s.name_map<military::cb_type_tag>(), name);
 			if(!is_valid_index(cbtag)) {
-				auto const cbid = s.s.military_m.cb_types.emplace_back();
-				s.s.military_m.cb_types[cbid].id = cbid;
-				s.s.military_m.cb_types[cbid].name = name;
-				s.s.military_m.named_cb_type_index.emplace(name, cbid);
+				auto const cbid = s.internal_new_cb_fn(s.s);
+				s.s.set<::cb_type::id>(cbid, cbid);
+				s.s.set<::cb_type::name>(cbid, name);
+				s.s.name_map<military::cb_type_tag>().emplace(name, cbid);
 
 				std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
-				s.s.military_m.cb_types[cbid].explanation = text_data::get_thread_safe_text_handle(s.s.gui_m.text_data_sequences, setup_name.c_str(), setup_name.c_str() + setup_name.length());
+				s.s.set<::cb_type::explanation>(cbid, s.s.get_thread_safe_text_handle(setup_name.c_str(), setup_name.c_str() + setup_name.length()));
 
 				if((name == s.lib_name_a) | (name == s.lib_name_b))
-					s.s.military_m.cb_types[cbid].flags |= cb_type::po_liberate;
+					s.s.get<::cb_type::flags>(cbid) |= cb_type::po_liberate;
 				if(name == s.take_from_sphere)
-					s.s.military_m.cb_types[cbid].flags |= cb_type::po_take_from_sphere;
+					s.s.get<::cb_type::flags>(cbid) |= cb_type::po_take_from_sphere;
 
 				s.pending_cb_parse.emplace_back(cbid, r);
 			} else {
 
 				std::string setup_name = std::string(t.start, t.end) + std::string("_setup");
-				s.s.military_m.cb_types[cbtag].explanation = text_data::get_thread_safe_text_handle(s.s.gui_m.text_data_sequences, setup_name.c_str(), setup_name.c_str() + setup_name.length());
+				s.s.set<::cb_type::explanation>(cbtag, s.s.get_thread_safe_text_handle(setup_name.c_str(), setup_name.c_str() + setup_name.length()));
 
 				if((name == s.lib_name_a) | (name == s.lib_name_b))
-					s.s.military_m.cb_types[cbtag].flags |= cb_type::po_liberate;
+					s.s.get<::cb_type::flags>(cbtag) |= cb_type::po_liberate;
 				if(name == s.take_from_sphere)
-					s.s.military_m.cb_types[cbtag].flags |= cb_type::po_take_from_sphere;
+					s.s.get<::cb_type::flags>(cbtag) |= cb_type::po_take_from_sphere;
 
 				s.pending_cb_parse.emplace_back(cbtag, r);
 			}
@@ -476,25 +460,10 @@ namespace military {
 		float reliability = 0.0f;
 	};
 
-	inline leader_trait_tag add_trait_to_manager(military_manager& m, const trait& t) {
-		const auto current_size = m.leader_traits.size();
-		const leader_trait_tag new_tag(static_cast<value_base_of<leader_trait_tag>>(current_size));
 
-		auto row_ptr = m.leader_trait_definitions.safe_get_row(new_tag);
-		row_ptr[traits::organisation] = t.organisation;
-		row_ptr[traits::morale] = t.morale;
-		row_ptr[traits::attack] = t.attack;
-		row_ptr[traits::defence] = t.defence;
-		row_ptr[traits::reconnaissance] = t.reconnaissance;
-		row_ptr[traits::speed] = t.speed;
-		row_ptr[traits::experience] = t.experience;
-		row_ptr[traits::reliability] = t.reliability;
-
-		return new_tag;
-	}
-
-	inline void add_trait_to_manager(military_manager& m, const trait& t, leader_trait_tag id) {
-		auto row_ptr = m.leader_trait_definitions.safe_get_row(id);
+	template<typename W>
+	inline void add_trait_to_manager(W& m, const trait& t, leader_trait_tag id) {
+		auto row_ptr = m.military_m.leader_trait_definitions.safe_get_row(id);
 		row_ptr[traits::organisation] = t.organisation;
 		row_ptr[traits::morale] = t.morale;
 		row_ptr[traits::attack] = t.attack;
@@ -508,31 +477,39 @@ namespace military {
 	struct personalities {
 		template<typename ERR, typename WS>
 		void add_trait(token_and_type const& name, trait const& t, ERR const&, WS& s) {
-			const auto new_trait = add_trait_to_manager(s.military_m, t);
-			const auto trait_name = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, name.start, name.end);
-			s.military_m.leader_traits.safe_get(new_trait) = trait_name;
+			const auto current_size = s.size<military::leader_trait_name>();
+			const leader_trait_tag new_trait(static_cast<value_base_of<leader_trait_tag>>(current_size));
 
-			s.military_m.personality_traits.push_back(new_trait);
-			s.military_m.named_leader_trait_index.emplace(trait_name, new_trait);
+			add_trait_to_manager(s, t, new_trait);
+
+			const auto trait_name = s.get_thread_safe_text_handle(name.start, name.end);
+			s.as_vector<military::leader_trait_name>().push_back(trait_name);
+
+			s.as_vector<military::personality_traits>().push_back(new_trait);
+			s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
 		}
 		template<typename ERR, typename WS>
 		void set_no_personality(const trait& t, ERR const&, WS& s) {
-			add_trait_to_manager(s.military_m, t, s.military_m.no_personality_trait);
+			add_trait_to_manager(s, t, military::no_personality_trait);
 		}
 	};
 	struct backgrounds {
 		template<typename ERR, typename WS>
 		void add_trait(token_and_type const& name, trait const& t, ERR const&, WS& s) {
-			const auto new_trait = add_trait_to_manager(s.military_m, t);
-			const auto trait_name = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, name.start, name.end);
-			s.military_m.leader_traits.safe_get(new_trait) = trait_name;
+			const auto current_size = s.size<military::leader_trait_name>();
+			const leader_trait_tag new_trait(static_cast<value_base_of<leader_trait_tag>>(current_size));
 
-			s.military_m.background_traits.push_back(new_trait);
-			s.military_m.named_leader_trait_index.emplace(trait_name, new_trait);
+			add_trait_to_manager(s, t, new_trait);
+
+			const auto trait_name = s.get_thread_safe_text_handle(name.start, name.end);
+			s.as_vector<military::leader_trait_name>().push_back(trait_name);
+
+			s.as_vector<military::background_traits>().push_back(new_trait);
+			s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
 		}
 		template<typename ERR, typename WS>
 		void set_no_background(const trait& t, ERR const&, WS& s) {
-			add_trait_to_manager(s.military_m, t, s.military_m.no_background_trait);
+			add_trait_to_manager(s, t, military::no_background_trait);
 		}
 	};
 
@@ -544,4 +521,147 @@ namespace military {
 	};
 
 #include "military_parsing.h"
+
+	template<typename world_state_t>
+	void internal_read_wars(world_state_t& ws, date_tag target_date, const directory& root) {
+		auto history_dir = root.get_directory(u"\\history");
+		auto wars_dir = history_dir.get_directory(u"\\wars");
+
+		auto dip_files = wars_dir.list_files(u".txt");
+		for(auto f : dip_files) {
+			if(auto open_file = f.open_file(); open_file) {
+				const auto sz = open_file->size();
+				std::unique_ptr<char[]> parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+
+				open_file->read_to_buffer(parse_data.get(), sz);
+
+				token_generator gen(parse_data.get(), parse_data.get() + sz);
+				empty_error_handler err;
+
+				auto old_date = ws.w.current_date;
+				ws.w.current_date = target_date;
+				auto result = military::military_parsing::parse_war_file(gen, err, ws);
+				ws.w.current_date = old_date;
+
+				if(result.attacker.size() != 0 && result.defender.size() != 0) {
+					auto new_war = ws.w.military_s.wars.get_new();
+					ws.set<war::primary_attacker>(new_war, result.attacker[0]);
+					ws.set<war::primary_defender>(new_war, result.defender[0]);
+					for(auto i : result.attacker) {
+						ws.add_item(ws.get<war::attackers>(new_war), i);
+						ws.add_item(ws.get<nation::wars_involved_in>(i), war_identifier{ new_war, true });
+					}
+					for(auto i : result.defender) {
+						ws.add_item(ws.get<war::defenders>(new_war), i);
+						ws.add_item(ws.get<nation::wars_involved_in>(i), war_identifier{ new_war, false });
+					}
+					for(auto& wg : result.war_goals) {
+						ws.add_item(ws.get<war::war_goals>(new_war), wg);
+					}
+					for(auto& wg : result.war_goals) {
+						if(wg.target_country == ws.get<war::primary_defender>(new_war)
+							&& wg.from_country == ws.get<war::primary_attacker>(new_war)) {
+
+							ws.set<war::name>(new_war, ws.s.military_m.cb_types[wg.cb_type].war_name);
+
+							ws.set<war::first_adj>(new_war, ws.get<nation::adjective>(ws.get<war::primary_attacker>(new_war)));
+							ws.set<war::second>(new_war, ws.get<nation::adjective>(ws.get<war::primary_defender>(new_war)));
+
+							if(is_valid_index(wg.target_state))
+								ws.set<war::state_name>(new_war, ws.get<state::name>(wg.target_state));
+
+							auto& cbt = ws.s.military_m.cb_types[wg.cb_type];
+							if((cbt.flags & (cb_type::po_annex | cb_type::po_make_puppet | cb_type::po_gunboat)) != 0)
+								ws.set<war::second>(new_war, ws.get<nation::name>(ws.get<war::primary_defender>(new_war)));
+							else if((cbt.flags & cb_type::po_liberate) != 0 && is_valid_index(wg.liberation_target))
+								ws.set<war::second>(new_war, ws.get<nation::adjective>(wg.liberation_target));
+							else if((cbt.flags & cb_type::po_take_from_sphere) != 0 && is_valid_index(wg.liberation_target))
+								ws.set<war::second>(new_war, ws.get<nation::adjective>(wg.liberation_target));
+
+							break;
+						}
+					}
+					if(!is_valid_index(ws.get<war::name>(new_war))) {
+						ws.set<war::name>(new_war, text_data::get_thread_safe_existing_text_handle(ws.s.gui_m.text_data_sequences, "NORMAL_WAR_NAME"));
+						ws.set<war::first_adj>(new_war, ws.get<nation::adjective>(ws.get<war::primary_attacker>(new_war)));
+						ws.set<war::second>(new_war, ws.get<nation::adjective>(ws.get<war::primary_defender>(new_war)));
+					}
+
+				}
+			}
+		}
+	}
+
+
+	template<typename PSTATE>
+	void internal_pre_parse_cb_types(
+		PSTATE& state,
+		const directory& source_directory) {
+
+		const auto common_dir = source_directory.get_directory(u"\\common");
+
+		auto& main_results = state.cb_file;
+
+		const auto fi = common_dir.open_file(u"cb_types.txt");
+
+		if(fi) {
+			const auto sz = fi->size();
+			main_results.parse_data = std::unique_ptr<char[]>(new char[sz]);
+
+			fi->read_to_buffer(main_results.parse_data.get(), sz);
+
+			token_generator gen(main_results.parse_data.get(), main_results.parse_data.get() + sz);
+			empty_error_handler err;
+
+			military::military_parsing::parse_cb_file(gen, err, state);
+		}
+	}
+
+	template<auto resize_trait_count_fn, typename PSTATE>
+	void internal_read_leader_traits(PSTATE& state,
+		const directory& source_directory) {
+
+		const auto common_dir = source_directory.get_directory(u"\\common");
+
+		const auto fi = common_dir.open_file(u"traits.txt");
+
+		//state.s.military_m.leader_trait_definitions.reset(traits::trait_count);
+		resize_trait_count_fn(state.s);
+		state.s.resize<military::leader_trait_values>(leader_trait_tag(), 2);
+		state.s.resize<military::leader_trait_name>(2);
+
+		{
+			const static char no_personality_string[] = "no_personality";
+			const auto trait_name = state.s.get_thread_safe_text_handle(no_personality_string, no_personality_string + sizeof(no_personality_string) - 1);
+
+			state.s.name_map<leader_trait_tag>().emplace(trait_name, military::no_personality_trait);
+			state.s.set<military::leader_trait_name>(military::no_personality_trait, trait_name);
+		}
+		{
+			const static char no_background_string[] = "no_background";
+			const auto trait_name = state.s.get_thread_safe_text_handle(no_background_string, no_background_string + sizeof(no_background_string) - 1);
+
+			state.s.name_map<leader_trait_tag>().emplace(trait_name, military::no_background_trait);
+			state.s.set<military::leader_trait_name>(military::no_background_trait, trait_name);
+		}
+
+		if(fi) {
+			const auto sz = fi->size();
+			const auto parse_data = std::unique_ptr<char[]>(new char[sz]);
+			fi->read_to_buffer(parse_data.get(), sz);
+
+			token_generator gen(parse_data.get(), parse_data.get() + sz);
+			empty_error_handler err;
+
+			military::military_parsing::parse_traits_file(gen, err, state.s);
+		}
+	}
+
+	template<typename world_state_t>
+	void internal_read_oob_file(world_state_t& ws, nations::country_tag for_nation, token_generator& gen) {
+		empty_error_handler err;
+		oob_constext<world_state_t> con{ ws, for_nation };
+		military::military_parsing::parse_oob_file(gen, err, con);
+	}
 }

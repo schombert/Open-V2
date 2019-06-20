@@ -77,36 +77,44 @@ public:
 namespace scenario {
 	class scenario_manager;
 }
+namespace events {
+	struct event_creation_manager;
+}
 
 namespace military {
-	template<typename S>
-	struct parsing_environment;
+	cb_type_tag create_new_cb(scenario::scenario_manager& s);
+
+	template<typename SCENARIO, typename ECM, auto new_cb_fn>
+	struct parsing_environment {
+		SCENARIO& s;
+		ECM& ecm;
+		static constexpr auto internal_new_cb_fn = new_cb_fn;
+
+		unparsed_data cb_file;
+
+		text_data::text_tag lib_name_a;
+		text_data::text_tag lib_name_b;
+		text_data::text_tag take_from_sphere;
+
+		std::vector<std::pair<cb_type_tag, text_range>> pending_cb_parse;
+
+		parsing_environment(SCENARIO& m, ECM& e) : s(m), ecm(e) {
+			lib_name_a = m.get_thread_safe_text_handle("free_peoples");
+			lib_name_b = m.get_thread_safe_text_handle("liberate_country");
+			take_from_sphere = m.get_thread_safe_text_handle("take_from_sphere");
+		}
+	};
 
 	class military_manager;
 
-	class parsing_state {
-	public:
-		std::unique_ptr<parsing_environment<scenario::scenario_manager>> impl;
 
-		parsing_state(scenario::scenario_manager& m, events::event_creation_manager& e);
-		parsing_state(parsing_state&&) noexcept;
-		~parsing_state();
-	};
+	using parsing_state = parsing_environment<scenario::scenario_manager, events::event_creation_manager, create_new_cb>;
 
-	//void pre_parse_unit_types(
-	//	parsing_state& state,
-	//	const directory& source_directory);
 	void pre_parse_cb_types(
 		parsing_state& state,
 		const directory& source_directory);
 	void read_leader_traits(parsing_state& state,
 		const directory& source_directory);
-	//void read_unit_types(
-	//	parsing_state& state,
-	//	military_manager& military_m,
-	//	economy::economic_scenario& economy_m,
-	//	sound::sound_manager& sound_m,
-	//	text_data::text_sequences& text_m);
 	void read_cb_types(parsing_state const& state);
 	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_generator& gen);
 	void read_wars(world_state& ws, date_tag target_date, const directory& root);

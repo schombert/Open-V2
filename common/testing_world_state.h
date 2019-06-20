@@ -1,6 +1,7 @@
 #pragma once
 #include "common.h"
 #include "concurrency_tools\concurrency_tools.hpp"
+#include "text_data\text_data.h"
 
 namespace detail {
 	template<typename T>
@@ -70,6 +71,23 @@ public:
 	virtual ~type_erased_storage() {}
 };
 
+template<typename T>
+using testing_name_map = boost::container::flat_map<text_data::text_tag, T>;
+
+class type_erased_name_map_base {
+public:
+	virtual void* ptr() = 0;
+	virtual ~type_erased_name_map_base() {}
+};
+
+template<typename T>
+class type_erased_name_map : public type_erased_name_map_base {
+public:
+	testing_name_map<T> storage;
+
+	virtual void* ptr() { return &storage; };
+	virtual ~type_erased_name_map() {}
+};
 
 template<typename T>
 index_tuple get_index_tuple() {
@@ -86,6 +104,7 @@ public:
 	mutable std::unordered_map<index_tuple, std::unique_ptr<type_erased_vector_base>> stored_values;
 	mutable std::unordered_map<uint64_t, std::unique_ptr<type_erased_storage_base>> storage;
 	mutable std::unordered_map<uint64_t, int32_t> tag_count;
+	mutable std::unordered_map<uint64_t, std::unique_ptr<type_erased_name_map_base>> name_maps;
 
 	template<typename val_type>
 	test_vector_type<val_type>& get_vector(index_tuple key) const {
@@ -110,6 +129,18 @@ public:
 			}
 		}();
 		return *((stable_variable_vector_storage_mk_2<val_type, 64 / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
+	}
+
+	template<typename val_type>
+	testing_name_map<val_type>& name_map() const {
+		auto v_location = [_this = this]() {
+			if(auto it = _this->name_maps.find(detail::addr_struct<val_type>::value()); it != _this->name_maps.end()) {
+				return it;
+			} else {
+				return _this->name_maps.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_name_map<val_type>>()).first;
+			}
+		}();
+		return *((testing_name_map<val_type>*)(v_location->second->ptr()));
 	}
 
 	template<typename index, typename tag_type>
@@ -157,6 +188,12 @@ public:
 		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index>());
 		
 		return int32_t(v.size());
+	}
+
+	template<typename index>
+	auto as_vector() ->test_vector_type < std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>().begin()))>>& {
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>().begin()))>;
+		return get_vector<val_type>(get_index_tuple<index>());
 	}
 
 	template<typename index>
@@ -213,6 +250,15 @@ public:
 
 		return int32_t(v.size());
 	}
+	template<typename index, typename tag_type>
+	void resize(tag_type t, int32_t sz) const {
+		assert(is_valid_index(t));
+		using val_type = std::remove_reference_t<decltype(*(std::declval<imitation_type&>().get_row<index>(t).begin()))>;
+
+		test_vector_type<val_type>& v = get_vector<val_type>(get_index_tuple<index, tag_type>(t));
+
+		return v.resize(sz);
+	}
 
 	template<typename tag_type>
 	void set_max_tags(int32_t n) {
@@ -244,35 +290,72 @@ public:
 	}
 
 	template<typename index_tag, typename value_type>
-	void add_item(index_tag& i, value_type const& v) {
-		::add_item(get_storage<individuator_of<index_tag>>(), i, v);
+	auto add_item(index_tag& i, value_type const& v) ->
+		decltype(std::declval<imitation_type&>().add_item(i, v)) {
+		return ::add_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	void remove_item(index_tag& i, value_type const& v) {
-		::remove_item(get_storage<individuator_of<index_tag>>(), i, v);
+	auto remove_item(index_tag& i, value_type const& v) -> 
+		decltype(std::declval<imitation_type&>().remove_item(i, v)) {
+		return ::remove_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	auto contains_item(index_tag i, value_type const& v) const {
+	auto contains_item(index_tag i, value_type const& v) const ->
+		decltype(std::declval<imitation_type&>().contains_item(i, v)) {
 		return ::contains_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag>
-	void resize(index_tag& i, uint32_t sz) {
-		::resize(get_storage<individuator_of<index_tag>>(), i, sz);
+	auto resize(index_tag& i, int32_t sz) ->
+		decltype(std::declval<imitation_type&>().resize(i, sz)) {
+		::resize(get_storage<individuator_of<index_tag>>(), i, uint32_t(sz));
 	}
 	template<typename index_tag>
-	auto get_range(index_tag i) const -> decltype(::get_range(get_storage<individuator_of<index_tag>>(), i)) {
+	auto get_range(index_tag i) const -> decltype(std::declval<imitation_type&>().get_range(i)) {
 		return ::get_range(get_storage<individuator_of<index_tag>>(), i);
 	}
 	template<typename index_tag>
-	auto get_size(index_tag i) const -> decltype(::get_size(get_storage<individuator_of<index_tag>>(), i)) {
+	auto get_size(index_tag i) const -> decltype(std::declval<imitation_type&>().get_size(i)) {
 		return ::get_size(get_storage<individuator_of<index_tag>>(), i);
 	}
 	template<typename index_tag, typename FN>
-	void remove_item_if(index_tag& i, const FN& f) {
-		::remove_item_if(get_storage<individuator_of<index_tag>>(), i, f);
+	auto remove_item_if(index_tag& i, const FN& f) -> decltype(std::declval<imitation_type&>().remove_item_if(i, f)) {
+		return ::remove_item_if(get_storage<individuator_of<index_tag>>(), i, f);
 	}
 	template<typename index_tag>
-	void clear(index_tag& i) {
-		::clear(get_storage<individuator_of<index_tag>>(), i);
+	auto clear(index_tag& i) -> decltype(std::declval<imitation_type&>().clear(i)) {
+		return ::clear(get_storage<individuator_of<index_tag>>(), i);
+	}
+
+
+	text_data::text_sequences test_text;
+
+	text_data::text_tag get_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_text_handle(test_text, key_start, key_end);
+	}
+	text_data::text_tag get_thread_safe_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_thread_safe_text_handle(test_text, key_start, key_end);
+	}
+	text_data::text_tag get_existing_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_existing_text_handle(test_text, key_start, key_end);
+	}
+	text_data::text_tag get_thread_safe_existing_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_thread_safe_existing_text_handle(test_text, key_start, key_end);
+	}
+
+	template<size_t N>
+	text_data::text_tag get_thread_safe_existing_text_handle(const char(&t)[N]) {
+		return get_thread_safe_existing_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_existing_text_handle(const char(&t)[N]) {
+		return get_existing_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_thread_safe_text_handle(const char(&t)[N]) {
+		return get_thread_safe_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_text_handle(const char(&t)[N]) {
+		return get_text_handle(t, t + N - 1);
 	}
 };
