@@ -83,12 +83,18 @@ namespace events {
 
 namespace military {
 	cb_type_tag create_new_cb(scenario::scenario_manager& s);
+	tagged_array_view<float, uint32_t> safe_get_trait_row(scenario::scenario_manager& s, leader_trait_tag);
+	triggers::trigger_tag generic_read_trigger(token_generator& gen, scenario::scenario_manager& s, empty_error_handler&, triggers::trigger_scope_state outer_scope);
+	triggers::effect_tag generic_read_effect(token_generator& gen, scenario::scenario_manager& s, events::event_creation_manager& ecm, empty_error_handler& err, triggers::trigger_scope_state outer_scope);
 
-	template<typename SCENARIO, typename ECM, auto new_cb_fn>
+	template<typename SCENARIO, typename ECM, auto new_cb_fn, auto safe_row_fn, auto rt_fn, auto re_fn>
 	struct parsing_environment {
 		SCENARIO& s;
 		ECM& ecm;
 		static constexpr auto internal_new_cb_fn = new_cb_fn;
+		static constexpr auto internal_safe_row_fn = safe_row_fn;
+		static constexpr auto internal_read_trigger_fn = rt_fn;
+		static constexpr auto internal_read_effect_fn = re_fn;
 
 		unparsed_data cb_file;
 
@@ -108,7 +114,8 @@ namespace military {
 	class military_manager;
 
 
-	using parsing_state = parsing_environment<scenario::scenario_manager, events::event_creation_manager, create_new_cb>;
+	using parsing_state = parsing_environment<scenario::scenario_manager, events::event_creation_manager,
+		create_new_cb, safe_get_trait_row, generic_read_trigger, generic_read_effect>;
 
 	void pre_parse_cb_types(
 		parsing_state& state,

@@ -239,50 +239,27 @@ namespace military {
 		}
 	};
 
-	
-
 
 	template<typename ERR, typename S>
-	inline triggers::trigger_tag read_cb_state_trigger(token_generator& gen, ERR const& err, S& s) {
-		auto rng = find_group_range(gen, err, s);
-
-		std::vector<token_group> parse_results;
-		parse_pdx_file(parse_results, rng.start, rng.end);
-
-		const auto td = triggers::parse_trigger(s.s,
-			triggers::trigger_scope_state{
+	inline triggers::trigger_tag read_cb_state_trigger(token_generator& gen, ERR& err, S& s) {
+		return s.internal_read_trigger_fn(gen, s.s, err, triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::state,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation }, parse_results.data(), parse_results.data() + parse_results.size());
-		return triggers::commit_trigger(s.s.trigger_m, td);
+				triggers::trigger_slot_contents::nation });
 	}
 	template<typename ERR, typename S>
-	inline triggers::trigger_tag read_cb_nation_trigger(token_generator& gen, ERR const& err, S& s) {
-		auto rng = find_group_range(gen, err, s);
-
-		std::vector<token_group> parse_results;
-		parse_pdx_file(parse_results, rng.start, rng.end);
-
-		const auto td = triggers::parse_trigger(s.s,
-			triggers::trigger_scope_state{
+	inline triggers::trigger_tag read_cb_nation_trigger(token_generator& gen, ERR& err, S& s) {
+		return s.internal_read_trigger_fn(gen, s.s, err, triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation }, parse_results.data(), parse_results.data() + parse_results.size());
-		return triggers::commit_trigger(s.s.trigger_m, td);
+				triggers::trigger_slot_contents::nation });
 	}
 	template<typename ERR, typename S>
-	inline triggers::effect_tag read_cb_nation_effect(token_generator& gen, ERR const& err, S& s) {
-		auto rng = find_group_range(gen, err, s);
-
-		std::vector<token_group> parse_results;
-		parse_pdx_file(parse_results, rng.start, rng.end);
-
-		const auto td = triggers::parse_effect(s.s, s.ecm,
-			triggers::trigger_scope_state{
+	inline triggers::effect_tag read_cb_nation_effect(token_generator& gen, ERR& err, S& s) {
+		return s.internal_read_effect_fn(gen, s.s, s.ecm, err, triggers::trigger_scope_state{
 				triggers::trigger_slot_contents::nation,
 				triggers::trigger_slot_contents::nation,
-				triggers::trigger_slot_contents::nation }, parse_results.data(), parse_results.data() + parse_results.size());
-		return triggers::commit_effect(s.s.trigger_m, td);
+				triggers::trigger_slot_contents::nation });
 	}
 
 	struct single_cb : public military::cb_type {
@@ -308,7 +285,7 @@ namespace military {
 		template<typename ERR, typename WS>
 		void set_war_name(association_type, token_and_type const& t, ERR& err, WS& s) {
 			std::string prepended = std::string("NORMAL_") + std::string(t.start, t.end);
-			war_name = text_data::get_thread_safe_text_handle(s.s.gui_m.text_data_sequences, prepended.c_str(), prepended.c_str() + prepended.length());
+			war_name = s.s.get_thread_safe_text_handle(prepended.c_str(), prepended.c_str() + prepended.length());
 		}
 		template<typename ERR, typename WS>
 		void set_great_war_obligatory(association_type, bool v, ERR& err, WS& s) {
@@ -461,9 +438,9 @@ namespace military {
 	};
 
 
-	template<typename W>
+	template<auto safe_row_fn, typename W>
 	inline void add_trait_to_manager(W& m, const trait& t, leader_trait_tag id) {
-		auto row_ptr = m.military_m.leader_trait_definitions.safe_get_row(id);
+		auto row_ptr = safe_row_fn(m, id);
 		row_ptr[traits::organisation] = t.organisation;
 		row_ptr[traits::morale] = t.morale;
 		row_ptr[traits::attack] = t.attack;
@@ -477,39 +454,39 @@ namespace military {
 	struct personalities {
 		template<typename ERR, typename WS>
 		void add_trait(token_and_type const& name, trait const& t, ERR const&, WS& s) {
-			const auto current_size = s.size<military::leader_trait_name>();
+			const auto current_size = s.s.size<military::leader_trait_name>();
 			const leader_trait_tag new_trait(static_cast<value_base_of<leader_trait_tag>>(current_size));
 
-			add_trait_to_manager(s, t, new_trait);
+			add_trait_to_manager<s.internal_safe_row_fn>(s.s, t, new_trait);
 
-			const auto trait_name = s.get_thread_safe_text_handle(name.start, name.end);
-			s.as_vector<military::leader_trait_name>().push_back(trait_name);
+			const auto trait_name = s.s.get_thread_safe_text_handle(name.start, name.end);
+			s.s.as_vector<military::leader_trait_name>().push_back(trait_name);
 
-			s.as_vector<military::personality_traits>().push_back(new_trait);
-			s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
+			s.s.as_vector<military::personality_traits>().push_back(new_trait);
+			s.s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
 		}
 		template<typename ERR, typename WS>
 		void set_no_personality(const trait& t, ERR const&, WS& s) {
-			add_trait_to_manager(s, t, military::no_personality_trait);
+			add_trait_to_manager<s.internal_safe_row_fn>(s.s, t, military::no_personality_trait);
 		}
 	};
 	struct backgrounds {
 		template<typename ERR, typename WS>
 		void add_trait(token_and_type const& name, trait const& t, ERR const&, WS& s) {
-			const auto current_size = s.size<military::leader_trait_name>();
+			const auto current_size = s.s.size<military::leader_trait_name>();
 			const leader_trait_tag new_trait(static_cast<value_base_of<leader_trait_tag>>(current_size));
 
-			add_trait_to_manager(s, t, new_trait);
+			add_trait_to_manager<s.internal_safe_row_fn>(s.s, t, new_trait);
 
-			const auto trait_name = s.get_thread_safe_text_handle(name.start, name.end);
-			s.as_vector<military::leader_trait_name>().push_back(trait_name);
+			const auto trait_name = s.s.get_thread_safe_text_handle(name.start, name.end);
+			s.s.as_vector<military::leader_trait_name>().push_back(trait_name);
 
-			s.as_vector<military::background_traits>().push_back(new_trait);
-			s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
+			s.s.as_vector<military::background_traits>().push_back(new_trait);
+			s.s.name_map<leader_trait_tag>().emplace(trait_name, new_trait);
 		}
 		template<typename ERR, typename WS>
 		void set_no_background(const trait& t, ERR const&, WS& s) {
-			add_trait_to_manager(s, t, military::no_background_trait);
+			add_trait_to_manager<s.internal_safe_row_fn>(s.s, t, military::no_background_trait);
 		}
 	};
 
@@ -654,7 +631,7 @@ namespace military {
 			token_generator gen(parse_data.get(), parse_data.get() + sz);
 			empty_error_handler err;
 
-			military::military_parsing::parse_traits_file(gen, err, state.s);
+			military::military_parsing::parse_traits_file(gen, err, state);
 		}
 	}
 
@@ -663,5 +640,50 @@ namespace military {
 		empty_error_handler err;
 		oob_constext<world_state_t> con{ ws, for_nation };
 		military::military_parsing::parse_oob_file(gen, err, con);
+	}
+
+	template<typename PSTATE>
+	void internal_read_cb_types(PSTATE const& state) {
+		for(auto const& t : state.pending_cb_parse) {
+			token_generator gen(t.second.start, t.second.end);
+			empty_error_handler err;
+			auto cb = military::military_parsing::parse_single_cb(gen, err, state);
+
+			state.s.get<::cb_type::flags>(t.first) |= cb.flags;
+			state.s.set<::cb_type::badboy_factor>(t.first, cb.badboy_factor);
+
+			state.s.set<::cb_type::prestige_factor>(t.first, cb.prestige_factor);
+			state.s.set<::cb_type::peace_cost_factor>(t.first, cb.peace_cost_factor);
+			state.s.set<::cb_type::penalty_factor>(t.first, cb.penalty_factor);
+			state.s.set<::cb_type::break_truce_prestige_factor>(t.first, cb.break_truce_prestige_factor);
+			state.s.set<::cb_type::break_truce_infamy_factor>(t.first, cb.break_truce_infamy_factor);
+			state.s.set<::cb_type::break_truce_militancy_factor>(t.first, cb.break_truce_militancy_factor);
+			state.s.set<::cb_type::good_relation_prestige_factor>(t.first, cb.good_relation_prestige_factor);
+			state.s.set<::cb_type::good_relation_infamy_factor>(t.first, cb.good_relation_infamy_factor);
+			state.s.set<::cb_type::good_relation_militancy_factor>(t.first, cb.good_relation_militancy_factor);
+			state.s.set<::cb_type::construction_speed>(t.first, cb.construction_speed);
+			state.s.set<::cb_type::tws_battle_factor>(t.first, cb.tws_battle_factor);
+			state.s.set<::cb_type::war_name>(t.first, cb.war_name);
+			state.s.set<::cb_type::allowed_states>(t.first, cb.allowed_states);
+			state.s.set<::cb_type::allowed_states_in_crisis>(t.first, cb.allowed_states_in_crisis);
+			state.s.set<::cb_type::allowed_substate_regions>(t.first, cb.allowed_substate_regions);
+			state.s.set<::cb_type::allowed_countries>(t.first, cb.allowed_countries);
+			state.s.set<::cb_type::can_use>(t.first, cb.can_use);
+			state.s.set<::cb_type::on_add>(t.first, cb.on_add);
+			state.s.set<::cb_type::on_po_accepted>(t.first, cb.on_po_accepted);
+			state.s.set<::cb_type::sprite_index>(t.first, cb.sprite_index);
+			state.s.set<::cb_type::months>(t.first, cb.months);
+			state.s.set<::cb_type::truce_months>(t.first, cb.truce_months);
+
+			cb.id = state.s.get<::cb_type::id>(t.first);
+			cb.name = state.s.get<::cb_type::name>(t.first);
+			cb.explanation = state.s.get<::cb_type::explanation>(t.first);
+		}
+		state.s.for_each<military::cb_type_tag>([&state](military::cb_type_tag id) {
+			if(!is_valid_index(state.s.get<::cb_type::explanation>(id))) {
+				// prevent erronious entries from bad peace_order declaration from being used
+				state.s.get<::cb_type::flags>(id) |= (cb_type::is_not_triggered_only | cb_type::is_not_constructing_cb);
+			}
+		});
 	}
 }

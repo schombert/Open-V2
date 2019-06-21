@@ -963,6 +963,30 @@ namespace scenario {
 		std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag> const&> name_map() const {
 			return military_m.named_leader_trait_index;
 		}
+
+		template<typename tag_type, typename F>
+		std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> for_each(F const& f) const {
+			int32_t const cmax = int32_t(military_m.cb_types.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
+			}
+		}
+		template<typename tag_type, typename F, typename partitioner_t = concurrency::auto_partitioner>
+		std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>> par_for_each(F const& f, partitioner_t&& p = concurrency::auto_partitioner()) const {
+			int32_t const cmax = int32_t(military_m.cb_types.size());
+			concurrency::parallel_for(0, cmax, [&f](int32_t i) {
+				f(military::cb_type_tag(military::cb_type_tag::value_base_t(i)));
+			}, p);
+		}
+		template<typename tag_type, typename F>
+		std::enable_if_t<std::is_same_v<tag_type, military::cb_type_tag>, bool> any_of(F const& f) const {
+			int32_t const cmax = int32_t(military_m.cb_types.size());
+			for(int32_t i = 0; i < cmax; ++i) {
+				if(f(military::cb_type_tag(military::cb_type_tag::value_base_t(i))))
+					return true;
+			}
+			return false;
+		}
 	};
 
 	void ready_scenario(scenario_manager& s, const directory& root);

@@ -264,6 +264,25 @@ cb_type_tag fake_create_new_cb(test_ws<scenario::scenario_manager>& s) {
 	return cb_type_tag(created_cb_count++);
 }
 
+inline int32_t max_row_size = -1;
+tagged_array_view<float, uint32_t> fake_safe_get_trait_row(test_ws<scenario::scenario_manager>& s, leader_trait_tag id) {
+	max_row_size = std::max(max_row_size, to_index(id));
+	return s.get_row<military::leader_trait_values>(id);
+}
+
+
+inline int32_t created_trigger_count = 0;
+triggers::trigger_tag fake_generic_read_trigger(token_generator& gen, test_ws<scenario::scenario_manager>& s, empty_error_handler&, triggers::trigger_scope_state outer_scope) {
+	discard_group(gen);
+	return triggers::trigger_tag(created_trigger_count++);
+}
+inline int32_t created_effect_count = 0;
+triggers::effect_tag fake_generic_read_effect(token_generator& gen, test_ws<scenario::scenario_manager>& s, events::fake_event_creation_manager& ecm, empty_error_handler& err, triggers::trigger_scope_state outer_scope) {
+	discard_group(gen);
+	return triggers::effect_tag(created_effect_count++);
+}
+
+
 TEST(military_tests, test_cb_preparse) {
 	preparse_test_files real_fs;
 	file_system f;
@@ -275,11 +294,13 @@ TEST(military_tests, test_cb_preparse) {
 	events::fake_event_creation_manager ecm;
 	created_cb_count = 0;
 
-	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager, fake_create_new_cb> state(test_state, ecm);
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager,
+		fake_create_new_cb, fake_safe_get_trait_row, fake_generic_read_trigger, fake_generic_read_effect> state(test_state, ecm);
 
 	internal_pre_parse_cb_types(state, f.get_root());
 
 	EXPECT_EQ(3, created_cb_count);
+	EXPECT_EQ(-1, max_row_size);
 
 	EXPECT_EQ(3ui64, test_state.size<::cb_type::name>());
 	EXPECT_EQ(3ui64, test_state.name_map<military::cb_type_tag>().size());
@@ -308,11 +329,14 @@ TEST(military_tests, traits_personality) {
 	events::fake_event_creation_manager ecm;
 	created_cb_count = 0;
 	resize_traits_called_count = 0;
+	max_row_size = -1;
 
-	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager, fake_create_new_cb> state(test_state, ecm);
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager,
+		fake_create_new_cb, fake_safe_get_trait_row, fake_generic_read_trigger, fake_generic_read_effect> state(test_state, ecm);
 
 	internal_read_leader_traits<fake_resize_trait_count>(state, f.get_root());
 
+	EXPECT_EQ(2, max_row_size);
 	EXPECT_EQ(1, resize_traits_called_count);
 	EXPECT_EQ(3ui64, test_state.size<leader_trait_name>());
 	EXPECT_EQ(1ui64, test_state.size<personality_traits>());
@@ -336,46 +360,52 @@ TEST(military_tests, traits_mixed) {
 
 	f.set_root(u"F:\\test3");
 
-	scenario::scenario_manager s;
-	events::event_creation_manager ecm;
-	military_manager& m = s.military_m;
+	test_ws<scenario::scenario_manager> test_state;
+	events::fake_event_creation_manager ecm;
+	created_cb_count = 0;
+	resize_traits_called_count = 0;
+	max_row_size = -1;
 
-	parsing_state state(s, ecm);
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager,
+		fake_create_new_cb, fake_safe_get_trait_row, fake_generic_read_trigger, fake_generic_read_effect> state(test_state, ecm);
 
-	read_leader_traits(state, f.get_root());
+	internal_read_leader_traits<fake_resize_trait_count>(state, f.get_root());
 
-	EXPECT_EQ(5ui64, m.leader_traits.size());
-	EXPECT_EQ(1ui64, m.personality_traits.size());
-	EXPECT_EQ(2ui64, m.background_traits.size());
-	EXPECT_EQ(military::no_personality_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality")]);
-	EXPECT_EQ(leader_trait_tag(2), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality")]);
-	EXPECT_EQ(military::no_background_trait, m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background")]);
-	EXPECT_EQ(leader_trait_tag(3), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b1")]);
-	EXPECT_EQ(leader_trait_tag(4), m.named_leader_trait_index[text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b2")]);
+	EXPECT_EQ(4, max_row_size);
+	EXPECT_EQ(1, resize_traits_called_count);
 
-	EXPECT_EQ(leader_trait_tag(2), m.personality_traits[0]);
-	EXPECT_EQ(leader_trait_tag(3), m.background_traits[0]);
-	EXPECT_EQ(leader_trait_tag(4), m.background_traits[1]);
+	EXPECT_EQ(5ui64, test_state.size<leader_trait_name>());
+	EXPECT_EQ(1ui64, test_state.size<personality_traits>());
+	EXPECT_EQ(2ui64, test_state.size<background_traits>());
+	EXPECT_EQ(military::no_personality_trait, test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle( "no_personality")]);
+	EXPECT_EQ(leader_trait_tag(2), test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle( "test_personality")]);
+	EXPECT_EQ(military::no_background_trait, test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle( "no_background")]);
+	EXPECT_EQ(leader_trait_tag(3), test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle( "b1")]);
+	EXPECT_EQ(leader_trait_tag(4), test_state.name_map<leader_trait_tag>()[test_state.get_thread_safe_existing_text_handle("b2")]);
 
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_personality"), m.leader_traits[military::no_personality_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "test_personality"), m.leader_traits[leader_trait_tag(2)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "no_background"), m.leader_traits[military::no_background_trait]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b1"), m.leader_traits[leader_trait_tag(3)]);
-	EXPECT_EQ(text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, "b2"), m.leader_traits[leader_trait_tag(4)]);
+	EXPECT_EQ(leader_trait_tag(2), test_state.get<personality_traits>(0));
+	EXPECT_EQ(leader_trait_tag(3), test_state.get<background_traits>(0));
+	EXPECT_EQ(leader_trait_tag(4), test_state.get<background_traits>(1));
 
-	EXPECT_EQ(0.5f, m.leader_trait_definitions.get(military::no_personality_trait, traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_personality_trait, traits::organisation));
-	EXPECT_EQ(1.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::defence));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(2), traits::reliability));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("no_personality"), test_state.get<leader_trait_name>(military::no_personality_trait));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("test_personality"), test_state.get<leader_trait_name>(leader_trait_tag(2)));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("no_background"), test_state.get<leader_trait_name>(military::no_background_trait));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("b1"), test_state.get<leader_trait_name>(leader_trait_tag(3)));
+	EXPECT_EQ(test_state.get_thread_safe_existing_text_handle("b2"), test_state.get<leader_trait_name>(leader_trait_tag(4)));
 
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_background_trait, traits::morale));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(military::no_background_trait, traits::organisation));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::defence));
-	EXPECT_EQ(2.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::reliability));
-	EXPECT_EQ(4.0f, m.leader_trait_definitions.get(leader_trait_tag(3), traits::speed));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(4), traits::defence));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(4), traits::reliability));
-	EXPECT_EQ(0.0f, m.leader_trait_definitions.get(leader_trait_tag(4), traits::speed));
+	EXPECT_EQ(0.5f, test_state.get<leader_trait_values>(military::no_personality_trait, traits::morale));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(military::no_personality_trait, traits::organisation));
+	EXPECT_EQ(1.0f, test_state.get<leader_trait_values>(leader_trait_tag(2), traits::defence));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(2), traits::reliability));
+
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(military::no_background_trait, traits::morale));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(military::no_background_trait, traits::organisation));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(3), traits::defence));
+	EXPECT_EQ(2.0f, test_state.get<leader_trait_values>(leader_trait_tag(3), traits::reliability));
+	EXPECT_EQ(4.0f, test_state.get<leader_trait_values>(leader_trait_tag(3), traits::speed));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(4), traits::defence));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(4), traits::reliability));
+	EXPECT_EQ(0.0f, test_state.get<leader_trait_values>(leader_trait_tag(4), traits::speed));
 }
 
 TEST(military_tests, full_cb_read) {
@@ -384,48 +414,58 @@ TEST(military_tests, full_cb_read) {
 
 	f.set_root(u"F:\\test1");
 
-	scenario::scenario_manager s;
-	events::event_creation_manager ecm;
+	test_ws<scenario::scenario_manager> test_state;
+	events::fake_event_creation_manager ecm;
+	created_cb_count = 0;
+	resize_traits_called_count = 0;
+	max_row_size = -1;
 
-	parsing_state state(s, ecm);
-	pre_parse_cb_types(state, f.get_root());
+	parsing_environment<test_ws<scenario::scenario_manager>, events::fake_event_creation_manager,
+		fake_create_new_cb, fake_safe_get_trait_row, fake_generic_read_trigger, fake_generic_read_effect> state(test_state, ecm);
 
-	read_cb_types(state);
+	created_trigger_count = 0;
+	created_effect_count = 0;
 
-	EXPECT_EQ(3ui64, s.military_m.cb_types.size());
+	internal_pre_parse_cb_types(state, f.get_root());
 
-	EXPECT_EQ(cb_type_tag(0), s.military_m.cb_types[cb_type_tag(0)].id);
-	EXPECT_EQ(military::cb_type::always | military::cb_type::po_disarmament | military::cb_type::po_reparations, s.military_m.cb_types[cb_type_tag(0)].flags);
-	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_countries);
-	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_substate_regions);
-	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_states_in_crisis);
-	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(0)].allowed_states);
+	internal_read_cb_types(state);
 
-	EXPECT_EQ(cb_type_tag(1), s.military_m.cb_types[cb_type_tag(1)].id);
-	EXPECT_EQ(military::cb_type::all_allowed_states | military::cb_type::po_transfer_provinces | military::cb_type::po_liberate, s.military_m.cb_types[cb_type_tag(1)].flags);
-	EXPECT_EQ(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(1)].allowed_countries);
-	EXPECT_NE(triggers::effect_tag(), s.military_m.cb_types[cb_type_tag(1)].on_add);
-	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(1)].can_use);
-	EXPECT_NE(text_data::text_tag(), s.military_m.cb_types[cb_type_tag(1)].war_name);
-	EXPECT_EQ(15ui8, s.military_m.cb_types[cb_type_tag(1)].sprite_index);
-	EXPECT_EQ(12ui8, s.military_m.cb_types[cb_type_tag(1)].months);
-	EXPECT_EQ(48ui8, s.military_m.cb_types[cb_type_tag(1)].truce_months);
-	EXPECT_EQ(2.0f, s.military_m.cb_types[cb_type_tag(1)].badboy_factor);
-	EXPECT_EQ(3.0f, s.military_m.cb_types[cb_type_tag(1)].prestige_factor);
-	EXPECT_EQ(4.0f, s.military_m.cb_types[cb_type_tag(1)].peace_cost_factor);
-	EXPECT_EQ(5.0f, s.military_m.cb_types[cb_type_tag(1)].penalty_factor);
-	EXPECT_EQ(6.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_prestige_factor);
-	EXPECT_EQ(7.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_infamy_factor);
-	EXPECT_EQ(8.0f, s.military_m.cb_types[cb_type_tag(1)].break_truce_militancy_factor);
-	EXPECT_EQ(9.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_prestige_factor);
-	EXPECT_EQ(10.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_infamy_factor);
-	EXPECT_EQ(11.0f, s.military_m.cb_types[cb_type_tag(1)].good_relation_militancy_factor);
+	EXPECT_EQ(5, created_trigger_count);
+	EXPECT_EQ(1, created_effect_count);
+	EXPECT_EQ(3, test_state.size<::cb_type::name>());
 
-	EXPECT_EQ(cb_type_tag(2), s.military_m.cb_types[cb_type_tag(2)].id);
-	EXPECT_EQ(military::cb_type::not_in_crisis, s.military_m.cb_types[cb_type_tag(2)].flags);
-	EXPECT_EQ(0.5f, s.military_m.cb_types[cb_type_tag(2)].construction_speed);
-	EXPECT_EQ(2.0f, s.military_m.cb_types[cb_type_tag(2)].tws_battle_factor);
-	EXPECT_NE(triggers::trigger_tag(), s.military_m.cb_types[cb_type_tag(2)].allowed_states);
+	EXPECT_EQ(cb_type_tag(0), test_state.get<::cb_type::id>(cb_type_tag(0)));
+	EXPECT_EQ(military::cb_type::always | military::cb_type::po_disarmament | military::cb_type::po_reparations, test_state.get<::cb_type::flags>(cb_type_tag(0)));
+	EXPECT_NE(triggers::trigger_tag(), test_state.get<::cb_type::allowed_countries>(cb_type_tag(0)));
+	EXPECT_NE(triggers::trigger_tag(), test_state.get<::cb_type::allowed_substate_regions>(cb_type_tag(0)));
+	EXPECT_EQ(triggers::trigger_tag(), test_state.get<::cb_type::allowed_states_in_crisis>(cb_type_tag(0)));
+	EXPECT_EQ(triggers::trigger_tag(), test_state.get<::cb_type::allowed_states>(cb_type_tag(0)));
+
+	EXPECT_EQ(cb_type_tag(1), test_state.get<::cb_type::id>(cb_type_tag(1)));
+	EXPECT_EQ(military::cb_type::all_allowed_states | military::cb_type::po_transfer_provinces | military::cb_type::po_liberate, test_state.get<::cb_type::flags>(cb_type_tag(1)));
+	EXPECT_EQ(triggers::trigger_tag(), test_state.get<::cb_type::allowed_countries>(cb_type_tag(1)));
+	EXPECT_NE(triggers::effect_tag(), test_state.get<::cb_type::on_add>(cb_type_tag(1)));
+	EXPECT_NE(triggers::trigger_tag(), test_state.get<::cb_type::can_use>(cb_type_tag(1)));
+	EXPECT_NE(text_data::text_tag(), test_state.get<::cb_type::war_name>(cb_type_tag(1)));
+	EXPECT_EQ(15ui8, test_state.get<::cb_type::sprite_index>(cb_type_tag(1)));
+	EXPECT_EQ(12ui8, test_state.get<::cb_type::months>(cb_type_tag(1)));
+	EXPECT_EQ(48ui8, test_state.get<::cb_type::truce_months>(cb_type_tag(1)));
+	EXPECT_EQ(2.0f, test_state.get<::cb_type::badboy_factor>(cb_type_tag(1)));
+	EXPECT_EQ(3.0f, test_state.get<::cb_type::prestige_factor>(cb_type_tag(1)));
+	EXPECT_EQ(4.0f, test_state.get<::cb_type::peace_cost_factor>(cb_type_tag(1)));
+	EXPECT_EQ(5.0f, test_state.get<::cb_type::penalty_factor>(cb_type_tag(1)));
+	EXPECT_EQ(6.0f, test_state.get<::cb_type::break_truce_prestige_factor>(cb_type_tag(1)));
+	EXPECT_EQ(7.0f, test_state.get<::cb_type::break_truce_infamy_factor>(cb_type_tag(1)));
+	EXPECT_EQ(8.0f, test_state.get<::cb_type::break_truce_militancy_factor>(cb_type_tag(1)));
+	EXPECT_EQ(9.0f, test_state.get<::cb_type::good_relation_prestige_factor>(cb_type_tag(1)));
+	EXPECT_EQ(10.0f, test_state.get<::cb_type::good_relation_infamy_factor>(cb_type_tag(1)));
+	EXPECT_EQ(11.0f, test_state.get<::cb_type::good_relation_militancy_factor>(cb_type_tag(1)));
+
+	EXPECT_EQ(cb_type_tag(2), test_state.get<::cb_type::id>(cb_type_tag(2)));
+	EXPECT_EQ(military::cb_type::not_in_crisis, test_state.get<::cb_type::flags>(cb_type_tag(2)));
+	EXPECT_EQ(0.5f, test_state.get<::cb_type::construction_speed>(cb_type_tag(2)));
+	EXPECT_EQ(2.0f, test_state.get<::cb_type::tws_battle_factor>(cb_type_tag(2)));
+	EXPECT_NE(triggers::trigger_tag(), test_state.get<::cb_type::allowed_states>(cb_type_tag(2)));
 
 }
 

@@ -95,25 +95,7 @@ namespace military {
 
 
 	void read_cb_types(parsing_state const& state) {
-		for(auto const& t : state.pending_cb_parse) {
-			auto& cb_obj = state.s.military_m.cb_types[t.first];
-
-			token_generator gen(t.second.start, t.second.end);
-			empty_error_handler err;
-			auto cb = military::military_parsing::parse_single_cb(gen, err, state);
-
-			cb.flags |= cb_obj.flags;
-			cb.id = cb_obj.id;
-			cb.name = cb_obj.name;
-			cb.explanation = cb_obj.explanation;
-			cb_obj = cb;
-		}
-		for(auto& c : state.s.military_m.cb_types) {
-			if(!is_valid_index(c.explanation)) {
-				// prevent erronious entries from bad peace_order declaration from being used
-				c.flags |= (cb_type::is_not_triggered_only | cb_type::is_not_constructing_cb);
-			}
-		}
+		internal_read_cb_types(state);
 	}
 
 
@@ -147,5 +129,27 @@ namespace military {
 
 	cb_type_tag create_new_cb(scenario::scenario_manager& s) {
 		return s.military_m.cb_types.emplace_back();
+	}
+	tagged_array_view<float, uint32_t> safe_get_trait_row(scenario::scenario_manager& s, leader_trait_tag id) {
+		return  s.military_m.leader_trait_definitions.safe_get_row(id);
+	}
+
+	triggers::trigger_tag generic_read_trigger(token_generator& gen, scenario::scenario_manager& s, empty_error_handler& err, triggers::trigger_scope_state outer_scope) {
+		auto rng = find_group_range(gen, err, s);
+
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, rng.start, rng.end);
+
+		const auto td = triggers::parse_trigger(s, outer_scope, parse_results.data(), parse_results.data() + parse_results.size());
+		return triggers::commit_trigger(s.trigger_m, td);
+	}
+	triggers::effect_tag generic_read_effect(token_generator& gen, scenario::scenario_manager& s, events::event_creation_manager& ecm, empty_error_handler& err, triggers::trigger_scope_state outer_scope) {
+		auto rng = find_group_range(gen, err, s);
+		std::vector<token_group> parse_results;
+		parse_pdx_file(parse_results, rng.start, rng.end);
+
+		const auto td = triggers::parse_effect(s, ecm,
+			outer_scope, parse_results.data(), parse_results.data() + parse_results.size());
+		return triggers::commit_effect(s.trigger_m, td);
 	}
 }
