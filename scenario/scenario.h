@@ -922,19 +922,19 @@ namespace scenario {
 		text_data::text_tag get_thread_safe_text_handle(const char* key_start, const char* key_end) {
 			return text_data::get_thread_safe_text_handle(gui_m.text_data_sequences, key_start, key_end);
 		}
-		text_data::text_tag get_existing_text_handle(const char* key_start, const char* key_end) {
+		text_data::text_tag get_existing_text_handle(const char* key_start, const char* key_end) const {
 			return text_data::get_existing_text_handle(gui_m.text_data_sequences, key_start, key_end);
 		}
-		text_data::text_tag get_thread_safe_existing_text_handle(const char* key_start, const char* key_end) {
+		text_data::text_tag get_thread_safe_existing_text_handle(const char* key_start, const char* key_end) const {
 			return text_data::get_thread_safe_existing_text_handle(gui_m.text_data_sequences, key_start, key_end);
 		}
 
 		template<size_t N>
-		text_data::text_tag get_thread_safe_existing_text_handle(const char(&t)[N]) {
+		text_data::text_tag get_thread_safe_existing_text_handle(const char(&t)[N]) const {
 			return get_thread_safe_existing_text_handle(t, t + N - 1);
 		}
 		template<size_t N>
-		text_data::text_tag get_existing_text_handle(const char(&t)[N]) {
+		text_data::text_tag get_existing_text_handle(const char(&t)[N]) const {
 			return get_existing_text_handle(t, t + N - 1);
 		}
 		template<size_t N>
@@ -962,6 +962,15 @@ namespace scenario {
 		template<typename index_t>
 		std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag> const&> name_map() const {
 			return military_m.named_leader_trait_index;
+		}
+		
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, cultures::national_tag>, boost::container::flat_map<uint32_t, cultures::national_tag>&> name_map() {
+			return culture_m.national_tags_index;
+		}
+		template<typename index_t>
+		std::enable_if_t<std::is_same_v<index_t, cultures::national_tag>, boost::container::flat_map<uint32_t, cultures::national_tag> const&> name_map() const {
+			return culture_m.national_tags_index;
 		}
 
 		template<typename tag_type, typename F>

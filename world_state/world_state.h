@@ -237,6 +237,14 @@ public:
 		::add_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto find(index_tag i, value_type v) const -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, decltype(::find(array_backing<individuator_of<index_tag>>(), i, v))> {
+		return ::find(array_backing<individuator_of<index_tag>>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	RELEASE_INLINE auto find(index_tag i, value_type const& v) const -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, decltype(::find(array_backing<individuator_of<index_tag>>(), i, v))> {
+		return ::find(array_backing<individuator_of<index_tag>>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto remove_item(index_tag& i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type>> {
 		::remove_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
@@ -246,11 +254,11 @@ public:
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto contains_item(index_tag i, value_type v) const -> std::enable_if_t<std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
+		return ::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
 	RELEASE_INLINE auto contains_item(index_tag i, value_type const& v) const -> std::enable_if_t<!std::is_trivially_copyable_v<value_type>, bool> {
-		::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
+		return ::contains_item(array_backing<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag>
 	RELEASE_INLINE void resize(index_tag& i, uint32_t sz) {
@@ -304,6 +312,53 @@ public:
 	template<typename tag_type, typename F, typename partitioner_t = concurrency::auto_partitioner>
 	RELEASE_INLINE std::enable_if_t<std::is_same_v<tag_type, nations::country_tag>> par_for_each(F const& f, partitioner_t&& p = concurrency::auto_partitioner()) const {
 		w.nation_s.nations.parallel_for_each(f, p);
+	}
+
+	text_data::text_tag get_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_text_handle(s.gui_m.text_data_sequences, key_start, key_end);
+	}
+	text_data::text_tag get_thread_safe_text_handle(const char* key_start, const char* key_end) {
+		return text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, key_start, key_end);
+	}
+	text_data::text_tag get_existing_text_handle(const char* key_start, const char* key_end) const {
+		return text_data::get_existing_text_handle(s.gui_m.text_data_sequences, key_start, key_end);
+	}
+	text_data::text_tag get_thread_safe_existing_text_handle(const char* key_start, const char* key_end) const {
+		return text_data::get_thread_safe_existing_text_handle(s.gui_m.text_data_sequences, key_start, key_end);
+	}
+
+	template<size_t N>
+	text_data::text_tag get_thread_safe_existing_text_handle(const char(&t)[N]) const {
+		return get_thread_safe_existing_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_existing_text_handle(const char(&t)[N]) const {
+		return get_existing_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_thread_safe_text_handle(const char(&t)[N]) {
+		return get_thread_safe_text_handle(t, t + N - 1);
+	}
+	template<size_t N>
+	text_data::text_tag get_text_handle(const char(&t)[N]) {
+		return get_text_handle(t, t + N - 1);
+	}
+
+	template<typename index_t>
+	std::enable_if_t<std::is_same_v<index_t, cultures::national_tag>, boost::container::flat_map<uint32_t, cultures::national_tag>&> name_map() {
+		return s.culture_m.national_tags_index;
+	}
+	template<typename index_t>
+	std::enable_if_t<std::is_same_v<index_t, cultures::national_tag>, boost::container::flat_map<uint32_t, cultures::national_tag> const&> name_map() const {
+		return s.culture_m.national_tags_index;
+	}
+	template<typename index_t>
+	std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag>&> name_map() {
+		return s.military_m.named_leader_trait_index;
+	}
+	template<typename index_t>
+	std::enable_if_t<std::is_same_v<index_t, military::leader_trait_tag>, name_map_t<military::leader_trait_tag> const&> name_map() const {
+		return s.military_m.named_leader_trait_index;
 	}
 };
 

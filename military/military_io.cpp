@@ -111,20 +111,17 @@ namespace military {
 		internal_pre_parse_cb_types(state, source_directory);
 	}
 
-	void resize_trait_count(scenario::scenario_manager& s) {
+	void resize_trait_count(scenario::scenario_manager& s, int32_t sz) {
 		s.military_m.leader_trait_definitions.reset(traits::trait_count);
+		s.military_m.leader_trait_definitions.resize(sz);
 	}
 
-	void read_leader_traits(parsing_state& state,
-		const directory& source_directory) {
-
+	void read_leader_traits(parsing_state& state, const directory& source_directory) {
 		internal_read_leader_traits<resize_trait_count>(state, source_directory);
 	}
 
 	void read_oob_file(world_state& ws, nations::country_tag for_nation, token_generator& gen) {
-		empty_error_handler err;
-		oob_constext<world_state> con{ ws, for_nation };
-		military::military_parsing::parse_oob_file(gen, err, con);
+		internal_read_oob_file<nations::make_nation_for_tag, military::make_army, military::make_fleet, military::make_empty_leader, military::calculate_leader_traits>(ws, for_nation, gen);
 	}
 
 	cb_type_tag create_new_cb(scenario::scenario_manager& s) {

@@ -65,7 +65,7 @@ public:
 template<typename T>
 class type_erased_storage : public type_erased_storage_base {
 public:
-	stable_variable_vector_storage_mk_2<T, 64 / sizeof(T), 2048, alignment_type::padded_cache_aligned> storage;
+	stable_variable_vector_storage_mk_2<T, (64 + sizeof(T) - 1) / sizeof(T), 2048, alignment_type::padded_cache_aligned> storage;
 
 	virtual void* ptr() { return &storage; };
 	virtual ~type_erased_storage() {}
@@ -120,7 +120,7 @@ public:
 	}
 
 	template<typename val_type>
-	stable_variable_vector_storage_mk_2<val_type, 64 / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>& get_storage() const {
+	stable_variable_vector_storage_mk_2<val_type, (64 + sizeof(val_type) - 1) / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>& get_storage() const {
 		auto v_location = [_this = this]() {
 			if(auto it = _this->storage.find(detail::addr_struct<val_type>::value()); it != _this->storage.end()) {
 				return it;
@@ -128,11 +128,13 @@ public:
 				return _this->storage.emplace(detail::addr_struct<val_type>::value(), std::make_unique<type_erased_storage<val_type>>()).first;
 			}
 		}();
-		return *((stable_variable_vector_storage_mk_2<val_type, 64 / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
+		return *((stable_variable_vector_storage_mk_2<val_type, (64 + sizeof(val_type) - 1) / sizeof(val_type), 2048, alignment_type::padded_cache_aligned>*)(v_location->second->ptr()));
 	}
 
+	
+
 	template<typename val_type>
-	testing_name_map<val_type>& name_map() const {
+	std::enable_if_t<!std::is_same_v<val_type, cultures::national_tag>, testing_name_map<val_type>&> name_map() const {
 		auto v_location = [_this = this]() {
 			if(auto it = _this->name_maps.find(detail::addr_struct<val_type>::value()); it != _this->name_maps.end()) {
 				return it;
@@ -141,6 +143,12 @@ public:
 			}
 		}();
 		return *((testing_name_map<val_type>*)(v_location->second->ptr()));
+	}
+
+	mutable boost::container::flat_map<uint32_t, cultures::national_tag> tag_map;
+	template<typename val_type>
+	std::enable_if_t<std::is_same_v<val_type, cultures::national_tag>, boost::container::flat_map<uint32_t, cultures::national_tag>&> name_map() const {
+		return tag_map;
 	}
 
 	template<typename index, typename tag_type>
@@ -295,7 +303,12 @@ public:
 		return ::add_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}
 	template<typename index_tag, typename value_type>
-	auto remove_item(index_tag& i, value_type const& v) -> 
+	auto find(index_tag i, value_type const& v) const ->
+		decltype(std::declval<imitation_type&>().find(i, v)) {
+		return ::find(get_storage<individuator_of<index_tag>>(), i, v);
+	}
+	template<typename index_tag, typename value_type>
+	auto remove_item(index_tag& i, value_type const& v) const -> 
 		decltype(std::declval<imitation_type&>().remove_item(i, v)) {
 		return ::remove_item(get_storage<individuator_of<index_tag>>(), i, v);
 	}

@@ -12,7 +12,7 @@
 #include "sound\\sound_io.h"
 #include "world_state\\world_state.h"
 #include <ppl.h>
-#include "nations\\nations_functions.h"
+#include "nations\\nations_internals.hpp"
 #include "scenario\\scenario_io.h"
 #include "common\\testing_world_state.h"
 #include "military\military_internals.hpp"
@@ -267,6 +267,7 @@ cb_type_tag fake_create_new_cb(test_ws<scenario::scenario_manager>& s) {
 inline int32_t max_row_size = -1;
 tagged_array_view<float, uint32_t> fake_safe_get_trait_row(test_ws<scenario::scenario_manager>& s, leader_trait_tag id) {
 	max_row_size = std::max(max_row_size, to_index(id));
+	s.resize<military::leader_trait_values>(id, military::traits::trait_count);
 	return s.get_row<military::leader_trait_values>(id);
 }
 
@@ -315,7 +316,7 @@ TEST(military_tests, test_cb_preparse) {
 }
 
 int32_t resize_traits_called_count = 0;
-void fake_resize_trait_count(test_ws<scenario::scenario_manager>& ) {
+void fake_resize_trait_count(test_ws<scenario::scenario_manager>&, int32_t sz) {
 	++resize_traits_called_count;
 }
 
@@ -430,7 +431,7 @@ TEST(military_tests, full_cb_read) {
 
 	internal_read_cb_types(state);
 
-	EXPECT_EQ(5, created_trigger_count);
+	EXPECT_EQ(4, created_trigger_count);
 	EXPECT_EQ(1, created_effect_count);
 	EXPECT_EQ(3, test_state.size<::cb_type::name>());
 
@@ -467,6 +468,48 @@ TEST(military_tests, full_cb_read) {
 	EXPECT_EQ(2.0f, test_state.get<::cb_type::tws_battle_factor>(cb_type_tag(2)));
 	EXPECT_NE(triggers::trigger_tag(), test_state.get<::cb_type::allowed_states>(cb_type_tag(2)));
 
+}
+
+nations::country_tag fake_make_tag_holder(test_ws<world_state> const&, cultures::national_tag t) {
+	return nations::country_tag(to_index(t));
+}
+
+inline int32_t count_new_armies = 0;
+military::army_tag fake_new_amry(test_ws<world_state>& ws) {
+	return military::army_tag(count_new_armies++);;
+}
+military::army_tag fake_new_amry_b(test_ws<world_state>& ws, nations::country_tag owner, provinces::province_tag loc) {
+	auto res =  military::army_tag(count_new_armies++);
+	ws.set<army::location>(res, loc);
+	ws.set<army::owner>(res, owner);
+
+	ws.add_item(ws.get<nation::armies>(owner), res);
+	return res;
+}
+
+inline int32_t count_new_fleets = 0;
+military::fleet_tag fake_new_fleet(test_ws<world_state>& ws) {
+	return military::fleet_tag(count_new_fleets++);;
+}
+military::fleet_tag fake_new_fleet_b(test_ws<world_state>& ws, nations::country_tag owner, provinces::province_tag loc) {
+	auto res = military::fleet_tag(count_new_fleets++);
+	ws.set<fleet::location>(res, loc);
+
+	ws.add_item(ws.get<nation::fleets>(owner), res);
+	return res;
+}
+
+inline int32_t count_leaders_made = 0;
+leader_tag fake_leader(test_ws<world_state>&) {
+	return leader_tag(count_leaders_made++);
+}
+leader_tag fake_leader_b(test_ws<world_state>&, cultures::culture_tag, bool) {
+	return leader_tag(count_leaders_made++);
+}
+
+inline int32_t count_calculation_type = 0;
+void fake_calculate_leader_traits(test_ws<world_state>&, military::leader_tag) {
+	++count_calculation_type;
 }
 
 TEST(military_tests, read_oob_test) {
@@ -552,14 +595,7 @@ TEST(military_tests, read_oob_test) {
 		;
 
 
-	world_state* wsptr = (world_state*)_aligned_malloc(sizeof(world_state), 64);
-	new (wsptr)world_state();
-	world_state& ws = *wsptr;
-
-	concurrency::task_group tg;
-	serialization::deserialize_from_file(u"D:\\VS2007Projects\\open_v2_test_data\\test_scenario.bin", ws.s, tg);
-	tg.wait();
-	ready_world_state(ws);
+	
 
 	preparse_test_files real_fs;
 	file_system f;
@@ -569,68 +605,88 @@ TEST(military_tests, read_oob_test) {
 	const char japt[] = "JAP";
 	const char mext[] = "MEX";
 
-	population::read_all_pops(f.get_root(), ws, date_to_tag(boost::gregorian::date(1801, boost::gregorian::Jan, 1)));
+	cultures::national_tag usa_t = cultures::national_tag(0);
+	cultures::national_tag jap_t = cultures::national_tag(1);
+	cultures::national_tag mex_t = cultures::national_tag(2);
 
-	auto usa = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(usat))]);
-	ws.w.nation_s.nations.set<nation::primary_culture>(usa, cultures::culture_tag(0ui16));
+	nations::country_tag usa = nations::country_tag(0);
+	nations::country_tag jap = nations::country_tag(1);
+	nations::country_tag mex = nations::country_tag(2);
+
+	test_ws<world_state> test_state;
+
+	test_state.name_map<cultures::national_tag>()[cultures::tag_to_encoding(usat, usat + 4)] = usa_t;
+	test_state.name_map<cultures::national_tag>()[cultures::tag_to_encoding(japt, japt + 4)] = jap_t;
+	test_state.name_map<cultures::national_tag>()[cultures::tag_to_encoding(mext, mext + 4)] = mex_t;
+
+
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("meticulous")] = leader_trait_tag(0);
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("audacious")] = leader_trait_tag(1);
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("school_of_offense")] = leader_trait_tag(2);
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("bastard")] = leader_trait_tag(3);
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("generals_aide")] = leader_trait_tag(4);
+	test_state.name_map<leader_trait_tag>()[test_state.get_text_handle("warmonger")] = leader_trait_tag(5);
+
+	count_new_armies = 0;
+	count_new_fleets = 0;
+	count_leaders_made = 0;
 
 	token_generator gen(RANGE(test_file));
-	read_oob_file(ws, usa, gen);
+	internal_read_oob_file<fake_make_tag_holder, fake_new_amry_b, fake_new_fleet_b, fake_leader_b, fake_calculate_leader_traits>(test_state, usa, gen);
 
-	EXPECT_EQ(1ui32, get_size(ws.w.nation_s.nations_arrays, ws.w.nation_s.nations.get<nation::sphere_members>(usa)));
+	EXPECT_EQ(1, count_new_armies);
+	EXPECT_EQ(1, count_new_fleets);
+	EXPECT_EQ(3, count_leaders_made);
 
-	auto jap = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(japt))]);
+	EXPECT_EQ(1ui32, test_state.get_size(test_state.get<nation::sphere_members>(usa)));
 
-	EXPECT_EQ(usa, ws.w.nation_s.nations.get<nation::sphere_leader>(jap));
-	EXPECT_EQ(25, nations::get_influence_value(ws, usa, jap));
-	EXPECT_EQ(5, nations::get_influence_level(ws, usa, jap));
-	EXPECT_EQ(130, nations::get_relationship(ws, usa, jap));
-	EXPECT_EQ(130, nations::get_relationship(ws, jap, usa));
+	EXPECT_EQ(usa, test_state.get<nation::sphere_leader>(jap));
+	EXPECT_EQ(25, nations::internal_get_influence_value(test_state, usa, jap));
+	EXPECT_EQ(5, nations::internal_get_influence_level(test_state, usa, jap));
+	EXPECT_EQ(130, nations::internal_get_relationship(test_state, usa, jap));
+	EXPECT_EQ(130, nations::internal_get_relationship(test_state, jap, usa));
 
-	auto mex = nations::make_nation_for_tag(ws, ws.s.culture_m.national_tags_index[cultures::tag_to_encoding(RANGE(mext))]);
 
-	EXPECT_NE(usa, ws.w.nation_s.nations.get<nation::sphere_leader>(mex));
-	EXPECT_EQ(5, nations::get_influence_value(ws, usa, mex));
-	EXPECT_EQ(3, nations::get_influence_level(ws, usa, mex));
-	EXPECT_EQ(150, nations::get_relationship(ws, usa, mex));
-	EXPECT_EQ(150, nations::get_relationship(ws, mex, usa));
+	EXPECT_NE(usa, test_state.get<nation::sphere_leader>(mex));
+	EXPECT_EQ(5, nations::internal_get_influence_value(test_state, usa, mex));
+	EXPECT_EQ(3, nations::internal_get_influence_level(test_state, usa, mex));
+	EXPECT_EQ(150, nations::internal_get_relationship(test_state, usa, mex));
+	EXPECT_EQ(150, nations::internal_get_relationship(test_state, mex, usa));
 
-	EXPECT_EQ(2ui32, get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::generals>(usa)));
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.leader_arrays, ws.w.nation_s.nations.get<nation::admirals>(usa)));
+	EXPECT_EQ(2ui32, test_state.get_size(test_state.get<nation::generals>(usa)));
+	EXPECT_EQ(1ui32, test_state.get_size(test_state.get<nation::admirals>(usa)));
 
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa)));
-	EXPECT_EQ(1ui32, get_size(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa)));
+	EXPECT_EQ(1ui32, test_state.get_size(test_state.get<nation::armies>(usa)));
+	EXPECT_EQ(1ui32, test_state.get_size(test_state.get<nation::fleets>(usa)));
 
-	military::army_tag a = get(ws.w.military_s.army_arrays, ws.w.nation_s.nations.get<nation::armies>(usa), 0i32);
+	military::army_tag a = test_state.get_range(test_state.get<nation::armies>(usa)).first[0i32];
 
-	EXPECT_NE(military::leader_tag(), ws.get<army::leader>(a));
-	EXPECT_EQ(provinces::province_tag(220), ws.get<army::location>(a));
+	EXPECT_NE(military::leader_tag(), test_state.get<army::leader>(a));
+	EXPECT_EQ(provinces::province_tag(220), test_state.get<army::location>(a));
 	// EXPECT_EQ(1.0f, a.org);
-	EXPECT_EQ(3000.0f, ws.get<army::target_soldiers>(a));
+	EXPECT_EQ(3000.0f, test_state.get<army::target_soldiers>(a));
 	
-	auto const a_leader = ws.get<army::leader>(a);
+	auto const a_leader = test_state.get<army::leader>(a);
 
-	EXPECT_EQ(ws.get<military_leader::is_attached>(a_leader), true);
-	EXPECT_EQ(ws.get<military_leader::background>(a_leader), tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "warmonger")));
-	EXPECT_EQ(ws.get<military_leader::personality>(a_leader), tag_from_text(ws.s.military_m.named_leader_trait_index, text_data::get_existing_text_handle(ws.s.gui_m.text_data_sequences, "meticulous")));
-	EXPECT_EQ(ws.get<military_leader::creation_date>(a_leader), date_to_tag(boost::gregorian::date(1861, boost::gregorian::Jan, 1)));
+	EXPECT_EQ(test_state.get<military_leader::is_attached>(a_leader), true);
+	EXPECT_EQ(test_state.get<military_leader::background>(a_leader), tag_from_text(test_state.name_map<leader_trait_tag>(), test_state.get_existing_text_handle("warmonger")));
+	EXPECT_EQ(test_state.get<military_leader::personality>(a_leader), tag_from_text(test_state.name_map<leader_trait_tag>(), test_state.get_existing_text_handle("meticulous")));
+	EXPECT_EQ(test_state.get<military_leader::creation_date>(a_leader), date_to_tag(boost::gregorian::date(1861, boost::gregorian::Jan, 1)));
 
-	EXPECT_EQ(ws.get<military_leader::morale>(a_leader), -0.2f);
-	EXPECT_EQ(ws.get<military_leader::attack>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::defence>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::speed>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::reconnaissance>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::organisation>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::experience>(a_leader), 0.0f);
-	EXPECT_EQ(ws.get<military_leader::reliability>(a_leader), 0.0f);
+	/*EXPECT_EQ(test_state.get<military_leader::morale>(a_leader), -0.2f);
+	EXPECT_EQ(test_state.get<military_leader::attack>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::defence>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::speed>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::reconnaissance>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::organisation>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::experience>(a_leader), 0.0f);
+	EXPECT_EQ(test_state.get<military_leader::reliability>(a_leader), 0.0f);*/
 
-	military::fleet_tag b = get(ws.w.military_s.fleet_arrays, ws.w.nation_s.nations.get<nation::fleets>(usa), 0i32);
+	military::fleet_tag b = test_state.get_range(test_state.get<nation::fleets>(usa)).first[0i32];
 	EXPECT_NE(military::fleet_tag(), b);
-	EXPECT_EQ(military::leader_tag(), ws.get<fleet::leader>(b));
-	EXPECT_EQ(provinces::province_tag(219), ws.get<fleet::location>(b));
-	EXPECT_EQ(5.0f, ws.get<fleet::size>(b));
-
-	_aligned_free(wsptr);
+	EXPECT_EQ(military::leader_tag(), test_state.get<fleet::leader>(b));
+	EXPECT_EQ(provinces::province_tag(219), test_state.get<fleet::location>(b));
+	EXPECT_EQ(5.0f, test_state.get<fleet::size>(b));
 }
 
 inline int32_t new_leader_count = 0;
@@ -679,13 +735,7 @@ TEST(military_tests, leader_names) {
 }
 
 
-inline int32_t count_leaders_made = 0;
-leader_tag fake_leader(test_ws<world_state>&) {
-	return leader_tag(count_leaders_made++);
-}
-leader_tag fake_leader_b(test_ws<world_state>&, cultures::culture_tag, bool) {
-	return leader_tag(count_leaders_made++);
-}
+
 
 inline int32_t count_pictures_found = 0;
 graphics::texture_tag fake_picture(test_ws<world_state> const&, cultures::culture_tag, bool) {
@@ -717,11 +767,6 @@ TEST(military_tests, leader_generation) {
 	EXPECT_EQ(test_state.get<military_leader::is_general>(res), true);
 	EXPECT_EQ(test_state.get<military_leader::first_name>(res), fake_names(test_state, cultures::culture_tag(1)).first);
 	EXPECT_EQ(test_state.get<military_leader::last_name>(res), fake_names(test_state, cultures::culture_tag(1)).last);
-}
-
-inline int32_t count_calculation_type = 0;
-void fake_calculate_leader_traits(test_ws<world_state>&, military::leader_tag) {
-	++count_calculation_type;
 }
 
 TEST(military_tests, auto_leader_generation) {
@@ -779,10 +824,7 @@ TEST(military_tests, trait_calculation) {
 	EXPECT_EQ(22.0f, test_state.get<military_leader::reliability>(military::leader_tag(0)));
 }
 
-inline int32_t count_new_armies = 0;
-military::army_tag fake_new_amry(test_ws<world_state>&) {
-	return military::army_tag(count_new_armies++);
-}
+
 
 TEST(military_tests, army_creation_no_hq) {
 	test_ws<world_state> test_state;

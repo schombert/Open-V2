@@ -1,6 +1,7 @@
 #pragma once
 #include "military_io.hpp"
 #include "nations\nations_functions.hpp"
+#include "nations\nations_internals.hpp"
 
 namespace military {
 	struct war_goal_reader {
@@ -124,11 +125,11 @@ namespace military {
 		}
 		template<typename ERR, typename WS>
 		void set_personality(association_type, token_and_type const& t, ERR& err, WS& oob_s) {
-			personality = tag_from_text(oob_s.ws.s.military_m.named_leader_trait_index, text_data::get_thread_safe_existing_text_handle(oob_s.ws.s.gui_m.text_data_sequences, t.start, t.end));
+			personality = tag_from_text(oob_s.ws.name_map<leader_trait_tag>(), oob_s.ws.get_thread_safe_existing_text_handle(t.start, t.end));
 		}
 		template<typename ERR, typename WS>
 		void set_background(association_type, token_and_type const& t, ERR& err, WS& oob_s) {
-			background = tag_from_text(oob_s.ws.s.military_m.named_leader_trait_index, text_data::get_thread_safe_existing_text_handle(oob_s.ws.s.gui_m.text_data_sequences, t.start, t.end));
+			background = tag_from_text(oob_s.ws.name_map<leader_trait_tag>(), oob_s.ws.get_thread_safe_existing_text_handle(t.start, t.end));
 		}
 	};
 
@@ -138,10 +139,16 @@ namespace military {
 	struct parsed_ship {
 	};
 
-	template<typename WS_TYPE>
-	struct oob_constext {
+	template<typename WS_TYPE, auto make_tag_holder_fn, auto make_army_fn, auto make_fleet_fn, auto make_leader_fn, auto calculate_traits_fn>
+	struct oob_context {
 		WS_TYPE& ws;
 		nations::country_tag this_nation;
+
+		static constexpr auto make_tag_holder = make_tag_holder_fn;
+		static constexpr auto make_army = make_army_fn;
+		static constexpr auto make_fleet = make_fleet_fn;
+		static constexpr auto make_empty_leader = make_leader_fn;
+		static constexpr auto calculate_leader_traits = calculate_traits_fn;
 	};
 
 	struct parsed_army_or_navy {
@@ -158,12 +165,12 @@ namespace military {
 
 		template<typename ERR, typename WS>
 		void add_leader(parsed_leader const& l, ERR& err, WS& oob_s) {
-			auto new_leader = make_empty_leader(oob_s.ws, oob_s.ws.w.nation_s.nations.get<nation::primary_culture>(oob_s.this_nation), l.is_general);
+			auto new_leader = oob_s.make_empty_leader(oob_s.ws, oob_s.ws.get<nation::primary_culture>(oob_s.this_nation), l.is_general);
 			oob_s.ws.set<military_leader::background>(new_leader, l.background);
 			oob_s.ws.set<military_leader::personality>(new_leader, l.personality);
 			oob_s.ws.set<military_leader::creation_date>(new_leader, l.creation_date);
 
-			calculate_leader_traits(oob_s.ws, new_leader);
+			oob_s.calculate_leader_traits(oob_s.ws, new_leader);
 
 			if(l.is_general)
 				oob_s.ws.add_item(oob_s.ws.get<nation::generals>(oob_s.this_nation), new_leader);
@@ -194,21 +201,21 @@ namespace military {
 
 		template<typename ERR, typename WS>
 		void add_relation(token_and_type const& name, parsed_relation const& p, ERR& err, WS& oob_s) {
-			auto other_tag = tag_from_text(oob_s.ws.s.culture_m.national_tags_index, cultures::tag_to_encoding(name.start, name.end));
-			auto other_nation = nations::make_nation_for_tag(oob_s.ws, other_tag);
+			auto other_tag = tag_from_text(oob_s.ws.name_map<cultures::national_tag>(), cultures::tag_to_encoding(name.start, name.end));
+			auto other_nation = oob_s.make_tag_holder(oob_s.ws, other_tag);  //nations::make_nation_for_tag(oob_s.ws, other_tag);
 			if(p.value != 0)
-				nations::set_relationship(oob_s.ws, oob_s.this_nation, other_nation, p.value);
+				nations::internal_set_relationship(oob_s.ws, oob_s.this_nation, other_nation, p.value);
 			if(p.influence_value != 0 || p.level != 2)
-				nations::set_influence(oob_s.ws, oob_s.this_nation, other_nation, float(p.influence_value), p.level);
+				nations::internal_set_influence(oob_s.ws, oob_s.this_nation, other_nation, float(p.influence_value), p.level);
 		}
 		template<typename ERR, typename WS>
 		void add_leader(parsed_leader const& l, ERR& err, WS& oob_s) {
-			auto new_leader = make_empty_leader(oob_s.ws, oob_s.ws.w.nation_s.nations.get<nation::primary_culture>(oob_s.this_nation), l.is_general);
+			auto new_leader = oob_s.make_empty_leader(oob_s.ws, oob_s.ws.get<nation::primary_culture>(oob_s.this_nation), l.is_general);
 			oob_s.ws.set<military_leader::background>(new_leader, l.background);
 			oob_s.ws.set<military_leader::personality>(new_leader, l.personality);
 			oob_s.ws.set<military_leader::creation_date>(new_leader, l.creation_date);
 
-			calculate_leader_traits(oob_s.ws, new_leader);
+			oob_s.calculate_leader_traits(oob_s.ws, new_leader);
 
 			if(l.is_general)
 				oob_s.ws.add_item(oob_s.ws.get<nation::generals>(oob_s.this_nation), new_leader);
@@ -220,7 +227,7 @@ namespace military {
 			if(!is_valid_index(a.location))
 				a.location = oob_s.ws.get<nation::current_capital>(oob_s.this_nation);
 
-			auto new_army = make_army(oob_s.ws, oob_s.this_nation, a.location);
+			auto new_army = oob_s.make_army(oob_s.ws, oob_s.this_nation, a.location);
 			if(is_valid_index(a.set_leader)) {
 				oob_s.ws.set<army::leader>(new_army, a.set_leader);
 				oob_s.ws.set<military_leader::is_attached>(a.set_leader, true);
@@ -230,7 +237,7 @@ namespace military {
 		}
 		template<typename ERR, typename WS>
 		void add_navy(parsed_army_or_navy const& n, ERR& err, WS& oob_s) {
-			auto new_fleet = make_fleet(oob_s.ws, oob_s.this_nation, n.location);
+			auto new_fleet = oob_s.make_fleet(oob_s.ws, oob_s.this_nation, n.location);
 			if(is_valid_index(n.set_leader)) {
 				oob_s.ws.set<fleet::leader>(new_fleet, n.set_leader);
 				oob_s.ws.set<military_leader::is_attached>(n.set_leader, true);
@@ -604,8 +611,7 @@ namespace military {
 		const auto fi = common_dir.open_file(u"traits.txt");
 
 		//state.s.military_m.leader_trait_definitions.reset(traits::trait_count);
-		resize_trait_count_fn(state.s);
-		state.s.resize<military::leader_trait_values>(leader_trait_tag(), 2);
+		resize_trait_count_fn(state.s, 2);
 		state.s.resize<military::leader_trait_name>(2);
 
 		{
@@ -635,10 +641,10 @@ namespace military {
 		}
 	}
 
-	template<typename world_state_t>
+	template<auto make_tag_holder_fn, auto make_army_fn, auto make_fleet_fn, auto make_empty_leader_fn, auto calculate_leader_traits_fn, typename world_state_t>
 	void internal_read_oob_file(world_state_t& ws, nations::country_tag for_nation, token_generator& gen) {
 		empty_error_handler err;
-		oob_constext<world_state_t> con{ ws, for_nation };
+		oob_context<world_state_t, make_tag_holder_fn, make_army_fn, make_fleet_fn, make_empty_leader_fn, calculate_leader_traits_fn> con{ ws, for_nation };
 		military::military_parsing::parse_oob_file(gen, err, con);
 	}
 

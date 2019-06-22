@@ -152,6 +152,7 @@
     <ClInclude Include="nations_functions.hpp" />
     <ClInclude Include="nations_gui.h" />
     <ClInclude Include="nations_gui.hpp" />
+    <ClInclude Include="nations_internals.hpp" />
     <ClInclude Include="nations_io.h" />
     <ClInclude Include="nations_io.hpp" />
     <ClInclude Include="state.h" />
