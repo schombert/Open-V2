@@ -312,4 +312,8 @@ namespace military {
 			messages::cb_detected,
 			messages::cb_construction_invalid>(ws);
 	}
+
+	auto change_army_location(world_state& ws, army_tag t, provinces::province_tag new_location) -> void {
+		internal_change_army_location(ws, t, new_location);
+	}
 }

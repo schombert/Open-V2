@@ -857,3 +857,31 @@ TEST(military_tests, army_creation_with_hq) {
 	EXPECT_EQ(military::strategic_hq_tag(3), test_state.get<army::hq>(res));
 	EXPECT_TRUE(test_state.contains_item(test_state.get<strategic_hq::army_set>(military::strategic_hq_tag(3)), res));
 }
+
+TEST(military_tests, fleet_creation) {
+	test_ws<world_state> test_state;
+
+	count_new_fleets = 0;
+
+	auto res = internal_make_fleet<test_ws<world_state>, fake_new_fleet>(test_state, nations::country_tag(2), provinces::province_tag(5));
+
+	EXPECT_NE(military::fleet_tag(), res);
+	EXPECT_EQ(1, count_new_fleets);
+	EXPECT_EQ(test_state.get<fleet::location>(res), provinces::province_tag(5));
+	EXPECT_TRUE(test_state.contains_item(test_state.get<nation::fleets>(nations::country_tag(2)), res));
+}
+
+TEST(military_tests, change_army_location) {
+	test_ws<world_state> test_state;
+	test_state.set<army::location>(army_tag(1), provinces::province_tag(3));
+	test_state.add_item(test_state.get<province_state::armies>(provinces::province_tag(3)), army_tag(1));
+
+	EXPECT_TRUE(test_state.contains_item(test_state.get<province_state::armies>(provinces::province_tag(3)), army_tag(1)));
+	EXPECT_FALSE(test_state.contains_item(test_state.get<province_state::armies>(provinces::province_tag(7)), army_tag(1)));
+
+	internal_change_army_location(test_state, army_tag(1), provinces::province_tag(7));
+
+	EXPECT_FALSE(test_state.contains_item(test_state.get<province_state::armies>(provinces::province_tag(3)), army_tag(1)));
+	EXPECT_TRUE(test_state.contains_item(test_state.get<province_state::armies>(provinces::province_tag(7)), army_tag(1)));
+	EXPECT_EQ(provinces::province_tag(7), test_state.get<army::location>(army_tag(1)));
+}

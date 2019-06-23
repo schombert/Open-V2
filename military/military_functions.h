@@ -70,4 +70,6 @@ namespace military {
 
 	void init_player_cb_state(world_state& ws);
 	void update_player_cb_state(world_state& ws);
+
+	auto change_army_location(world_state& ws, army_tag t, provinces::province_tag new_location) -> void;
 }

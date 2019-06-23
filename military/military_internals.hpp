@@ -118,8 +118,10 @@ namespace military {
 	template<typename world_state_t, army_tag(*new_army_function)(world_state_t&)>
 	RELEASE_INLINE army_tag internal_make_army(world_state_t& ws, nations::country_tag n, provinces::province_tag location) {
 		army_tag new_army = new_army_function(ws);
-		ws.set<army::location>(new_army, location);
-
+		if(location) {
+			ws.set<army::location>(new_army, location);
+			ws.add_item(ws.get<province_state::armies>(location), new_army);
+		}
 		ws.set<army::owner>(new_army, n);
 		ws.add_item(ws.get<nation::armies>(n), new_army);
 
@@ -500,7 +502,7 @@ namespace military {
 	template<typename world_state_t,
 		void (*release_army_fn)(world_state_t&, army_tag),
 		bool remove_from_nation_arrays>
-	RELEASE_INLINE void internal_destroy_army(world_state_t& ws, army_tag a) {
+		RELEASE_INLINE void internal_destroy_army(world_state_t& ws, army_tag a) {
 		if constexpr(remove_from_nation_arrays) {
 			auto const owner = ws.get<army::owner>(a);
 			ws.remove_item(ws.get<nation::armies>(owner), a);
@@ -508,6 +510,9 @@ namespace military {
 
 		if(auto o = ws.get<army::order>(a); o) {
 			ws.remove_item(ws.get<army_order::army_set>(o), a);
+		}
+		if(auto l = ws.get<army::location>(a); l) {
+			ws.remove_item(ws.get<province_state::armies>(l), a);
 		}
 		if constexpr(remove_from_nation_arrays) {
 			if(auto h = ws.get<army::hq>(a); h) {
@@ -965,5 +970,18 @@ namespace military {
 				}
 			}
 		});
+	}
+
+
+	template<typename worldstate_t>
+	auto internal_change_army_location(worldstate_t& ws, army_tag t, provinces::province_tag new_location) -> void {
+		auto old_location = ws.get<army::location>(t);
+		if(old_location == new_location)
+			return;
+
+		if(old_location)
+			ws.remove_item(ws.get<province_state::armies>(old_location), t);
+		ws.set<army::location>(t, new_location);
+		ws.add_item(ws.get<province_state::armies>(new_location), t);
 	}
 }

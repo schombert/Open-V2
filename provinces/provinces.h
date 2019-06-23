@@ -99,6 +99,7 @@ namespace province_state {
 	struct fleets;
 	struct static_modifiers;
 	struct timed_modifiers;
+	struct armies;
 
 	struct name;
 	struct crime;

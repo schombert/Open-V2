@@ -252,6 +252,8 @@ void restore_world_state(world_state& ws) {
 			ws.add_item(ws.get<army_order::army_set>(orders), a);
 		if(auto hq = ws.get<army::hq>(a); hq)
 			ws.add_item(ws.get<strategic_hq::army_set>(hq), a);
+		if(auto p = ws.get<army::location>(a); p)
+			ws.add_item(ws.get<province_state::armies>(p), a);
 		ws.add_item(ws.w.nation_s.nations.get<nation::armies>(ws.get<army::owner>(a)), a);
 	});
 

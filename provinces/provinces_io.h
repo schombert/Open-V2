@@ -109,6 +109,8 @@ template<typename T>
 class serialization::tagged_serializer<province_state::total_population, T> : public serialization::discard_serializer<T> {};
 template<typename T>
 class serialization::tagged_serializer<province_state::fleets, T> : public serialization::discard_serializer<T> {};
+template<typename T>
+class serialization::tagged_serializer<province_state::armies, T> : public serialization::discard_serializer<T> {};
 
 template<typename T>
 class serialization::tagged_serializer<province_state::dominant_culture, T> : public serialization::discard_serializer<T> {};

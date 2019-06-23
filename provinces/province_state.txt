@@ -32,6 +32,7 @@ is_blockaded, bitfield_type,
 		fleets, set_tag<military::fleet_presence>,
 		pops, "array_tag<population::pop_tag, int32_t, false>",
 		cores, set_tag<cultures::national_tag>,
+		armies, "array_tag<military::army_tag, int32_t, false>",
 
 		rgo_worker_data, economy::worked_instance,
 		total_population, float,

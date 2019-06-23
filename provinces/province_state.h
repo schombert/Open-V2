@@ -38,6 +38,7 @@ namespace province_state {
 	struct fleets;
 	struct pops;
 	struct cores;
+	struct armies;
 	struct rgo_worker_data;
 	struct total_population;
 	struct last_controller_change;
@@ -186,19 +187,19 @@ namespace province_state {
 			 dtype_23() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<cultures::national_tag>) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(set_tag<cultures::national_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<cultures::national_tag>)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_23;
 		 struct alignas(64) dtype_24 { 
-			 uint8_t padding[(sizeof(economy::worked_instance) + 63ui32) & ~63ui32]; 
-			 economy::worked_instance values[(sizeof(economy::worked_instance) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(economy::worked_instance))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(economy::worked_instance)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_24() { std::uninitialized_value_construct_n(values - 1, (sizeof(economy::worked_instance) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(economy::worked_instance))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(economy::worked_instance)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(array_tag<military::army_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
+			 array_tag<military::army_tag, int32_t, false> values[(sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_24() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_24;
 		 struct alignas(64) dtype_25 { 
-			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_25() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(economy::worked_instance) + 63ui32) & ~63ui32]; 
+			 economy::worked_instance values[(sizeof(economy::worked_instance) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(economy::worked_instance))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(economy::worked_instance)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_25() { std::uninitialized_value_construct_n(values - 1, (sizeof(economy::worked_instance) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(economy::worked_instance))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(economy::worked_instance)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_25;
 		 struct alignas(64) dtype_26 { 
-			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_26() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
+			 float values[(sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_26() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_26;
 		 struct alignas(64) dtype_27 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
@@ -206,9 +207,9 @@ namespace province_state {
 			 dtype_27() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_27;
 		 struct alignas(64) dtype_28 { 
-			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_28() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_28() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_28;
 		 struct alignas(64) dtype_29 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
@@ -266,9 +267,9 @@ namespace province_state {
 			 dtype_39() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_39;
 		 struct alignas(64) dtype_40 { 
-			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
-			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_40() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
+			 float values[(sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_40() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_40;
 		 struct alignas(64) dtype_41 { 
 			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
@@ -276,25 +277,30 @@ namespace province_state {
 			 dtype_41() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_41;
 		 struct alignas(64) dtype_42 { 
-			 uint8_t padding[(sizeof(population::rebel_faction_tag) + 63ui32) & ~63ui32]; 
-			 population::rebel_faction_tag values[(sizeof(population::rebel_faction_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(population::rebel_faction_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(population::rebel_faction_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_42() { std::uninitialized_value_construct_n(values - 1, (sizeof(population::rebel_faction_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(population::rebel_faction_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(population::rebel_faction_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
+			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_42() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_42;
 		 struct alignas(64) dtype_43 { 
-			 uint8_t padding[(sizeof(nations::state_tag) + 63ui32) & ~63ui32]; 
-			 nations::state_tag values[(sizeof(nations::state_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::state_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::state_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_43() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::state_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::state_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::state_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(population::rebel_faction_tag) + 63ui32) & ~63ui32]; 
+			 population::rebel_faction_tag values[(sizeof(population::rebel_faction_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(population::rebel_faction_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(population::rebel_faction_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_43() { std::uninitialized_value_construct_n(values - 1, (sizeof(population::rebel_faction_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(population::rebel_faction_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(population::rebel_faction_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_43;
 		 struct alignas(64) dtype_44 { 
-			 uint8_t padding[(sizeof(military::army_orders_tag) + 63ui32) & ~63ui32]; 
-			 military::army_orders_tag values[(sizeof(military::army_orders_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::army_orders_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::army_orders_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_44() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::army_orders_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::army_orders_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::army_orders_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+			 uint8_t padding[(sizeof(nations::state_tag) + 63ui32) & ~63ui32]; 
+			 nations::state_tag values[(sizeof(nations::state_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::state_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::state_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_44() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::state_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(nations::state_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::state_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
 		 } m_44;
 		 struct alignas(64) dtype_45 { 
+			 uint8_t padding[(sizeof(military::army_orders_tag) + 63ui32) & ~63ui32]; 
+			 military::army_orders_tag values[(sizeof(military::army_orders_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::army_orders_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::army_orders_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
+			 dtype_45() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::army_orders_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::army_orders_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::army_orders_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+		 } m_45;
+		 struct alignas(64) dtype_46 { 
 			 uint8_t padding[(sizeof(military::strategic_hq_tag) + 63ui32) & ~63ui32]; 
 			 military::strategic_hq_tag values[(sizeof(military::strategic_hq_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::strategic_hq_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::strategic_hq_tag)) - 1ui32) : uint32_t(province_state::container_size))]; 
-			 dtype_45() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::strategic_hq_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::strategic_hq_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::strategic_hq_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
-		 } m_45;
+			 dtype_46() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::strategic_hq_tag) <= 64 ? (uint32_t(province_state::container_size) + (64ui32 / uint32_t(sizeof(military::strategic_hq_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::strategic_hq_tag)) - 1ui32) : uint32_t(province_state::container_size)) + 1); }
+		 } m_46;
 
 		 public:
 		 friend class serialization::serializer<container>;
@@ -835,532 +841,556 @@ namespace province_state {
 			 return tagged_array_view<set_tag<cultures::national_tag> const, provinces::province_tag>(m_23.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::rgo_worker_data>, economy::worked_instance&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::armies>, array_tag<military::army_tag, int32_t, false>&> get(provinces::province_tag i) {
 			 return m_24.values[to_index(i)];
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::armies>, array_tag<military::army_tag, int32_t, false> const&> get(provinces::province_tag i) const {
+			 return m_24.values[to_index(i)];
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::armies>> {
+			 m_24.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::armies>> {
+			 m_24.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::armies>, tagged_array_view<array_tag<military::army_tag, int32_t, false>, provinces::province_tag>> get_row() {
+			 return tagged_array_view<array_tag<military::army_tag, int32_t, false>, provinces::province_tag>(m_24.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::armies>, tagged_array_view<array_tag<military::army_tag, int32_t, false> const, provinces::province_tag>> get_row() const {
+			 return tagged_array_view<array_tag<military::army_tag, int32_t, false> const, provinces::province_tag>(m_24.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::rgo_worker_data>, economy::worked_instance&> get(provinces::province_tag i) {
+			 return m_25.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rgo_worker_data>, economy::worked_instance const&> get(provinces::province_tag i) const {
-			 return m_24.values[to_index(i)];
+			 return m_25.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::rgo_worker_data>> {
-			 m_24.values[to_index(i)] = v;
+			 m_25.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::rgo_worker_data>> {
-			 m_24.values[to_index(i)] = v;
+			 m_25.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rgo_worker_data>, tagged_array_view<economy::worked_instance, provinces::province_tag>> get_row() {
-			 return tagged_array_view<economy::worked_instance, provinces::province_tag>(m_24.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<economy::worked_instance, provinces::province_tag>(m_25.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rgo_worker_data>, tagged_array_view<economy::worked_instance const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<economy::worked_instance const, provinces::province_tag>(m_24.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<economy::worked_instance const, provinces::province_tag>(m_25.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::total_population>, float&> get(provinces::province_tag i) {
-			 return m_25.values[to_index(i)];
+			 return m_26.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::total_population>, float const&> get(provinces::province_tag i) const {
-			 return m_25.values[to_index(i)];
+			 return m_26.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::total_population>> {
-			 m_25.values[to_index(i)] = v;
+			 m_26.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::total_population>> {
-			 m_25.values[to_index(i)] = v;
+			 m_26.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::total_population>, tagged_array_view<float, provinces::province_tag>> get_row() {
-			 return tagged_array_view<float, provinces::province_tag>(m_25.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<float, provinces::province_tag>(m_26.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::total_population>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<float const, provinces::province_tag>(m_25.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<float const, provinces::province_tag>(m_26.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_controller_change>, date_tag&> get(provinces::province_tag i) {
-			 return m_26.values[to_index(i)];
+			 return m_27.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_controller_change>, date_tag const&> get(provinces::province_tag i) const {
-			 return m_26.values[to_index(i)];
+			 return m_27.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_controller_change>> {
-			 m_26.values[to_index(i)] = v;
+			 m_27.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_controller_change>> {
-			 m_26.values[to_index(i)] = v;
+			 m_27.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_controller_change>, tagged_array_view<date_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<date_tag, provinces::province_tag>(m_26.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_controller_change>, tagged_array_view<date_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<date_tag const, provinces::province_tag>(m_26.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, date_tag&> get(provinces::province_tag i) {
-			 return m_27.values[to_index(i)];
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, date_tag const&> get(provinces::province_tag i) const {
-			 return m_27.values[to_index(i)];
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_immigration>> {
-			 m_27.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_immigration>> {
-			 m_27.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, tagged_array_view<date_tag, provinces::province_tag>> get_row() {
 			 return tagged_array_view<date_tag, provinces::province_tag>(m_27.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, tagged_array_view<date_tag const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_controller_change>, tagged_array_view<date_tag const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<date_tag const, provinces::province_tag>(m_27.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, date_tag&> get(provinces::province_tag i) {
 			 return m_28.values[to_index(i)];
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, date_tag const&> get(provinces::province_tag i) const {
+			 return m_28.values[to_index(i)];
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_immigration>> {
+			 m_28.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::last_immigration>> {
+			 m_28.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, tagged_array_view<date_tag, provinces::province_tag>> get_row() {
+			 return tagged_array_view<date_tag, provinces::province_tag>(m_28.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::last_immigration>, tagged_array_view<date_tag const, provinces::province_tag>> get_row() const {
+			 return tagged_array_view<date_tag const, provinces::province_tag>(m_28.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, float&> get(provinces::province_tag i) {
+			 return m_29.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, float const&> get(provinces::province_tag i) const {
-			 return m_28.values[to_index(i)];
+			 return m_29.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::nationalism>> {
-			 m_28.values[to_index(i)] = v;
+			 m_29.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::nationalism>> {
-			 m_28.values[to_index(i)] = v;
+			 m_29.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, tagged_array_view<float, provinces::province_tag>> get_row() {
-			 return tagged_array_view<float, provinces::province_tag>(m_28.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<float const, provinces::province_tag>(m_28.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, float&> get(provinces::province_tag i) {
-			 return m_29.values[to_index(i)];
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, float const&> get(provinces::province_tag i) const {
-			 return m_29.values[to_index(i)];
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::siege_progress>> {
-			 m_29.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::siege_progress>> {
-			 m_29.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_29.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::nationalism>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_29.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, float&> get(provinces::province_tag i) {
 			 return m_30.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, float const&> get(provinces::province_tag i) const {
 			 return m_30.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::fort_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::siege_progress>> {
 			 m_30.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::fort_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::siege_progress>> {
 			 m_30.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_30.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::siege_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_30.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, float&> get(provinces::province_tag i) {
 			 return m_31.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, float const&> get(provinces::province_tag i) const {
 			 return m_31.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::railroad_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::fort_upgrade_progress>> {
 			 m_31.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::railroad_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::fort_upgrade_progress>> {
 			 m_31.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_31.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::fort_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_31.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, float&> get(provinces::province_tag i) {
 			 return m_32.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, float const&> get(provinces::province_tag i) const {
 			 return m_32.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::railroad_upgrade_progress>> {
 			 m_32.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::railroad_upgrade_progress>> {
 			 m_32.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_32.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::railroad_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_32.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, float&> get(provinces::province_tag i) {
 			 return m_33.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, float const&> get(provinces::province_tag i) const {
 			 return m_33.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::artisan_production_scale>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>> {
 			 m_33.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::artisan_production_scale>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>> {
 			 m_33.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_33.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::naval_base_upgrade_progress>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_33.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, float&> get(provinces::province_tag i) {
 			 return m_34.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, float const&> get(provinces::province_tag i) const {
 			 return m_34.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_migration_growth>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::artisan_production_scale>> {
 			 m_34.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_migration_growth>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::artisan_production_scale>> {
 			 m_34.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_34.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::artisan_production_scale>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_34.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, float&> get(provinces::province_tag i) {
 			 return m_35.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, float const&> get(provinces::province_tag i) const {
 			 return m_35.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_immigration_growth>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_migration_growth>> {
 			 m_35.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_immigration_growth>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_migration_growth>> {
 			 m_35.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_35.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_migration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_35.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, float&> get(provinces::province_tag i) {
 			 return m_36.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, float const&> get(provinces::province_tag i) const {
 			 return m_36.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::monthly_population>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_immigration_growth>> {
 			 m_36.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::monthly_population>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::net_immigration_growth>> {
 			 m_36.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_36.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::net_immigration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_36.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, float&> get(provinces::province_tag i) {
 			 return m_37.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, float const&> get(provinces::province_tag i) const {
 			 return m_37.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_migration_growth>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::monthly_population>> {
 			 m_37.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_migration_growth>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::monthly_population>> {
 			 m_37.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_37.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::monthly_population>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_37.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, float&> get(provinces::province_tag i) {
 			 return m_38.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, float const&> get(provinces::province_tag i) const {
 			 return m_38.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_immigration_growth>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_migration_growth>> {
 			 m_38.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_immigration_growth>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_migration_growth>> {
 			 m_38.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_38.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_migration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_38.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, float&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, float&> get(provinces::province_tag i) {
 			 return m_39.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, float const&> get(provinces::province_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, float const&> get(provinces::province_tag i) const {
 			 return m_39.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_monthly_population>> {
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_immigration_growth>> {
 			 m_39.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_monthly_population>> {
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_immigration_growth>> {
 			 m_39.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, tagged_array_view<float, provinces::province_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, tagged_array_view<float, provinces::province_tag>> get_row() {
 			 return tagged_array_view<float, provinces::province_tag>(m_39.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_immigration_growth>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<float const, provinces::province_tag>(m_39.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, nations::country_tag&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, float&> get(provinces::province_tag i) {
 			 return m_40.values[to_index(i)];
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, float const&> get(provinces::province_tag i) const {
+			 return m_40.values[to_index(i)];
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_monthly_population>> {
+			 m_40.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::old_monthly_population>> {
+			 m_40.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, tagged_array_view<float, provinces::province_tag>> get_row() {
+			 return tagged_array_view<float, provinces::province_tag>(m_40.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::old_monthly_population>, tagged_array_view<float const, provinces::province_tag>> get_row() const {
+			 return tagged_array_view<float const, provinces::province_tag>(m_40.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, nations::country_tag&> get(provinces::province_tag i) {
+			 return m_41.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, nations::country_tag const&> get(provinces::province_tag i) const {
-			 return m_40.values[to_index(i)];
+			 return m_41.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::owner>> {
-			 m_40.values[to_index(i)] = v;
+			 m_41.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::owner>> {
-			 m_40.values[to_index(i)] = v;
+			 m_41.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, tagged_array_view<nations::country_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<nations::country_tag, provinces::province_tag>(m_40.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, tagged_array_view<nations::country_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<nations::country_tag const, provinces::province_tag>(m_40.values, ve::to_vector_size(uint32_t(size_used)));
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, nations::country_tag&> get(provinces::province_tag i) {
-			 return m_41.values[to_index(i)];
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, nations::country_tag const&> get(provinces::province_tag i) const {
-			 return m_41.values[to_index(i)];
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::controller>> {
-			 m_41.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX, typename value_type>
-		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::controller>> {
-			 m_41.values[to_index(i)] = v;
-		 }
-		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, tagged_array_view<nations::country_tag, provinces::province_tag>> get_row() {
 			 return tagged_array_view<nations::country_tag, provinces::province_tag>(m_41.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, tagged_array_view<nations::country_tag const, provinces::province_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::owner>, tagged_array_view<nations::country_tag const, provinces::province_tag>> get_row() const {
 			 return tagged_array_view<nations::country_tag const, provinces::province_tag>(m_41.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, province_state::rebel_controller>, population::rebel_faction_tag&> get(provinces::province_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, nations::country_tag&> get(provinces::province_tag i) {
 			 return m_42.values[to_index(i)];
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, nations::country_tag const&> get(provinces::province_tag i) const {
+			 return m_42.values[to_index(i)];
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::controller>> {
+			 m_42.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX, typename value_type>
+		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::controller>> {
+			 m_42.values[to_index(i)] = v;
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, tagged_array_view<nations::country_tag, provinces::province_tag>> get_row() {
+			 return tagged_array_view<nations::country_tag, provinces::province_tag>(m_42.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::controller>, tagged_array_view<nations::country_tag const, provinces::province_tag>> get_row() const {
+			 return tagged_array_view<nations::country_tag const, provinces::province_tag>(m_42.values, ve::to_vector_size(uint32_t(size_used)));
+		 }
+		 template<typename INDEX>
+		 std::enable_if_t<std::is_same_v<INDEX, province_state::rebel_controller>, population::rebel_faction_tag&> get(provinces::province_tag i) {
+			 return m_43.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rebel_controller>, population::rebel_faction_tag const&> get(provinces::province_tag i) const {
-			 return m_42.values[to_index(i)];
+			 return m_43.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::rebel_controller>> {
-			 m_42.values[to_index(i)] = v;
+			 m_43.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::rebel_controller>> {
-			 m_42.values[to_index(i)] = v;
+			 m_43.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rebel_controller>, tagged_array_view<population::rebel_faction_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<population::rebel_faction_tag, provinces::province_tag>(m_42.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<population::rebel_faction_tag, provinces::province_tag>(m_43.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::rebel_controller>, tagged_array_view<population::rebel_faction_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<population::rebel_faction_tag const, provinces::province_tag>(m_42.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<population::rebel_faction_tag const, provinces::province_tag>(m_43.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::state_instance>, nations::state_tag&> get(provinces::province_tag i) {
-			 return m_43.values[to_index(i)];
+			 return m_44.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::state_instance>, nations::state_tag const&> get(provinces::province_tag i) const {
-			 return m_43.values[to_index(i)];
+			 return m_44.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::state_instance>> {
-			 m_43.values[to_index(i)] = v;
+			 m_44.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::state_instance>> {
-			 m_43.values[to_index(i)] = v;
+			 m_44.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::state_instance>, tagged_array_view<nations::state_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<nations::state_tag, provinces::province_tag>(m_43.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<nations::state_tag, provinces::province_tag>(m_44.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::state_instance>, tagged_array_view<nations::state_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<nations::state_tag const, provinces::province_tag>(m_43.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<nations::state_tag const, provinces::province_tag>(m_44.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::orders>, military::army_orders_tag&> get(provinces::province_tag i) {
-			 return m_44.values[to_index(i)];
+			 return m_45.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::orders>, military::army_orders_tag const&> get(provinces::province_tag i) const {
-			 return m_44.values[to_index(i)];
+			 return m_45.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::orders>> {
-			 m_44.values[to_index(i)] = v;
+			 m_45.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::orders>> {
-			 m_44.values[to_index(i)] = v;
+			 m_45.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::orders>, tagged_array_view<military::army_orders_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<military::army_orders_tag, provinces::province_tag>(m_44.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<military::army_orders_tag, provinces::province_tag>(m_45.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::orders>, tagged_array_view<military::army_orders_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<military::army_orders_tag const, provinces::province_tag>(m_44.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<military::army_orders_tag const, provinces::province_tag>(m_45.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::strat_hq>, military::strategic_hq_tag&> get(provinces::province_tag i) {
-			 return m_45.values[to_index(i)];
+			 return m_46.values[to_index(i)];
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::strat_hq>, military::strategic_hq_tag const&> get(provinces::province_tag i) const {
-			 return m_45.values[to_index(i)];
+			 return m_46.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::strat_hq>> {
-			 m_45.values[to_index(i)] = v;
+			 m_46.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
 		 auto set(provinces::province_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, province_state::strat_hq>> {
-			 m_45.values[to_index(i)] = v;
+			 m_46.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::strat_hq>, tagged_array_view<military::strategic_hq_tag, provinces::province_tag>> get_row() {
-			 return tagged_array_view<military::strategic_hq_tag, provinces::province_tag>(m_45.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<military::strategic_hq_tag, provinces::province_tag>(m_46.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
 		 std::enable_if_t<std::is_same_v<INDEX, province_state::strat_hq>, tagged_array_view<military::strategic_hq_tag const, provinces::province_tag>> get_row() const {
-			 return tagged_array_view<military::strategic_hq_tag const, provinces::province_tag>(m_45.values, ve::to_vector_size(uint32_t(size_used)));
+			 return tagged_array_view<military::strategic_hq_tag const, provinces::province_tag>(m_46.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 
 		 void resize(int32_t s) { size_used = s; }
@@ -1581,6 +1611,14 @@ struct supports_index<province_state::container, province_state::cores> {
 	 using const_type = set_tag<cultures::national_tag> const&;
 	 using row = tagged_array_view<set_tag<cultures::national_tag>, provinces::province_tag>;
 	 using const_row = tagged_array_view<set_tag<cultures::national_tag> const, provinces::province_tag>;
+};
+template<>
+struct supports_index<province_state::container, province_state::armies> {
+	static constexpr bool value = true;
+	 using type = array_tag<military::army_tag, int32_t, false>&;
+	 using const_type = array_tag<military::army_tag, int32_t, false> const&;
+	 using row = tagged_array_view<array_tag<military::army_tag, int32_t, false>, provinces::province_tag>;
+	 using const_row = tagged_array_view<array_tag<military::army_tag, int32_t, false> const, provinces::province_tag>;
 };
 template<>
 struct supports_index<province_state::container, province_state::rgo_worker_data> {
@@ -2076,356 +2114,372 @@ class serialization::serializer<province_state::container> {
 					 serialization::tagged_serializer<province_state::cores, set_tag<cultures::national_tag>>::serialize_object(output, obj.m_23.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
+		if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_static_size) {
+			 if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::size() == 0) {
+			 } else if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_simple_serialize) {
+				 serialization::serialize_array(output, obj.m_24.values, obj.size_used);
+			 } else {
+				 for(int32_t i = 0; i < obj.size_used; ++i)
+					 serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::serialize_object(output, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+			 }
+		} else {
+			 if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_simple_serialize) {
+				 serialization::serialize_array(output, obj.m_24.values, obj.size_used);
+			 } else {
+				 for(int32_t i = 0; i < obj.size_used; ++i)
+					 serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::serialize_object(output, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+			 }
+		}
 		if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_24.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_25.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::serialize_object(output, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::serialize_object(output, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_24.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_25.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::serialize_object(output, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::serialize_object(output, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::total_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_25.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_26.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::total_population, float>::serialize_object(output, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::total_population, float>::serialize_object(output, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_25.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_26.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::total_population, float>::serialize_object(output, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::total_population, float>::serialize_object(output, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_26.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_27.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::serialize_object(output, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::serialize_object(output, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_26.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_27.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::serialize_object(output, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::serialize_object(output, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_27.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_28.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::serialize_object(output, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::serialize_object(output, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_27.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_28.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::serialize_object(output, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::serialize_object(output, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_28.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_29.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::nationalism, float>::serialize_object(output, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::nationalism, float>::serialize_object(output, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_28.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_29.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::nationalism, float>::serialize_object(output, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::nationalism, float>::serialize_object(output, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_29.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_30.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::siege_progress, float>::serialize_object(output, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::siege_progress, float>::serialize_object(output, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_29.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_30.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::siege_progress, float>::serialize_object(output, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::siege_progress, float>::serialize_object(output, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_30.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_31.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::serialize_object(output, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::serialize_object(output, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_30.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_31.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::serialize_object(output, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::serialize_object(output, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_31.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_32.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::serialize_object(output, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::serialize_object(output, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_31.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_32.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::serialize_object(output, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::serialize_object(output, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_32.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_33.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::serialize_object(output, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::serialize_object(output, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_32.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_33.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::serialize_object(output, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::serialize_object(output, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_33.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_34.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::serialize_object(output, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::serialize_object(output, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_33.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_34.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::serialize_object(output, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::serialize_object(output, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_34.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_35.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_migration_growth, float>::serialize_object(output, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_migration_growth, float>::serialize_object(output, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_34.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_35.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_migration_growth, float>::serialize_object(output, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_migration_growth, float>::serialize_object(output, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_35.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_36.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::serialize_object(output, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::serialize_object(output, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_35.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_36.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::serialize_object(output, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::serialize_object(output, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_36.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_37.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::monthly_population, float>::serialize_object(output, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::monthly_population, float>::serialize_object(output, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_36.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_37.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::monthly_population, float>::serialize_object(output, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::monthly_population, float>::serialize_object(output, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_37.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_38.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_migration_growth, float>::serialize_object(output, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_migration_growth, float>::serialize_object(output, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_37.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_38.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_migration_growth, float>::serialize_object(output, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_migration_growth, float>::serialize_object(output, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_38.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_39.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::serialize_object(output, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::serialize_object(output, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_38.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_39.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::serialize_object(output, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::serialize_object(output, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_39.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_40.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_monthly_population, float>::serialize_object(output, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_monthly_population, float>::serialize_object(output, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_39.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_40.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_monthly_population, float>::serialize_object(output, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_monthly_population, float>::serialize_object(output, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_40.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_41.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::serialize_object(output, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::serialize_object(output, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_40.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_41.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::serialize_object(output, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::serialize_object(output, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_41.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_42.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::serialize_object(output, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::serialize_object(output, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_41.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_42.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::serialize_object(output, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::serialize_object(output, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_42.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_43.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::serialize_object(output, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::serialize_object(output, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_42.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_43.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::serialize_object(output, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::serialize_object(output, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_43.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_44.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::serialize_object(output, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::serialize_object(output, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_43.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_44.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::serialize_object(output, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::serialize_object(output, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_44.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_45.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::serialize_object(output, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::serialize_object(output, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_44.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_45.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::serialize_object(output, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::serialize_object(output, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_45.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_46.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::serialize_object(output, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::serialize_object(output, obj.m_46.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_simple_serialize) {
-				 serialization::serialize_array(output, obj.m_45.values, obj.size_used);
+				 serialization::serialize_array(output, obj.m_46.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::serialize_object(output, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::serialize_object(output, obj.m_46.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 	 }
@@ -2742,356 +2796,372 @@ class serialization::serializer<province_state::container> {
 					 serialization::tagged_serializer<province_state::cores, set_tag<cultures::national_tag>>::deserialize_object(input, obj.m_23.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
+		if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_static_size) {
+			 if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::size() == 0) {
+			 } else if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_simple_serialize) {
+				 serialization::deserialize_array(input, obj.m_24.values, obj.size_used);
+			 } else {
+				 for(int32_t i = 0; i < obj.size_used; ++i)
+					 serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::deserialize_object(input, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+			 }
+		} else {
+			 if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_simple_serialize) {
+				 serialization::deserialize_array(input, obj.m_24.values, obj.size_used);
+			 } else {
+				 for(int32_t i = 0; i < obj.size_used; ++i)
+					 serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::deserialize_object(input, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+			 }
+		}
 		if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_24.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_25.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::deserialize_object(input, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::deserialize_object(input, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_24.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_25.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::deserialize_object(input, obj.m_24.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::deserialize_object(input, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::total_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_25.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_26.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::total_population, float>::deserialize_object(input, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::total_population, float>::deserialize_object(input, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_25.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_26.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::total_population, float>::deserialize_object(input, obj.m_25.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::total_population, float>::deserialize_object(input, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_26.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_27.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::deserialize_object(input, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::deserialize_object(input, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_26.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_27.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::deserialize_object(input, obj.m_26.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_controller_change, date_tag>::deserialize_object(input, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_27.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_28.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::deserialize_object(input, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::deserialize_object(input, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_27.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_28.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::deserialize_object(input, obj.m_27.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::last_immigration, date_tag>::deserialize_object(input, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_28.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_29.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::nationalism, float>::deserialize_object(input, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::nationalism, float>::deserialize_object(input, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_28.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_29.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::nationalism, float>::deserialize_object(input, obj.m_28.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::nationalism, float>::deserialize_object(input, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_29.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_30.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::siege_progress, float>::deserialize_object(input, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::siege_progress, float>::deserialize_object(input, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_29.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_30.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::siege_progress, float>::deserialize_object(input, obj.m_29.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::siege_progress, float>::deserialize_object(input, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_30.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_31.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::deserialize_object(input, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::deserialize_object(input, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_30.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_31.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::deserialize_object(input, obj.m_30.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::deserialize_object(input, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_31.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_32.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::deserialize_object(input, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::deserialize_object(input, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_31.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_32.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::deserialize_object(input, obj.m_31.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::deserialize_object(input, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_32.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_33.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::deserialize_object(input, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::deserialize_object(input, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_32.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_33.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::deserialize_object(input, obj.m_32.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::deserialize_object(input, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_33.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_34.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::deserialize_object(input, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::deserialize_object(input, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_33.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_34.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::deserialize_object(input, obj.m_33.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::artisan_production_scale, float>::deserialize_object(input, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_34.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_35.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_migration_growth, float>::deserialize_object(input, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_migration_growth, float>::deserialize_object(input, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_34.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_35.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_migration_growth, float>::deserialize_object(input, obj.m_34.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_migration_growth, float>::deserialize_object(input, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_35.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_36.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::deserialize_object(input, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::deserialize_object(input, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_35.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_36.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::deserialize_object(input, obj.m_35.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::net_immigration_growth, float>::deserialize_object(input, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_36.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_37.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::monthly_population, float>::deserialize_object(input, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::monthly_population, float>::deserialize_object(input, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_36.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_37.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::monthly_population, float>::deserialize_object(input, obj.m_36.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::monthly_population, float>::deserialize_object(input, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_37.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_38.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_migration_growth, float>::deserialize_object(input, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_migration_growth, float>::deserialize_object(input, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_37.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_38.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_migration_growth, float>::deserialize_object(input, obj.m_37.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_migration_growth, float>::deserialize_object(input, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_38.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_39.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::deserialize_object(input, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::deserialize_object(input, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_38.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_39.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::deserialize_object(input, obj.m_38.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_immigration_growth, float>::deserialize_object(input, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_39.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_40.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_monthly_population, float>::deserialize_object(input, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_monthly_population, float>::deserialize_object(input, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_39.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_40.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::old_monthly_population, float>::deserialize_object(input, obj.m_39.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::old_monthly_population, float>::deserialize_object(input, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_40.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_41.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::deserialize_object(input, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::deserialize_object(input, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_40.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_41.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::deserialize_object(input, obj.m_40.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::owner, nations::country_tag>::deserialize_object(input, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_41.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_42.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::deserialize_object(input, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::deserialize_object(input, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_41.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_42.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::deserialize_object(input, obj.m_41.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::controller, nations::country_tag>::deserialize_object(input, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_42.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_43.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::deserialize_object(input, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::deserialize_object(input, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_42.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_43.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::deserialize_object(input, obj.m_42.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::deserialize_object(input, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_43.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_44.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::deserialize_object(input, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::deserialize_object(input, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_43.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_44.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::deserialize_object(input, obj.m_43.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::deserialize_object(input, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_44.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_45.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::deserialize_object(input, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::deserialize_object(input, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_44.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_45.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::deserialize_object(input, obj.m_44.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::deserialize_object(input, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 		if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_static_size) {
 			 if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size() == 0) {
 			 } else if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_45.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_46.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::deserialize_object(input, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::deserialize_object(input, obj.m_46.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		} else {
 			 if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_simple_serialize) {
-				 serialization::deserialize_array(input, obj.m_45.values, obj.size_used);
+				 serialization::deserialize_array(input, obj.m_46.values, obj.size_used);
 			 } else {
 				 for(int32_t i = 0; i < obj.size_used; ++i)
-					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::deserialize_object(input, obj.m_45.values[i], std::forward<CONTEXT>(c)...);
+					 serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::deserialize_object(input, obj.m_46.values[i], std::forward<CONTEXT>(c)...);
 			 }
 		}
 	 }
@@ -3347,12 +3417,25 @@ class serialization::serializer<province_state::container> {
 + [&, max = obj.size_used](){
 			 if(max == 0)
 				 return size_t(0);
+			 if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_static_size) {
+				 return size_t(max  * serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::size());
+			 } else if constexpr(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::has_simple_serialize) {
+				 return size_t(serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::size(obj.m_24.values[0], std::forward<CONTEXT>(c)...) * max); 
+			 } else {
+				 return size_t(std::transform_reduce(obj.m_24.values, obj.m_24.values + max, 0ui64, std::plus<>(), [&](array_tag<military::army_tag, int32_t, false> const& m) {
+					 return serialization::tagged_serializer<province_state::armies, array_tag<military::army_tag, int32_t, false>>::size(m, std::forward<CONTEXT>(c)...); 
+				 })); 
+			 }
+		 }()
++ [&, max = obj.size_used](){
+			 if(max == 0)
+				 return size_t(0);
 			 if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size(obj.m_24.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size(obj.m_25.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_24.values, obj.m_24.values + max, 0ui64, std::plus<>(), [&](economy::worked_instance const& m) {
+				 return size_t(std::transform_reduce(obj.m_25.values, obj.m_25.values + max, 0ui64, std::plus<>(), [&](economy::worked_instance const& m) {
 					 return serialization::tagged_serializer<province_state::rgo_worker_data, economy::worked_instance>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3363,9 +3446,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::total_population, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::total_population, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::total_population, float>::size(obj.m_25.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::total_population, float>::size(obj.m_26.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_25.values, obj.m_25.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_26.values, obj.m_26.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::total_population, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3376,9 +3459,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size(obj.m_26.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size(obj.m_27.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_26.values, obj.m_26.values + max, 0ui64, std::plus<>(), [&](date_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_27.values, obj.m_27.values + max, 0ui64, std::plus<>(), [&](date_tag const& m) {
 					 return serialization::tagged_serializer<province_state::last_controller_change, date_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3389,9 +3472,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::last_immigration, date_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::last_immigration, date_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::last_immigration, date_tag>::size(obj.m_27.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::last_immigration, date_tag>::size(obj.m_28.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_27.values, obj.m_27.values + max, 0ui64, std::plus<>(), [&](date_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_28.values, obj.m_28.values + max, 0ui64, std::plus<>(), [&](date_tag const& m) {
 					 return serialization::tagged_serializer<province_state::last_immigration, date_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3402,9 +3485,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::nationalism, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::nationalism, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::nationalism, float>::size(obj.m_28.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::nationalism, float>::size(obj.m_29.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_28.values, obj.m_28.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_29.values, obj.m_29.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::nationalism, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3415,9 +3498,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::siege_progress, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::siege_progress, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::siege_progress, float>::size(obj.m_29.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::siege_progress, float>::size(obj.m_30.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_29.values, obj.m_29.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_30.values, obj.m_30.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::siege_progress, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3428,9 +3511,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size(obj.m_30.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size(obj.m_31.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_30.values, obj.m_30.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_31.values, obj.m_31.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::fort_upgrade_progress, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3441,9 +3524,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size(obj.m_31.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size(obj.m_32.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_31.values, obj.m_31.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_32.values, obj.m_32.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::railroad_upgrade_progress, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3454,9 +3537,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size(obj.m_32.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size(obj.m_33.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_32.values, obj.m_32.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_33.values, obj.m_33.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::naval_base_upgrade_progress, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3467,9 +3550,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::artisan_production_scale, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::artisan_production_scale, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::artisan_production_scale, float>::size(obj.m_33.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::artisan_production_scale, float>::size(obj.m_34.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_33.values, obj.m_33.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_34.values, obj.m_34.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::artisan_production_scale, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3480,9 +3563,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::net_migration_growth, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_migration_growth, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::net_migration_growth, float>::size(obj.m_34.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::net_migration_growth, float>::size(obj.m_35.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_34.values, obj.m_34.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_35.values, obj.m_35.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::net_migration_growth, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3493,9 +3576,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::net_immigration_growth, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::net_immigration_growth, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::net_immigration_growth, float>::size(obj.m_35.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::net_immigration_growth, float>::size(obj.m_36.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_35.values, obj.m_35.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_36.values, obj.m_36.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::net_immigration_growth, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3506,9 +3589,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::monthly_population, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::monthly_population, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::monthly_population, float>::size(obj.m_36.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::monthly_population, float>::size(obj.m_37.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_36.values, obj.m_36.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_37.values, obj.m_37.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::monthly_population, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3519,9 +3602,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::old_migration_growth, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_migration_growth, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::old_migration_growth, float>::size(obj.m_37.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::old_migration_growth, float>::size(obj.m_38.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_37.values, obj.m_37.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_38.values, obj.m_38.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::old_migration_growth, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3532,9 +3615,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::old_immigration_growth, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_immigration_growth, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::old_immigration_growth, float>::size(obj.m_38.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::old_immigration_growth, float>::size(obj.m_39.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_38.values, obj.m_38.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_39.values, obj.m_39.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::old_immigration_growth, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3545,9 +3628,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::old_monthly_population, float>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::old_monthly_population, float>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::old_monthly_population, float>::size(obj.m_39.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::old_monthly_population, float>::size(obj.m_40.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_39.values, obj.m_39.values + max, 0ui64, std::plus<>(), [&](float const& m) {
+				 return size_t(std::transform_reduce(obj.m_40.values, obj.m_40.values + max, 0ui64, std::plus<>(), [&](float const& m) {
 					 return serialization::tagged_serializer<province_state::old_monthly_population, float>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3558,9 +3641,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::owner, nations::country_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::owner, nations::country_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::owner, nations::country_tag>::size(obj.m_40.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::owner, nations::country_tag>::size(obj.m_41.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_40.values, obj.m_40.values + max, 0ui64, std::plus<>(), [&](nations::country_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_41.values, obj.m_41.values + max, 0ui64, std::plus<>(), [&](nations::country_tag const& m) {
 					 return serialization::tagged_serializer<province_state::owner, nations::country_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3571,9 +3654,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::controller, nations::country_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::controller, nations::country_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::controller, nations::country_tag>::size(obj.m_41.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::controller, nations::country_tag>::size(obj.m_42.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_41.values, obj.m_41.values + max, 0ui64, std::plus<>(), [&](nations::country_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_42.values, obj.m_42.values + max, 0ui64, std::plus<>(), [&](nations::country_tag const& m) {
 					 return serialization::tagged_serializer<province_state::controller, nations::country_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3584,9 +3667,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size(obj.m_42.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size(obj.m_43.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_42.values, obj.m_42.values + max, 0ui64, std::plus<>(), [&](population::rebel_faction_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_43.values, obj.m_43.values + max, 0ui64, std::plus<>(), [&](population::rebel_faction_tag const& m) {
 					 return serialization::tagged_serializer<province_state::rebel_controller, population::rebel_faction_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3597,9 +3680,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size(obj.m_43.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size(obj.m_44.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_43.values, obj.m_43.values + max, 0ui64, std::plus<>(), [&](nations::state_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_44.values, obj.m_44.values + max, 0ui64, std::plus<>(), [&](nations::state_tag const& m) {
 					 return serialization::tagged_serializer<province_state::state_instance, nations::state_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3610,9 +3693,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size(obj.m_44.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size(obj.m_45.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_44.values, obj.m_44.values + max, 0ui64, std::plus<>(), [&](military::army_orders_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_45.values, obj.m_45.values + max, 0ui64, std::plus<>(), [&](military::army_orders_tag const& m) {
 					 return serialization::tagged_serializer<province_state::orders, military::army_orders_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
@@ -3623,9 +3706,9 @@ class serialization::serializer<province_state::container> {
 			 if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_static_size) {
 				 return size_t(max  * serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size());
 			 } else if constexpr(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::has_simple_serialize) {
-				 return size_t(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size(obj.m_45.values[0], std::forward<CONTEXT>(c)...) * max); 
+				 return size_t(serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size(obj.m_46.values[0], std::forward<CONTEXT>(c)...) * max); 
 			 } else {
-				 return size_t(std::transform_reduce(obj.m_45.values, obj.m_45.values + max, 0ui64, std::plus<>(), [&](military::strategic_hq_tag const& m) {
+				 return size_t(std::transform_reduce(obj.m_46.values, obj.m_46.values + max, 0ui64, std::plus<>(), [&](military::strategic_hq_tag const& m) {
 					 return serialization::tagged_serializer<province_state::strat_hq, military::strategic_hq_tag>::size(m, std::forward<CONTEXT>(c)...); 
 				 })); 
 			 }
