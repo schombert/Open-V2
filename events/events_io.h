@@ -172,7 +172,7 @@ namespace events {
 			if(created_find_result != created_events.end())
 				return created_find_result->second;
 
-			const auto new_event_tag = event_tag(created_count++);
+			const auto new_event_tag = event_tag(event_tag::value_base_t(created_count++));
 			created_events.emplace(id_scope_pair{ event_id, scope }, new_event_tag);
 			return new_event_tag;
 		}

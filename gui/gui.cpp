@@ -39,6 +39,8 @@ void ui::gui_manager::destroy(tagged_gui_object g) {
 		} else if (((flags & gui_object::type_mask) == gui_object::type_masked_flag) |
 			((flags & gui_object::type_mask) == gui_object::type_progress_bar)) {
 			multi_texture_instances.free(multi_texture_instance_tag(type_handle));
+		} else if((flags & gui_object::type_mask) == gui_object::type_tinted_icon) {
+			tinted_icon_instances.free(tinted_icon_instance_tag(type_handle));
 		}
 	}
 

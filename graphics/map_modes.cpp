@@ -652,6 +652,12 @@ namespace map_mode {
 					ws.w.map_view.legends->admin_map_icons.data(),
 					ws.w.map_view.legends->admin_map_container,
 					ws.s.province_m.first_sea_province);
+			} else if(ws.w.map_view.mode == type::military) {
+				// ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(
+					ws.w.map_view.legends->army_map_icons.data(),
+					ws.w.map_view.legends->army_map_container,
+					ws.s.province_m.province_container.size());
 			}
 		}
 	}
@@ -821,6 +827,24 @@ namespace map_mode {
 				legends->admin_map_icons[i] = &(obj.object);
 			}
 		}
+		{
+			auto i_con = ws.w.gui_m.gui_objects.emplace();
+			i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
+			ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
+
+			legends->army_map_container = &(i_con.object);
+			legends->army_map_icons.resize(ws.s.province_m.province_container.size());
+			legends->army_map_windows.resize(ws.s.province_m.province_container.size());
+
+			auto const ico_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_unit_container"]);
+
+			for(int32_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
+				auto obj = ui::create_static_element(ws, ico_tag,
+					i_con, legends->army_map_windows[i]);
+				legends->army_map_windows[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
+				legends->army_map_icons[i] = &(obj.object);
+			}
+		}
 	}
 	void generic_legend_title::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
 		if(ws.w.map_view.mode == type::political) {
@@ -849,6 +873,8 @@ namespace map_mode {
 			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_voting, fmt, ws, box, lm);
 		} else if(ws.w.map_view.mode == type::admin) {
 			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_admin, fmt, ws, box, lm);
+		} else if(ws.w.map_view.mode == type::military) {
+			ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_military, fmt, ws, box, lm);
 		}
 	}
 	void generic_legend_contents::update(ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
@@ -1189,5 +1215,8 @@ namespace map_mode {
 	}
 	void crime_color::update(ui::tinted_icon<crime_color>& self, world_state & ws) {
 		self.set_color(ws.w.gui_m, 185.0f / 255.0f, 30.0f / 255.0f, 30.0f / 255.0f);
+	}
+	ui::window_tag unit_icon_lb::element_tag(ui::gui_static & m) {
+		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_map_icon_unit"]);
 	}
 }

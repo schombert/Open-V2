@@ -167,7 +167,7 @@ namespace current_state {
 		CT_STRING("mapmode_6"), ui::simple_button<map_mode_button<map_mode::type::infrastructure>>,
 		CT_STRING("mapmode_7"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_8"), ui::simple_button<map_mode_button<map_mode::type::admin>>,
-		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_9"), ui::simple_button<map_mode_button<map_mode::type::military>>,
 		CT_STRING("mapmode_10"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
 		CT_STRING("mapmode_11"), ui::simple_button<map_mode_button<map_mode::type::rgo>>,
 		CT_STRING("mapmode_12"), ui::simple_button<map_mode_button<map_mode::type::population>>,
@@ -180,7 +180,7 @@ namespace current_state {
 		CT_STRING("mapmode_19"), ui::simple_button<map_mode_button<map_mode::type::production>>,
 		CT_STRING("mapmode_20"), ui::simple_button<map_mode_button<map_mode::type::relations>>,
 		CT_STRING("mapmode_21"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
-		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<map_mode::type::purchasing>>,
+		CT_STRING("mapmode_22"), ui::simple_button<map_mode_button<map_mode::type::naval>>,
 		bottombar_base
 	> {};
 
@@ -221,6 +221,8 @@ namespace current_state {
 				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_rgo, ui::tooltip_text_format, ws, tw); return;
 			case map_mode::type::admin:
 				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_admin, ui::tooltip_text_format, ws, tw); return;
+			case map_mode::type::military:
+				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::map_legend_military, ui::tooltip_text_format, ws, tw); return;
 			default:
 				ui::add_text(ui::xy_pair{ 0,0 }, scenario::fixed_ui::none, ui::tooltip_text_format, ws, tw); return;
 		}

@@ -1218,10 +1218,10 @@ namespace ui {
 		std::atomic<bool> pending_update = false;
 		std::atomic<bool> pending_minimal_update = false;
 	public:
-		fixed_sz_deque<gui_object, 2048, 64, gui_object_tag> gui_objects;
-		fixed_sz_deque<text_instance, 2048, 64, text_instance_tag> text_instances;
-		fixed_sz_deque<graphics_instance, 2048, 64, graphics_instance_tag> graphics_instances;
-		fixed_sz_deque<tinted_icon_instance, 128, 64, tinted_icon_instance_tag> tinted_icon_instances;
+		fixed_sz_deque<gui_object, 2048, 16, gui_object_tag> gui_objects;
+		fixed_sz_deque<text_instance, 2048, 16, text_instance_tag> text_instances;
+		fixed_sz_deque<graphics_instance, 2048, 16, graphics_instance_tag> graphics_instances;
+		fixed_sz_deque<tinted_icon_instance, 2048, 16, tinted_icon_instance_tag> tinted_icon_instances;
 		fixed_sz_deque<multi_texture_instance, 64, 64, multi_texture_instance_tag> multi_texture_instances;
 		fixed_sz_deque<graphics::data_texture, 64, 16, data_texture_tag> data_textures;
 		fixed_sz_deque<graphics::lines, 32, 8, lines_tag> lines_set;

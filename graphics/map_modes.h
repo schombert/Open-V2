@@ -23,7 +23,8 @@ namespace map_mode {
 		revolt_risk,
 		region,
 		rgo,
-		admin
+		admin,
+		naval
 	};
 
 	class legend_gui;

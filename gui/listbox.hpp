@@ -615,7 +615,12 @@ template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_ex
 template<typename ... PARAMS>
 void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::add_item(world_state& ws, PARAMS&& ... params) {
 	if (is_valid_index(temp) && is_valid_index(element_def_tag)) {
-		contents.emplace_back(std::forward<PARAMS>(params)...);
+		if constexpr(!ui::detail::has_set_value<ELEMENT, PARAMS...>) {
+			contents.emplace_back(std::forward<PARAMS>(params)...);
+		} else {
+			contents.emplace_back();
+			contents.back().set_value(std::forward<PARAMS>(params)...);
+		}
 		auto& n = contents.back();
 		ui::create_static_element(ws, element_def_tag, tagged_gui_object{ ws.w.gui_m.gui_objects.at(temp), temp }, n);
 

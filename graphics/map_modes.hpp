@@ -2,6 +2,7 @@
 #include "map_modes.h"
 #include "gui\gui.hpp"
 #include "world_state/world_state.h"
+#include "military\military_functions.h"
 
 namespace map_mode {
 	class generic_legend_window_base : public ui::window_pane {
@@ -297,6 +298,94 @@ namespace map_mode {
 		map_icon_base
 	>;
 
+	class unit_icon_list_base : public ui::gui_behavior {
+	public:
+		provinces::province_tag tag;
+	};
+
+	class unit_icon_lb {
+	public:
+		template<typename lb_type, typename window_type>
+		void windowed_update(lb_type& lb, window_type& win, world_state& ws);
+		ui::window_tag element_tag(ui::gui_static& m);
+	};
+
+	class unit_icon_base : public ui::gui_behavior {
+	public:
+		military::army_tag army;
+		military::strategic_hq_tag hq;
+
+		void set_value(military::army_tag a, military::strategic_hq_tag h) {
+			army = a;
+			hq = h;
+		}
+	};
+
+	class unit_type {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<unit_type>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_mode {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<unit_mode>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_left_status {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<unit_left_status>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_right_status {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::dynamic_icon<unit_right_status>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_frame {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::tinted_icon<unit_frame>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_flag {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::masked_flag<unit_flag>& self, window_type& win, world_state& ws);
+	};
+
+	class unit_amount {
+	public:
+		template<typename window_type>
+		void windowed_update(window_type& win, ui::tagged_gui_object box, ui::text_box_line_manager& lm, ui::text_format& fmt, world_state& ws);
+	};
+
+	class unit_background {
+	public:
+		template<typename window_type>
+		void windowed_update(ui::tinted_icon<unit_background>& self, window_type& win, world_state& ws);
+	};
+
+	using unit_icon = ui::gui_window <
+		CT_STRING("frame"), ui::tinted_icon<unit_frame>,
+		CT_STRING("background"), ui::tinted_icon<unit_background>,
+		CT_STRING("flag"), ui::masked_flag<unit_flag>,
+		CT_STRING("type"), ui::dynamic_icon<unit_type>,
+		CT_STRING("mode"), ui::dynamic_icon<unit_mode>,
+		CT_STRING("amount"), ui::display_text<unit_amount>,
+		CT_STRING("left_status"), ui::dynamic_icon<unit_left_status>,
+		CT_STRING("right_status"), ui::dynamic_icon<unit_right_status>,
+		unit_icon_base
+	>;
+
+	using unit_icon_list_window_t = ui::gui_window <
+		CT_STRING("unit_list"), ui::overlap_box<unit_icon_lb, ui::window_tag, unit_icon>,
+		unit_icon_list_base
+	>;
+
 	class rgo_map_icon {
 	public:
 		provinces::province_tag tag;
@@ -336,6 +425,10 @@ namespace map_mode {
 		ui::gui_object* admin_map_container;
 		std::vector<ui::gui_object*> admin_map_icons;
 		std::vector<ui::dynamic_icon<crime_map_icon>> admin_map_icons_objects;
+
+		ui::gui_object* army_map_container;
+		std::vector<ui::gui_object*> army_map_icons;
+		std::vector<unit_icon_list_window_t> army_map_windows;
 
 		ideologies::ideology_tag current_ideology;
 		provinces::province_tag current_province;
@@ -443,5 +536,92 @@ namespace map_mode {
 			self.set_frame(ws.w.gui_m, 0);
 		else
 			self.set_frame(ws.w.gui_m, 1);
+	}
+	template<typename window_type>
+	void unit_type::windowed_update(ui::dynamic_icon<unit_type>& self, window_type & win, world_state & ws) {
+		self.set_frame(ws.w.gui_m, bool(win.army) ? 2ui32 : 1ui32);
+	}
+	template<typename window_type>
+	void unit_mode::windowed_update(ui::dynamic_icon<unit_mode>& self, window_type & win, world_state & ws) {}
+	template<typename window_type>
+	void unit_left_status::windowed_update(ui::dynamic_icon<unit_left_status>& self, window_type & win, world_state & ws) {}
+	template<typename window_type>
+	void unit_right_status::windowed_update(ui::dynamic_icon<unit_right_status>& self, window_type & win, world_state & ws) {}
+	template<typename window_type>
+	void unit_frame::windowed_update(ui::tinted_icon<unit_frame>& self, window_type & win, world_state & ws) {
+		auto owner = [&ws, &win]() {
+			if(win.army) {
+				return ws.get<army::owner>(win.army);
+			} else if(win.hq) {
+				return ws.get<province_state::owner>(ws.get<strategic_hq::location>(win.hq));
+			} else {
+				return nations::country_tag();
+			}
+		}();
+
+		if(military::in_war_against(ws, owner, ws.w.local_player_nation)) {
+			self.set_color(ws.w.gui_m, 0.9f, 0.2f, 0.2f);
+		} else if(owner == ws.w.local_player_nation || ws.get<nation::overlord>(owner) == ws.w.local_player_nation) {
+			self.set_color(ws.w.gui_m, 0.2f, 0.9f, 0.2f);
+		} else if(military::in_war_with(ws, owner, ws.w.local_player_nation)) {
+			self.set_color(ws.w.gui_m, 0.05f, 0.75f, 0.05f);
+		} else {
+			self.set_color(ws.w.gui_m, 0.75f, 0.75f, 0.75f);
+		}
+	}
+	template<typename window_type>
+	void unit_flag::windowed_update(ui::masked_flag<unit_flag>& self, window_type & win, world_state & ws) {
+		auto owner = [&ws, &win]() {
+			if(win.army) {
+				return ws.get<army::owner>(win.army);
+			} else if(win.hq) {
+				return ws.get<province_state::owner>(ws.get<strategic_hq::location>(win.hq));
+			} else {
+				return nations::country_tag();
+			}
+		}();
+
+		self.set_displayed_flag(ws, owner);
+	}
+	template<typename window_type>
+	void unit_amount::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
+		auto amount = [&ws, &win]() {
+			if(win.army) {
+				return ws.get<army::current_soldiers>(win.army);
+			} else if(win.hq) {
+				return ws.get<strategic_hq::reserve_soldiers>(win.hq);
+			} else {
+				return 0.0f;
+			}
+		}();
+
+		ui::add_text(ui::xy_pair{ 0,0 }, text_data::integer{ amount }, fmt, ws, box, lm);
+	}
+	template<typename lb_type, typename window_type>
+	void unit_icon_lb::windowed_update(lb_type & lb, window_type & win, world_state & ws) {
+		if(win.tag) {
+			auto parmies = ws.get_range(ws.get<province_state::armies>(win.tag));
+			for(auto a : parmies) {
+				lb.add_item(ws, a, military::strategic_hq_tag());
+			}
+			if(auto h = ws.get<province_state::strat_hq>(win.tag); h && ws.get<strategic_hq::location>(h) == win.tag) {
+				lb.add_item(ws, military::army_tag(), h);
+			}
+		}
+	}
+	template<typename window_type>
+	void unit_background::windowed_update(ui::tinted_icon<unit_background>& self, window_type & win, world_state & ws) {
+		auto owner = [&ws, &win]() {
+			if(win.army) {
+				return ws.get<army::owner>(win.army);
+			} else if(win.hq) {
+				return ws.get<province_state::owner>(ws.get<strategic_hq::location>(win.hq));
+			} else {
+				return nations::country_tag();
+			}
+		}();
+
+		auto c = ws.get<nation::current_color>(owner);
+		self.set_color(ws.w.gui_m, float(c.r) / 255.0f, float(c.g) / 255.0f, float(c.b) / 255.0f);
 	}
 }

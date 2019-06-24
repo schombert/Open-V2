@@ -705,11 +705,11 @@ RELEASE_INLINE auto resize(int32_t sz) noexcept -> std::enable_if_t<std::is_same
 	return container_name.resize<INDEX>(sz); \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto as_vector() noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, decltype(container_name)> { \
+RELEASE_INLINE auto as_vector() noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, std::add_lvalue_reference_t<decltype(container_name)>> { \
 	return container_name; \
 } \
 template<typename INDEX> \
-RELEASE_INLINE auto as_vector() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, decltype(container_name)> { \
+RELEASE_INLINE auto as_vector() const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name>, std::add_lvalue_reference_t<const decltype(container_name)>> { \
 	return container_name; \
 }
 

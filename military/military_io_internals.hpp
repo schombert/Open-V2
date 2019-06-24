@@ -111,8 +111,8 @@ namespace military {
 	struct parsed_leader {
 		bool is_general = true;
 		date_tag creation_date;
-		leader_trait_tag personality;
-		leader_trait_tag background;
+		leader_trait_tag personality = military::no_personality_trait;
+		leader_trait_tag background = military::no_background_trait;
 
 		parsed_leader() {}
 
@@ -126,10 +126,12 @@ namespace military {
 		template<typename ERR, typename WS>
 		void set_personality(association_type, token_and_type const& t, ERR& err, WS& oob_s) {
 			personality = tag_from_text(oob_s.ws.name_map<leader_trait_tag>(), oob_s.ws.get_thread_safe_existing_text_handle(t.start, t.end));
+			assert(is_valid_index(personality));
 		}
 		template<typename ERR, typename WS>
 		void set_background(association_type, token_and_type const& t, ERR& err, WS& oob_s) {
 			background = tag_from_text(oob_s.ws.name_map<leader_trait_tag>(), oob_s.ws.get_thread_safe_existing_text_handle(t.start, t.end));
+			assert(is_valid_index(background));
 		}
 	};
 
