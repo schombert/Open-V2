@@ -327,12 +327,6 @@ namespace map_mode {
 		void windowed_update(ui::dynamic_icon<unit_type>& self, window_type& win, world_state& ws);
 	};
 
-	class unit_mode {
-	public:
-		template<typename window_type>
-		void windowed_update(ui::dynamic_icon<unit_mode>& self, window_type& win, world_state& ws);
-	};
-
 	class unit_left_status {
 	public:
 		template<typename window_type>
@@ -351,12 +345,6 @@ namespace map_mode {
 		void windowed_update(ui::tinted_icon<unit_frame>& self, window_type& win, world_state& ws);
 	};
 
-	class unit_flag {
-	public:
-		template<typename window_type>
-		void windowed_update(ui::masked_flag<unit_flag>& self, window_type& win, world_state& ws);
-	};
-
 	class unit_amount {
 	public:
 		template<typename window_type>
@@ -372,12 +360,10 @@ namespace map_mode {
 	using unit_icon = ui::gui_window <
 		CT_STRING("frame"), ui::tinted_icon<unit_frame>,
 		CT_STRING("background"), ui::tinted_icon<unit_background>,
-		CT_STRING("flag"), ui::masked_flag<unit_flag>,
 		CT_STRING("type"), ui::dynamic_icon<unit_type>,
-		CT_STRING("mode"), ui::dynamic_icon<unit_mode>,
 		CT_STRING("amount"), ui::display_text<unit_amount>,
-		CT_STRING("left_status"), ui::dynamic_icon<unit_left_status>,
-		CT_STRING("right_status"), ui::dynamic_icon<unit_right_status>,
+		CT_STRING("left"), ui::dynamic_icon<unit_left_status>,
+		CT_STRING("right"), ui::dynamic_icon<unit_right_status>,
 		unit_icon_base
 	>;
 
@@ -539,10 +525,8 @@ namespace map_mode {
 	}
 	template<typename window_type>
 	void unit_type::windowed_update(ui::dynamic_icon<unit_type>& self, window_type & win, world_state & ws) {
-		self.set_frame(ws.w.gui_m, bool(win.army) ? 2ui32 : 1ui32);
+		self.set_frame(ws.w.gui_m, bool(win.army) ? 0ui32 : 1ui32);
 	}
-	template<typename window_type>
-	void unit_mode::windowed_update(ui::dynamic_icon<unit_mode>& self, window_type & win, world_state & ws) {}
 	template<typename window_type>
 	void unit_left_status::windowed_update(ui::dynamic_icon<unit_left_status>& self, window_type & win, world_state & ws) {}
 	template<typename window_type>
@@ -561,27 +545,17 @@ namespace map_mode {
 
 		if(military::in_war_against(ws, owner, ws.w.local_player_nation)) {
 			self.set_color(ws.w.gui_m, 0.9f, 0.2f, 0.2f);
+			ui::make_visible_immediate(*self.associated_object);
 		} else if(owner == ws.w.local_player_nation || ws.get<nation::overlord>(owner) == ws.w.local_player_nation) {
 			self.set_color(ws.w.gui_m, 0.2f, 0.9f, 0.2f);
+			ui::make_visible_immediate(*self.associated_object);
 		} else if(military::in_war_with(ws, owner, ws.w.local_player_nation)) {
 			self.set_color(ws.w.gui_m, 0.05f, 0.75f, 0.05f);
+			ui::make_visible_immediate(*self.associated_object);
 		} else {
 			self.set_color(ws.w.gui_m, 0.75f, 0.75f, 0.75f);
+			ui::hide(*self.associated_object);
 		}
-	}
-	template<typename window_type>
-	void unit_flag::windowed_update(ui::masked_flag<unit_flag>& self, window_type & win, world_state & ws) {
-		auto owner = [&ws, &win]() {
-			if(win.army) {
-				return ws.get<army::owner>(win.army);
-			} else if(win.hq) {
-				return ws.get<province_state::owner>(ws.get<strategic_hq::location>(win.hq));
-			} else {
-				return nations::country_tag();
-			}
-		}();
-
-		self.set_displayed_flag(ws, owner);
 	}
 	template<typename window_type>
 	void unit_amount::windowed_update(window_type & win, ui::tagged_gui_object box, ui::text_box_line_manager & lm, ui::text_format & fmt, world_state & ws) {
