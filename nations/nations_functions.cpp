@@ -1058,6 +1058,7 @@ namespace nations {
 		return total;
 	}
 
+
 	void update_province_counts(world_state& ws, nations::country_tag this_nation) {
 		auto& central_province_count = ws.w.nation_s.nations.get<nation::central_province_count>(this_nation);
 		central_province_count = 0ui16;
@@ -1090,15 +1091,8 @@ namespace nations {
 				++num_ports;
 		}
 
-		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> already_added;
-		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> pending_neighbor_check;
-
-		pending_neighbor_check.insert(current_capital);
-
-		while(pending_neighbor_check.size() != 0) {
-			auto tp = *(pending_neighbor_check.end() - 1);
-			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
-			already_added.insert(tp);
+		visit_connected_owned_provinces(ws, current_capital, [&ws, &central_province_count, &num_connected_ports,
+			&rebel_controlled_provinces, &crime_count, &blockaded_count](provinces::province_tag tp) {
 
 			++central_province_count;
 			if(ws.w.province_s.province_state_container.get<province_state::naval_base_level>(tp) != 0)
@@ -1109,13 +1103,7 @@ namespace nations {
 				++crime_count;
 			if(ws.w.province_s.province_state_container.get<province_state::is_blockaded>(tp))
 				++blockaded_count;
-
-			auto adj_range = ws.s.province_m.same_type_adjacency.get_range(tp);
-			for(auto a : adj_range) {
-				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == this_nation && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
-					pending_neighbor_check.insert(a);
-			}
-		}
+		});
 	}
 
 	void update_movement_support(world_state& ws, nations::country_tag this_nation) {

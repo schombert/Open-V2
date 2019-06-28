@@ -3,7 +3,7 @@
 #include "world_state\\world_state.h"
 #include <random>
 #include "nations\\nations_functions.hpp"
-#include "provinces\\province_functions.h"
+#include "provinces\\province_functions.hpp"
 #include "economy\\economy_functions.h"
 #include "world_state\\messages.h"
 #include "military_internals.hpp"
@@ -315,5 +315,66 @@ namespace military {
 
 	auto change_army_location(world_state& ws, army_tag t, provinces::province_tag new_location) -> void {
 		internal_change_army_location(ws, t, new_location);
+	}
+
+	void init_strat_hq_from_province(world_state& ws, nations::country_tag n, provinces::province_tag c) {
+		auto prov_set = provinces::get_connected_owned_provinces(ws, c);
+
+		if(prov_set.size() > 0 || ws.get<nation::current_capital>(n) == c) {
+			auto new_hq = ws.w.military_s.strategic_hqs.get_new();
+			ws.add_item(ws.get<nation::strategic_hqs>(n), new_hq);
+
+			ws.set<strategic_hq::location>(new_hq, c);
+
+			float s_count = 0.0f;
+			float t_count = 0.0f;
+			for(auto p : prov_set) {
+				ws.set<province_state::strat_hq>(p, new_hq);
+				provinces::for_each_pop(ws, p, [&s_count, &t_count, &ws, s_tag = ws.s.population_m.soldier](population::pop_tag o) {
+					if(ws.get<pop::type>(o) == s_tag)
+						s_count += ws.get<pop::size>(o);
+					else
+						t_count += ws.get<pop::size>(o);
+				});
+			}
+
+			ws.set<strategic_hq::total_soldier_pops>(new_hq, s_count);
+			ws.set<strategic_hq::total_non_soldier_pops>(new_hq, t_count);
+			ws.set<strategic_hq::reserve_soldiers>(new_hq, s_count);
+		}
+	}
+
+	void init_strategic_hqs(world_state& ws) {
+		ws.w.nation_s.nations.for_each([&ws](nations::country_tag n) {
+			if(auto c = ws.get<nation::current_capital>(n); c) {
+				init_strat_hq_from_province(ws, n, c);
+				nations::for_each_province(ws, n, [&ws, n](provinces::province_tag p) {
+					if(!is_valid_index(ws.get<province_state::strat_hq>(p))) {
+						init_strat_hq_from_province(ws, n, p);
+					}
+				});
+
+				auto cap_hq = ws.get<province_state::strat_hq>(c);
+
+				auto armies = ws.get_range(ws.get<nation::armies>(n));
+				for(auto a : armies) {
+
+					if(auto local_hq = ws.get<province_state::strat_hq>(ws.get<army::location>(a));
+						local_hq && ws.get<strategic_hq::reserve_soldiers>(local_hq) >= ws.get<army::target_soldiers>(a)) {
+						ws.get<strategic_hq::reserve_soldiers>(local_hq) -= ws.get<army::target_soldiers>(a);
+						ws.set<army::current_soldiers>(a, ws.get<army::target_soldiers>(a));
+						ws.set<army::hq>(a, local_hq);
+						ws.add_item(ws.get<strategic_hq::army_set>(local_hq), a);
+					} else if(ws.get<strategic_hq::reserve_soldiers>(cap_hq) >= ws.get<army::target_soldiers>(a)) {
+						ws.get<strategic_hq::reserve_soldiers>(cap_hq) -= ws.get<army::target_soldiers>(a);
+						ws.set<army::current_soldiers>(a, ws.get<army::target_soldiers>(a));
+						ws.set<army::hq>(a, cap_hq);
+						ws.add_item(ws.get<strategic_hq::army_set>(cap_hq), a);
+					} else {
+						destroy_army(ws, a);
+					}
+				}
+			}
+		});
 	}
 }

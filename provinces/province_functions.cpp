@@ -571,4 +571,27 @@ namespace provinces {
 			}
 		});
 	}
+
+	auto get_connected_owned_provinces(world_state const& ws, provinces::province_tag start)->boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> {
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> already_added;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> pending_neighbor_check;
+
+		pending_neighbor_check.insert(start);
+		auto const first_owner = ws.get<province_state::owner>(start);
+
+		while(pending_neighbor_check.size() != 0) {
+			auto tp = *(pending_neighbor_check.end() - 1);
+			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
+			already_added.insert(tp);
+
+			auto adj_range = ws.s.province_m.same_type_adjacency.get_range(tp);
+			for(auto a : adj_range) {
+				if(ws.w.province_s.province_state_container.get<province_state::owner>(a) == first_owner && already_added.count(a) == 0 && pending_neighbor_check.count(a) == 0)
+					pending_neighbor_check.insert(a);
+			}
+		}
+
+		return already_added;
+	}
+
 }

@@ -48,4 +48,11 @@ namespace provinces {
 		return ws.s.modifiers_m.global_defines.min_crimefight_percent
 			+ (ve::multiply_and_add(state_admin_eff - owner_admin_spending, gamma * range, owner_admin_spending * range));
 	}
+
+	template<typename F>
+	auto visit_connected_owned_provinces(world_state const& ws, provinces::province_tag start, F const& fun) -> void {
+		auto const set = get_connected_owned_provinces(ws, start);
+		for(auto p : set)
+			fun(p);
+	}
 }
