@@ -676,7 +676,7 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_data(g
 
 			ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
 			temp = gui_object_tag();
-			s.w.gui_m.gui_objects.free(temp_holder.id);
+			s.w.gui_m.destroy(temp_holder);
 		}
 	}
 }
@@ -699,7 +699,7 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::windowed_upda
 
 			ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
 			temp = gui_object_tag();
-			s.w.gui_m.gui_objects.free(temp_holder.id);
+			s.w.gui_m.destroy(temp_holder);
 		}
 	}
 }

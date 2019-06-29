@@ -23,6 +23,7 @@
 #include "economy\\economy_functions.hpp"
 #include "modifiers\\modifier_functions.h"
 #include "events\\event_functions.h"
+#include "military\military_functions.h"
 #include <random>
 
 #undef max
@@ -310,6 +311,7 @@ int main(int , char **) {
 		provinces::ready_initial_province_statistics(ws);
 
 		nations::fix_capitals(ws);
+		military::init_strategic_hqs(ws);
 
 		events::execute_decision_set(decisions, ws);
 

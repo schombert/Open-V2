@@ -319,25 +319,29 @@ namespace military {
 
 	void init_strat_hq_from_province(world_state& ws, nations::country_tag n, provinces::province_tag c) {
 		auto prov_set = provinces::get_connected_owned_provinces(ws, c);
+		auto const cap = ws.get<nation::current_capital>(n);
 
-		if(prov_set.size() > 0 || ws.get<nation::current_capital>(n) == c) {
+		if(prov_set.size() > 1 || cap == c) {
 			auto new_hq = ws.w.military_s.strategic_hqs.get_new();
 			ws.add_item(ws.get<nation::strategic_hqs>(n), new_hq);
 
-			ws.set<strategic_hq::location>(new_hq, c);
-
 			float s_count = 0.0f;
 			float t_count = 0.0f;
+
+			auto best_prov = c;
 			for(auto p : prov_set) {
 				ws.set<province_state::strat_hq>(p, new_hq);
-				provinces::for_each_pop(ws, p, [&s_count, &t_count, &ws, s_tag = ws.s.population_m.soldier](population::pop_tag o) {
-					if(ws.get<pop::type>(o) == s_tag)
-						s_count += ws.get<pop::size>(o);
-					else
-						t_count += ws.get<pop::size>(o);
-				});
+				auto const s = ws.get<province::demographics>(p, population::to_demo_tag(ws, ws.s.population_m.soldier));
+				auto const t = ws.get<province_state::total_population>(p);
+				s_count += s;
+				t_count += (t - s);
+
+				if(t > ws.get<province_state::total_population>(best_prov))
+					best_prov = p;
+
 			}
 
+			ws.set<strategic_hq::location>(new_hq, cap == c ? cap : best_prov);
 			ws.set<strategic_hq::total_soldier_pops>(new_hq, s_count);
 			ws.set<strategic_hq::total_non_soldier_pops>(new_hq, t_count);
 			ws.set<strategic_hq::reserve_soldiers>(new_hq, s_count);

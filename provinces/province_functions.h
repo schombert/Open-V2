@@ -35,8 +35,6 @@ namespace provinces {
 	template<typename T>
 	auto province_state(world_state const& ws, T p) -> decltype(ve::widen_to<T>(nations::state_tag()));
 
-	template<typename F>
-	auto visit_connected_owned_provinces(world_state const& ws, provinces::province_tag start, F const& fun) -> void;
 	auto get_connected_owned_provinces(world_state const& ws, provinces::province_tag start) -> boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>;
 
 	void silent_remove_province_owner(world_state& ws, province_tag p);

@@ -14,7 +14,7 @@ void ui::display_text<BASE, y_adjust>::update_data(gui_object_tag, world_state& 
 		BASE::update(temp_holder, align, format, w);
 
 		ui::replace_children(w.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
-		w.w.gui_m.gui_objects.free(temp_holder.id);
+		w.w.gui_m.destroy(temp_holder);
 	} else if constexpr(ui::detail::has_update<BASE, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
 		auto temp_holder = w.w.gui_m.gui_objects.emplace();
 		temp_holder.object.size = associated_object->size;
@@ -29,7 +29,7 @@ void ui::display_text<BASE, y_adjust>::update_data(gui_object_tag, world_state& 
 		});
 
 		ui::replace_children(w.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
-		w.w.gui_m.gui_objects.free(temp_holder.id);
+		w.w.gui_m.destroy(temp_holder);
 	}
 }
 
@@ -49,7 +49,7 @@ void ui::multiline_text<BASE, x_size_adjust, y_size_adjust>::update_data(gui_obj
 		lm.finish_current_line();
 
 		ui::replace_children(w.w.gui_m, content_frame, temp_holder);
-		w.w.gui_m.gui_objects.free(temp_holder.id);
+		w.w.gui_m.destroy(temp_holder);
 
 		int32_t max_height = 1;
 		ui::for_each_child(w.w.gui_m, content_frame, [&max_height](tagged_gui_object c) { max_height = std::max(max_height, c.object.size.y + c.object.position.y); });
@@ -89,7 +89,7 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 		BASE::windowed_update(w, temp_holder, align, format, s);
 
 		ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
-		s.w.gui_m.gui_objects.free(temp_holder.id);
+		s.w.gui_m.destroy(temp_holder);
 	} if constexpr(ui::detail::has_windowed_update<BASE, window_type&, tagged_gui_object, text_box_line_manager&, ui::text_format&, world_state&>) {
 		auto temp_holder = s.w.gui_m.gui_objects.emplace();
 		temp_holder.object.size = associated_object->size;
@@ -103,7 +103,7 @@ void ui::display_text<BASE, y_adjust>::windowed_update(window_type& w, world_sta
 		});
 
 		ui::replace_children(s.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
-		s.w.gui_m.gui_objects.free(temp_holder.id);
+		s.w.gui_m.destroy(temp_holder);
 	}
 }
 
@@ -123,7 +123,7 @@ std::enable_if_t<ui::detail::has_windowed_update<BASE, window_type&, ui::tagged_
 		lm.finish_current_line();
 
 		ui::replace_children(w.w.gui_m, content_frame, temp_holder);
-		w.w.gui_m.gui_objects.free(temp_holder.id);
+		w.w.gui_m.destroy(temp_holder);
 
 		int32_t max_height = 1;
 		ui::for_each_child(w.w.gui_m, content_frame, [&max_height](tagged_gui_object c) { max_height = std::max(max_height, c.object.size.y + c.object.position.y); });

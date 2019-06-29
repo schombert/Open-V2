@@ -131,7 +131,7 @@ namespace ui {
 		ui::add_text(xy_pair{ int16_t(border_size), int16_t(border_size) }, contents, format, ws, temp_holder);
 
 		ui::replace_children(ws.w.gui_m, tagged_gui_object{ *associated_object, self }, temp_holder);
-		ws.w.gui_m.gui_objects.free(temp_holder.id);
+		ws.w.gui_m.destroy(temp_holder);
 	}
 
 	template<typename B>

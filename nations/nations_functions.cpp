@@ -13,6 +13,7 @@
 #include "concurrency_tools\\ve.h"
 #include "events\\event_functions.h"
 #include "nations\nations_internals.hpp"
+#include "provinces\province_functions.hpp"
 
 namespace nations {
 	
