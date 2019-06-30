@@ -76,6 +76,7 @@ namespace graphics {
 
 		std::vector<vertex> vertices;
 		std::vector<float> transformed_buffer;
+		std::atomic<bool> in_second_set = false;
 
 		void update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection);
 
@@ -126,9 +127,13 @@ namespace graphics {
 		std::function<void()> signal_ui_update;
 		tagged_array_view<Eigen::Vector2f, provinces::province_tag> province_centroids;
 
-		std::atomic<int32_t> map_ui_objects_count = 0;
-		std::atomic<ui::gui_object*> map_ui_container = nullptr;
-		std::atomic<ui::gui_object**> map_ui_objects = nullptr;
+		std::vector<ui::gui_object_tag> map_ui_objects;
+		ui::gui_object_tag map_ui_container;
+
+		std::atomic<ui::gui_object_tag (*)(world_state&, ui::gui_object_tag, provinces::province_tag)> update_object_fun = nullptr;
+		std::atomic<bool> update_object_fun_out_of_date = true;
+		std::atomic<int32_t> map_ui_half_x_size = 0;
+		std::atomic<int32_t> map_ui_half_y_size = 0;
 
 		void render_borders(provinces::borders_manager const& borders, world_state const& ws);
 	public:
@@ -161,14 +166,14 @@ namespace graphics {
 		globe_mesh& get_globe_unbuffered() { return globe; }
 
 		void init_province_ui(tagged_array_view<Eigen::Vector2f, provinces::province_tag> c, int32_t count, std::function<void()> sig_f);
-		void update_province_ui_positions();
-		void associate_map_icon_set(ui::gui_object** new_map_ui_objects, ui::gui_object* new_map_ui_container, int32_t count);
+		void update_province_ui_positions(world_state& ws);
+		void associate_map_icon_set(ui::gui_object_tag(*f)(world_state&, ui::gui_object_tag, provinces::province_tag), int32_t x_size, int32_t y_size);
 
 		std::pair<float, float> map_coordinate_from_globe(Eigen::Vector3f vector) const;
 		Eigen::Vector3f globe_point_from_map(float x_off, float y_off) const;
 		fast_screen_coordinate fast_screen_coordinates_from_map(float x, float y) const;
 		std::pair<int32_t, int32_t> map_coordinates_from_screen(std::pair<float, float> const& normalized_screen_coordinates) const;
-		void initialize(open_gl_wrapper&, scenario::scenario_manager& s, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
+		void initialize(open_gl_wrapper&, world_state& ws, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude);
 		void render(open_gl_wrapper&, world_state const& ws);
 	};
 

@@ -439,19 +439,21 @@ namespace graphics {
 		const auto wblocks = (width + block_size - 1) / block_size;
 		const auto hblocks = (height + block_size - 1) / block_size;
 
+		int32_t const index_base = in_second_set.load(std::memory_order_acquire) ? int32_t(vertices.size()) * 2 : 0;
+
 		for(int32_t j = 0; j < hblocks; ++j) {
 			for(int32_t i = 0; i < wblocks; ++i) {
 				int32_t const index_a = (i + j * (wblocks + 1)) * 2;
-				std::pair<float, float> top_left(transformed_buffer[index_a], transformed_buffer[index_a + 1]);
+				std::pair<float, float> top_left(transformed_buffer[index_a + index_base], transformed_buffer[index_a + 1 + index_base]);
 
 				int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
-				std::pair<float, float> top_right(transformed_buffer[index_b], transformed_buffer[index_b + 1]);
+				std::pair<float, float> top_right(transformed_buffer[index_b + index_base], transformed_buffer[index_b + 1 + index_base]);
 
 				int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
-				std::pair<float, float> bottom_left(transformed_buffer[index_c], transformed_buffer[index_c + 1]);
+				std::pair<float, float> bottom_left(transformed_buffer[index_c + index_base], transformed_buffer[index_c + 1 + index_base]);
 
 				int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
-				std::pair<float, float> bottom_right(transformed_buffer[index_d], transformed_buffer[index_d + 1]);
+				std::pair<float, float> bottom_right(transformed_buffer[index_d + index_base], transformed_buffer[index_d + 1 + index_base]);
 
 				bool const out_of_view =
 					(top_left.first < -1.0f && top_right.first < -1.0f && bottom_left.first < -1.0f && bottom_right.first < -1.0f)
@@ -583,35 +585,31 @@ namespace graphics {
 		screen_y = y;
 		_aspect = static_cast<float>(x) / static_cast<float>(y);
 		globe_out_of_date = true;
-		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 
 	void map_display::rescale_by(float multiplier) {
 		scale = std::clamp(scale * multiplier, scale_min, scale_max);
 		globe_out_of_date = true;
-		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 	void map_display::set_scale(float value) {
 		scale = std::clamp(value, scale_min, scale_max);
 		globe_out_of_date = true;
-		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 	void map_display::set_projection(projection_type p) {
 		_projection = p;
 		globe_out_of_date = true;
-		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 
 	void map_display::rotate(float longr, float latr) {
 		_rotation = Eigen::AngleAxisf(latr, Eigen::Vector3f::UnitY()) * Eigen::AngleAxisf(longr, Eigen::Vector3f::UnitZ());
 		inverse_rotation = Eigen::AngleAxisf(-longr, Eigen::Vector3f::UnitZ()) * Eigen::AngleAxisf(-latr, Eigen::Vector3f::UnitY());
 		globe_out_of_date = true;
-		province_ui_out_of_date.store(true, std::memory_order_release);
 	}
 	globe_mesh& map_display::get_globe() {
 		if(globe_out_of_date) {
 			globe_out_of_date = false;
 			globe.update_transformed_buffer(_aspect, scale, _rotation, _projection);
+			province_ui_out_of_date.store(true, std::memory_order_release);
 		}
 		return globe;
 	}
@@ -635,66 +633,90 @@ namespace graphics {
 		signal_ui_update = sig_f;
 	}
 
-	void map_display::associate_map_icon_set(ui::gui_object** new_map_ui_objects, ui::gui_object* new_map_ui_container, int32_t count) {
-		ui::gui_object* old_object_container = map_ui_container.load(std::memory_order_acquire);
-
-		if(map_ui_objects_count.load(std::memory_order_acquire) < count) {
-			map_ui_objects.store(new_map_ui_objects, std::memory_order_release);
-			map_ui_objects_count.store(count, std::memory_order_release);
-			map_ui_container.store(new_map_ui_container, std::memory_order_release);
-		} else {
-			map_ui_objects_count.store(count, std::memory_order_release);
-			map_ui_objects.store(new_map_ui_objects, std::memory_order_release);
-			map_ui_container.store(new_map_ui_container, std::memory_order_release);
-		}
-		province_ui_out_of_date.store(true, std::memory_order_release);
-
-		if(old_object_container)
-			ui::hide(*old_object_container);
+	void map_display::associate_map_icon_set(ui::gui_object_tag(*f)(world_state&, ui::gui_object_tag, provinces::province_tag), int32_t x_size, int32_t y_size) {
+		map_ui_half_x_size.store((x_size + 1) / 2, std::memory_order_release);
+		map_ui_half_y_size.store((y_size + 1) / 2, std::memory_order_release);
+		update_object_fun.store(f, std::memory_order_release);
+		update_object_fun_out_of_date.store(true, std::memory_order_release);
 	}
 
-	void map_display::update_province_ui_positions() {
-		bool update_expected = true;
-
-		int32_t max_ui_objects = map_ui_objects_count.load(std::memory_order_acquire);
-		ui::gui_object** ui_objects = map_ui_objects.load(std::memory_order_acquire);
-		ui::gui_object* object_container = map_ui_container.load(std::memory_order_acquire);
-
-		if(get_scale() >= scale_max * 0.6f) {
-			if(ui_objects) {
-				if(province_ui_out_of_date.compare_exchange_strong(update_expected, false, std::memory_order_acq_rel)) {
-					auto ui_obj_sz = ui_objects[0]->size;
-					auto x_border = ui_obj_sz.x / 2;
-					auto y_border = ui_obj_sz.y / 2;
-
-					for(int32_t i = 1; i < max_ui_objects; ++i) {
-						auto const p = provinces::province_tag(provinces::province_tag::value_base_t(i));
-						auto centroid = province_centroids[p];
-						auto screen_coords = fast_screen_coordinates_from_map(centroid[0], centroid[1]);
-
-						if(screen_coords.visible) {
-							if(screen_coords.x + x_border >= 0 && screen_coords.x - x_border < screen_x
-								&& screen_coords.y + y_border >= 0 && screen_coords.y - y_border < screen_y) {
-
-								ui_objects[i]->position = ui::xy_pair{ int16_t(screen_coords.x - x_border), int16_t(screen_coords.y - y_border) };
-								ui_objects[i]->flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
-							} else {
-								ui::hide(*(ui_objects[i]));
-							}
+	void map_display::update_province_ui_positions(world_state& ws) {
+		auto const update_fn = update_object_fun.load(std::memory_order_acquire);
+		if(update_fn && get_scale() >= scale_max * 0.6f) {
+			bool fn_update_expected = true;
+			if(update_object_fun_out_of_date.compare_exchange_strong(fn_update_expected, false, std::memory_order_acq_rel)) {
+				for(auto& t : map_ui_objects) {
+					if(t) {
+						ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
+						if(auto const ab = obj.object.associated_behavior; ab) {
+							ab->associated_object = nullptr;
+							obj.object.associated_behavior = nullptr;
 						}
+						ws.w.gui_m.destroy(obj);
+						t = ui::gui_object_tag();
 					}
-
-					if(object_container) {
-						object_container->size = ui::xy_pair{ int16_t(screen_x), int16_t(screen_y) };
-						ui::make_visible_immediate(*object_container);
-					}
-
-					signal_ui_update();
 				}
 			}
+
+			bool update_expected = true;
+			if((province_ui_out_of_date.compare_exchange_strong(update_expected, false, std::memory_order_acq_rel) || fn_update_expected)) {
+				auto x_border = int32_t(map_ui_half_x_size.load(std::memory_order_acquire) * ws.w.gui_m.scale());
+				auto y_border = int32_t(map_ui_half_y_size.load(std::memory_order_acquire) * ws.w.gui_m.scale());
+
+				auto const max_province = ws.s.province_m.province_container.size();
+				for(int32_t i = 1; i < max_province; ++i) {
+					auto const p = provinces::province_tag(provinces::province_tag::value_base_t(i));
+					auto centroid = province_centroids[p];
+					auto screen_coords = fast_screen_coordinates_from_map(centroid[0], centroid[1]);
+
+					if(screen_coords.visible) {
+						if(screen_coords.x + x_border >= 0 && screen_coords.x - x_border < screen_x
+							&& screen_coords.y + y_border >= 0 && screen_coords.y - y_border < screen_y) {
+
+							if(auto t = map_ui_objects[i]; t) {
+								ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
+								obj.object.position = ui::xy_pair{ int16_t(screen_coords.x - x_border), int16_t(screen_coords.y - y_border) };
+								obj.object.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+							} else {
+								if(auto u = update_fn(ws, map_ui_container, p); u) {
+									map_ui_objects[i] = u;
+									ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(u) , u };
+									obj.object.position = ui::xy_pair{ int16_t(screen_coords.x - x_border), int16_t(screen_coords.y - y_border) };
+									obj.object.flags.fetch_or(ui::gui_object::visible_after_update, std::memory_order_acq_rel);
+								}
+							}
+						} else if(auto t = map_ui_objects[i]; t) {
+							ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
+							if(auto const ab = obj.object.associated_behavior; ab) {
+								ab->associated_object = nullptr;
+								obj.object.associated_behavior = nullptr;
+							}
+							ws.w.gui_m.destroy(obj);
+							map_ui_objects[i] = ui::gui_object_tag();
+						}
+					} else if(auto t = map_ui_objects[i]; t) {
+						ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
+						if(auto const ab = obj.object.associated_behavior; ab) {
+							ab->associated_object = nullptr;
+							obj.object.associated_behavior = nullptr;
+						}
+						ws.w.gui_m.destroy(obj);
+						map_ui_objects[i] = ui::gui_object_tag();
+					}
+				}
+
+				
+				if(map_ui_container) {
+					auto& container_obj = ws.w.gui_m.gui_objects.at(map_ui_container);
+					container_obj.size = ui::xy_pair{ int16_t(screen_x), int16_t(screen_y) };
+					ui::make_visible_immediate(container_obj);
+				}
+
+				signal_ui_update();
+			}
 		} else {
-			if(object_container)
-				ui::hide(*object_container);
+			if(map_ui_container)
+				ui::hide(ws.w.gui_m.gui_objects.at(map_ui_container));
 		}
 	}
 
@@ -761,18 +783,19 @@ namespace graphics {
 		int32_t const i = int32_t(x / block_size);
 		int32_t const j = int32_t(y / block_size);
 		
+		int32_t const index_base = globe.in_second_set.load(std::memory_order_acquire) ? int32_t(globe.vertices.size()) * 2 : 0;
 
 		int32_t const index_a = (i + j * (wblocks + 1)) * 2;
-		std::pair<float, float> top_left(globe.transformed_buffer[index_a], globe.transformed_buffer[index_a + 1]);
+		std::pair<float, float> top_left(globe.transformed_buffer[index_a + index_base], globe.transformed_buffer[index_a + 1 + index_base]);
 
 		int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
-		std::pair<float, float> top_right(globe.transformed_buffer[index_b], globe.transformed_buffer[index_b + 1]);
+		std::pair<float, float> top_right(globe.transformed_buffer[index_b + index_base], globe.transformed_buffer[index_b + 1 + index_base]);
 
 		int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
-		std::pair<float, float> bottom_left(globe.transformed_buffer[index_c], globe.transformed_buffer[index_c + 1]);
+		std::pair<float, float> bottom_left(globe.transformed_buffer[index_c + index_base], globe.transformed_buffer[index_c + 1 + index_base]);
 
 		int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
-		std::pair<float, float> bottom_right(globe.transformed_buffer[index_d], globe.transformed_buffer[index_d + 1]);
+		std::pair<float, float> bottom_right(globe.transformed_buffer[index_d + index_base], globe.transformed_buffer[index_d + 1 + index_base]);
 
 		result.visible = ((top_right.first - top_left.first) * (top_right.second + top_left.second) +
 				(bottom_right.first - top_right.first) * (bottom_right.second + top_right.second) +
@@ -964,13 +987,14 @@ namespace graphics {
 	}
 
 	void globe_mesh::update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection) {
-		int32_t index = 0;
+		int32_t index = in_second_set.load(std::memory_order_relaxed) ? 0 : int32_t(vertices.size()) * 2;
 		for(auto& v : vertices) {
 			const auto result = normalized_coordinates_from_base(aspect, scale, rotation, v.x, v.y, v.z, projection);
 			transformed_buffer[index] = result.first;
 			transformed_buffer[index + 1] = result.second;
 			index += 2;
 		}
+		in_second_set.store(!in_second_set.load(std::memory_order_relaxed), std::memory_order_release);
 	}
 
 	provinces::borders_manager::border_block borders_to_data(borders_set const& b_set, provinces::province_manager const& province_m) {
@@ -1146,7 +1170,7 @@ namespace graphics {
 				mesh.vertices.push_back(globe_mesh::vertex{pt.x, pt.y, pt.z});
 			}
 		}
-		mesh.transformed_buffer.resize(mesh.vertices.size() * 2);
+		mesh.transformed_buffer.resize(mesh.vertices.size() * 4);
 
 		for (int32_t j = 0; j < hblocks; ++j) {
 			for (int32_t i = 0; i <= wblocks; ++i) {
@@ -1483,7 +1507,7 @@ namespace graphics {
 		return vao;
 	}
 
-	void map_display::initialize(open_gl_wrapper& ogl, scenario::scenario_manager& s, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
+	void map_display::initialize(open_gl_wrapper& ogl, world_state& ws, std::string shadows_file, std::string bg_file, uint16_t const* map_data, int32_t width, int32_t height, float left_longitude, float top_latitude, float bottom_latitude) {
 
 		glProvokingVertex(GL_FIRST_VERTEX_CONVENTION);
 		glEnable(GL_DEPTH_TEST);
@@ -1509,7 +1533,15 @@ namespace graphics {
 		vao = setup_vao_b(vertex_buffer);
 
 		border_shader_handle = compile_borders_program();
-		init_border_graphics(s.province_m.borders);
+		init_border_graphics(ws.s.province_m.borders);
+
+		map_ui_objects.resize(ws.s.province_m.province_container.size());
+
+		auto i_con = ws.w.gui_m.gui_objects.emplace();
+		i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
+		ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
+
+		map_ui_container = i_con.id;
 
 		{
 			unsigned char pixel[3] = { 255, 255, 255 };

@@ -400,20 +400,9 @@ namespace map_mode {
 		bool showing_density = false;
 		bool showing_internal_migration = false;
 
-		ui::gui_object* infrastructure_map_container;
-		std::vector<ui::gui_object*> infrastructure_map_icons;
 		std::vector< infrastructure_map_icon_window_t> infrastructure_icons_windows;
-
-		ui::gui_object* rgo_map_container;
-		std::vector<ui::gui_object*> rgo_map_icons;
 		std::vector<ui::dynamic_icon<rgo_map_icon>> rgo_map_icons_objects;
-
-		ui::gui_object* admin_map_container;
-		std::vector<ui::gui_object*> admin_map_icons;
 		std::vector<ui::dynamic_icon<crime_map_icon>> admin_map_icons_objects;
-
-		ui::gui_object* army_map_container;
-		std::vector<ui::gui_object*> army_map_icons;
 		std::vector<unit_icon_list_window_t> army_map_windows;
 
 		ideologies::ideology_tag current_ideology;
@@ -594,7 +583,7 @@ namespace map_mode {
 				return nations::country_tag();
 			}
 		}();
-
+		assert(is_valid_index(owner));
 		auto c = ws.get<nation::current_color>(owner);
 		self.set_color(ws.w.gui_m, float(c.r) / 255.0f, float(c.g) / 255.0f, float(c.b) / 255.0f);
 	}

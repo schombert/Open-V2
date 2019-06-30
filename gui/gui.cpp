@@ -48,12 +48,30 @@ void ui::gui_manager::destroy(tagged_gui_object g) {
 	g.object.first_child = gui_object_tag();
 
 	while (child != gui_object_tag()) {
-		gui_object_tag next = gui_objects.at(child).right_sibling;
-		destroy(tagged_gui_object{ gui_objects.at(child), child });
-		child = next;
+		tagged_gui_object obj{ gui_objects.at(child), child };
+		child = gui_objects.at(child).right_sibling;
+
+		obj.object.parent = gui_object_tag();
+		destroy(obj);
 	}
 
-	g.object.parent = gui_object_tag();
+	if(gui_object_tag parent_id = g.object.parent; parent_id != gui_object_tag()) {
+		auto& parent_object = gui_objects.at(parent_id);
+
+		const gui_object_tag left_sibling = g.object.left_sibling;
+		const gui_object_tag right_sibling = g.object.right_sibling;
+
+		if(!is_valid_index(left_sibling))
+			parent_object.first_child = right_sibling;
+		else
+			gui_objects.at(left_sibling).right_sibling = right_sibling;
+
+		if(is_valid_index(right_sibling))
+			gui_objects.at(right_sibling).left_sibling = left_sibling;
+
+		g.object.parent = gui_object_tag();
+	}
+
 	g.object.left_sibling = gui_object_tag();
 	g.object.right_sibling = gui_object_tag();
 	g.object.flags.store(0, std::memory_order_release);
@@ -1286,28 +1304,15 @@ void ui::clear_children(gui_manager& manager, tagged_gui_object g) {
 
 	while (is_valid_index(current_child)) {
 		auto& child_object = manager.gui_objects.at(current_child);
-		const gui_object_tag next_child = child_object.right_sibling;
+		tagged_gui_object obj{ child_object, current_child };
+		current_child = child_object.right_sibling;
 
-		manager.destroy(tagged_gui_object{child_object, current_child});
-		current_child = next_child;
+		obj.object.parent = gui_object_tag();
+		manager.destroy(obj);
 	}
 }
 
 void ui::remove_object(gui_manager& manager, tagged_gui_object g) {
-	gui_object_tag parent_id = g.object.parent;
-	auto& parent_object = manager.gui_objects.at(parent_id);
-
-	const gui_object_tag left_sibling = g.object.left_sibling;
-	const gui_object_tag right_sibling = g.object.right_sibling;
-
-	if (!is_valid_index(left_sibling))
-		parent_object.first_child = right_sibling;
-	else
-		manager.gui_objects.at(left_sibling).right_sibling = right_sibling;
-	
-	if (is_valid_index(right_sibling))
-		manager.gui_objects.at(right_sibling).left_sibling = left_sibling;
-
 	manager.destroy(g);
 }
 

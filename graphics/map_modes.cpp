@@ -590,6 +590,51 @@ namespace map_mode {
 		}
 	}
 
+	ui::gui_object_tag make_infrastructure_icon(world_state& ws, ui::gui_object_tag container, provinces::province_tag p) {
+		static auto const win_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_infra"]);
+
+		if(to_index(p) < ws.s.province_m.first_sea_province && ws.get<province::is_coastal>(p)) {
+			auto obj = ui::create_static_element(ws, win_tag, ui::tagged_gui_object{ws.w.gui_m.gui_objects.at(container), container}, 
+				ws.w.map_view.legends->infrastructure_icons_windows[to_index(p)]);
+			assert(is_valid_index(obj.id));
+			return obj.id;
+		} else {
+			return ui::gui_object_tag();
+		}
+	}
+	ui::gui_object_tag make_admin_icon(world_state& ws, ui::gui_object_tag container, provinces::province_tag p) {
+		static auto const ico_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_crime"]);
+
+		if(to_index(p) < ws.s.province_m.first_sea_province) {
+			auto obj = ui::create_static_element(ws, ico_tag, ui::tagged_gui_object{ ws.w.gui_m.gui_objects.at(container), container },
+				ws.w.map_view.legends->admin_map_icons_objects[to_index(p)]);
+			assert(is_valid_index(obj.id));
+			return obj.id;
+		} else {
+			return ui::gui_object_tag();
+		}
+	}
+	ui::gui_object_tag make_rgo_icon(world_state& ws, ui::gui_object_tag container, provinces::province_tag p) {
+		static auto const ico_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_resource"]);
+
+		if(to_index(p) < ws.s.province_m.first_sea_province) {
+			auto obj = ui::create_static_element(ws, ico_tag, ui::tagged_gui_object{ ws.w.gui_m.gui_objects.at(container), container },
+				ws.w.map_view.legends->rgo_map_icons_objects[to_index(p)]);
+			assert(is_valid_index(obj.id));
+			return obj.id;
+		} else {
+			return ui::gui_object_tag();
+		}
+	}
+	ui::gui_object_tag make_army_icon(world_state& ws, ui::gui_object_tag container, provinces::province_tag p) {
+		static auto const ico_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_unit_container"]);
+
+		auto obj = ui::create_static_element(ws, ico_tag, ui::tagged_gui_object{ ws.w.gui_m.gui_objects.at(container), container },
+			ws.w.map_view.legends->army_map_windows[to_index(p)]);
+		assert(is_valid_index(obj.id));
+		return obj.id;
+	}
+
 	void change_mode(world_state& ws, type new_mode) {
 		if(ws.w.map_view.mode != new_mode) {
 			ui::hide(*(ws.w.map_view.legends->generic_legend_window.associated_object));
@@ -610,54 +655,42 @@ namespace map_mode {
 
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::culture) {
 				ws.w.map_view.legends->current_culture = cultures::culture_tag();
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->generic_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::population) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->population_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::relations) {
 				ws.w.map_view.legends->current_nation = ws.w.local_player_nation;
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->relations_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::migration) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->migration_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::infrastructure) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->infrastructure_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(
-					ws.w.map_view.legends->infrastructure_map_icons.data(),
-					ws.w.map_view.legends->infrastructure_map_container,
-					ws.s.province_m.first_sea_province);
+				ws.w.map.associate_map_icon_set(make_infrastructure_icon, 48, 24);
 			} else if(ws.w.map_view.mode == type::rgo) {
 				ws.w.map_view.legends->current_good = economy::goods_tag();
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->rgo_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(
-					ws.w.map_view.legends->rgo_map_icons.data(),
-					ws.w.map_view.legends->rgo_map_container,
-					ws.s.province_m.first_sea_province);
+				ws.w.map.associate_map_icon_set(make_rgo_icon, 16, 16);
 			} else if(ws.w.map_view.mode == type::prices || ws.w.map_view.mode == type::production) {
 				ws.w.map_view.legends->current_good = economy::goods_tag(economy::goods_tag::value_base_t(1));
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->resource_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::voting) {
 				ws.w.map_view.legends->current_ideology = ideologies::ideology_tag();
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->voting_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(nullptr, nullptr, 0);
+				ws.w.map.associate_map_icon_set(nullptr, 0, 0);
 			} else if(ws.w.map_view.mode == type::admin) {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(
-					ws.w.map_view.legends->admin_map_icons.data(),
-					ws.w.map_view.legends->admin_map_container,
-					ws.s.province_m.first_sea_province);
+				ws.w.map.associate_map_icon_set(make_admin_icon, 24, 24);
 			} else if(ws.w.map_view.mode == type::military) {
 				// ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(
-					ws.w.map_view.legends->army_map_icons.data(),
-					ws.w.map_view.legends->army_map_container,
-					ws.s.province_m.province_container.size());
+				ws.w.map.associate_map_icon_set(make_army_icon, 100, 20);
 			}
 		}
 	}
@@ -774,75 +807,27 @@ namespace map_mode {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_admin"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->admin_legend_window);
 
 		{
-			auto i_con = ws.w.gui_m.gui_objects.emplace();
-			i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
-			ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
-
-			legends->infrastructure_map_container = &(i_con.object);
-			legends->infrastructure_map_icons.resize(ws.s.province_m.first_sea_province);
 			legends->infrastructure_icons_windows.resize(ws.s.province_m.first_sea_province);
-
-			auto const win_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_infra"]);
-
 			for(int32_t i = 0; i < ws.s.province_m.first_sea_province; ++i) {
-				auto obj = ui::create_static_element(ws, win_tag,
-					i_con, legends->infrastructure_icons_windows[i]);
 				legends->infrastructure_icons_windows[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
-				legends->infrastructure_map_icons[i] = &(obj.object);
 			}
 		}
 		{
-			auto i_con = ws.w.gui_m.gui_objects.emplace();
-			i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
-			ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
-
-			legends->rgo_map_container = &(i_con.object);
-			legends->rgo_map_icons.resize(ws.s.province_m.first_sea_province);
 			legends->rgo_map_icons_objects.resize(ws.s.province_m.first_sea_province);
-
-			auto const ico_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_resource"]);
-
 			for(int32_t i = 0; i < ws.s.province_m.first_sea_province; ++i) {
-				auto obj = ui::create_static_element(ws, ico_tag,
-					i_con, legends->rgo_map_icons_objects[i]);
 				legends->rgo_map_icons_objects[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
-				legends->rgo_map_icons[i] = &(obj.object);
 			}
 		}
 		{
-			auto i_con = ws.w.gui_m.gui_objects.emplace();
-			i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
-			ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
-
-			legends->admin_map_container = &(i_con.object);
-			legends->admin_map_icons.resize(ws.s.province_m.first_sea_province);
 			legends->admin_map_icons_objects.resize(ws.s.province_m.first_sea_province);
-
-			auto const ico_tag = std::get<ui::icon_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_crime"]);
-
 			for(int32_t i = 0; i < ws.s.province_m.first_sea_province; ++i) {
-				auto obj = ui::create_static_element(ws, ico_tag,
-					i_con, legends->admin_map_icons_objects[i]);
 				legends->admin_map_icons_objects[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
-				legends->admin_map_icons[i] = &(obj.object);
 			}
 		}
 		{
-			auto i_con = ws.w.gui_m.gui_objects.emplace();
-			i_con.object.flags.store(ui::gui_object::enabled, std::memory_order_release);
-			ui::add_to_back(ws.w.gui_m, ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, i_con);
-
-			legends->army_map_container = &(i_con.object);
-			legends->army_map_icons.resize(ws.s.province_m.province_container.size());
 			legends->army_map_windows.resize(ws.s.province_m.province_container.size());
-
-			auto const ico_tag = std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_icon_unit_container"]);
-
 			for(int32_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
-				auto obj = ui::create_static_element(ws, ico_tag,
-					i_con, legends->army_map_windows[i]);
 				legends->army_map_windows[i].tag = provinces::province_tag(provinces::province_tag::value_base_t(i));
-				legends->army_map_icons[i] = &(obj.object);
 			}
 		}
 	}

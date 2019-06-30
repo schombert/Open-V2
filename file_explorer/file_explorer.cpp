@@ -168,7 +168,7 @@ struct gui_window_handler {
 		s.s.gui_m.fonts.load_fonts(ogl);
 	
 		//map.initialize(ogl, s.province_m.province_map_data.data(), s.province_m.province_map_width, s.province_m.province_map_height, 0.0f, -1.2f, 1.2f);
-		s.w.map.initialize(ogl, s.s, shadows_file, map_bg_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
+		s.w.map.initialize(ogl, s, shadows_file, map_bg_file, s.s.province_m.province_map_data.data(), s.s.province_m.province_map_width, s.s.province_m.province_map_height, 0.0f, 1.57f, -1.57f);
 		s.w.map.resize(s.w.gui_m.root.size.x, s.w.gui_m.root.size.y);
 		s.w.map.init_province_ui(
 			s.s.province_m.province_container.get_row<province::centroid_2d>(),
@@ -178,6 +178,8 @@ struct gui_window_handler {
 
 	void on_idle(ui::window_base& win) {
 		map_mode::update_map_colors(s);
+
+		s.w.map.update_province_ui_positions(s);
 
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);
@@ -195,7 +197,6 @@ struct gui_window_handler {
 
 	void render(graphics::open_gl_wrapper& ogl) {
 		s.w.map.render(ogl, s);
-		s.w.map.update_province_ui_positions();
 		ui::render(s.s.gui_m, s.w.gui_m, ogl);
 	}
 };
