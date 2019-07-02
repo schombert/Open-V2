@@ -361,22 +361,32 @@ namespace military {
 				auto cap_hq = ws.get<province_state::strat_hq>(c);
 
 				auto armies = ws.get_range(ws.get<nation::armies>(n));
-				for(auto a : armies) {
+				army_tag* local_copy = (army_tag*)_alloca((armies.second - armies.first) * sizeof(army_tag));
+				memcpy(local_copy, armies.first, (armies.second - armies.first) * sizeof(army_tag));
 
-					if(auto local_hq = ws.get<province_state::strat_hq>(ws.get<army::location>(a));
-						local_hq && ws.get<strategic_hq::reserve_soldiers>(local_hq) >= ws.get<army::target_soldiers>(a)) {
-						ws.get<strategic_hq::reserve_soldiers>(local_hq) -= ws.get<army::target_soldiers>(a);
-						ws.set<army::current_soldiers>(a, ws.get<army::target_soldiers>(a));
-						ws.set<army::hq>(a, local_hq);
-						ws.add_item(ws.get<strategic_hq::army_set>(local_hq), a);
-					} else if(ws.get<strategic_hq::reserve_soldiers>(cap_hq) >= ws.get<army::target_soldiers>(a)) {
-						ws.get<strategic_hq::reserve_soldiers>(cap_hq) -= ws.get<army::target_soldiers>(a);
-						ws.set<army::current_soldiers>(a, ws.get<army::target_soldiers>(a));
-						ws.set<army::hq>(a, cap_hq);
-						ws.add_item(ws.get<strategic_hq::army_set>(cap_hq), a);
+				for(int32_t i = 0; i < (armies.second - armies.first); ++i) {
+					if(auto local_hq = ws.get<province_state::strat_hq>(ws.get<army::location>(local_copy[i]));
+						local_hq && ws.get<strategic_hq::reserve_soldiers>(local_hq) >= ws.get<army::target_soldiers>(local_copy[i])) {
+						ws.get<strategic_hq::reserve_soldiers>(local_hq) -= ws.get<army::target_soldiers>(local_copy[i]);
+						ws.set<army::current_soldiers>(local_copy[i], ws.get<army::target_soldiers>(local_copy[i]));
+						ws.set<army::hq>(local_copy[i], local_hq);
+						ws.add_item(ws.get<strategic_hq::army_set>(local_hq), local_copy[i]);
+					} else if(ws.get<strategic_hq::reserve_soldiers>(cap_hq) >= ws.get<army::target_soldiers>(local_copy[i])) {
+						ws.get<strategic_hq::reserve_soldiers>(cap_hq) -= ws.get<army::target_soldiers>(local_copy[i]);
+						ws.set<army::current_soldiers>(local_copy[i], ws.get<army::target_soldiers>(local_copy[i]));
+						ws.set<army::hq>(local_copy[i], cap_hq);
+						ws.add_item(ws.get<strategic_hq::army_set>(cap_hq), local_copy[i]);
 					} else {
-						destroy_army(ws, a);
+						destroy_army(ws, local_copy[i]);
 					}
+				}
+			} else {
+				auto armies = ws.get_range(ws.get<nation::armies>(n));
+				army_tag* local_copy = (army_tag*)_alloca((armies.second - armies.first) * sizeof(army_tag));
+				memcpy(local_copy, armies.first, (armies.second - armies.first) * sizeof(army_tag));
+
+				for(int32_t i = 0; i < (armies.second - armies.first); ++i) {
+					destroy_army(ws, local_copy[i]);
 				}
 			}
 		});

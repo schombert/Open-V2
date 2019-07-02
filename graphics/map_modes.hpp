@@ -5,6 +5,94 @@
 #include "military\military_functions.h"
 
 namespace map_mode {
+	class army_bg_t : public ui::gui_behavior {
+	public:
+		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
+		virtual bool on_get_focus(ui::gui_object_tag, world_state& ws) final override {
+			if(!associated_object)
+				return false;
+
+			ui::gui_object_tag parent_id = associated_object->parent;
+			if(!parent_id)
+				return false;
+
+			auto& parent_obj = ws.w.gui_m.gui_objects.at(parent_id);
+			ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ parent_obj, parent_id });
+
+			ui::gui_object_tag parent_parent_id = parent_obj.parent;
+			if(!parent_parent_id)
+				return false;
+
+			auto& parent_parent_obj = ws.w.gui_m.gui_objects.at(parent_parent_id);
+			ui::gui_object_tag ppp_id = parent_parent_obj.parent;
+			if(!ppp_id)
+				return false;
+
+			auto& ppp_obj = ws.w.gui_m.gui_objects.at(ppp_id);
+			ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ ppp_obj, ppp_id });
+				
+			return false;
+		}
+		virtual void on_lose_focus(ui::gui_object_tag, world_state&) final override {}
+
+		/*
+		virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, world_state&, const ui::mouse_move&) { return ui::tooltip_behavior::tooltip; }
+		virtual void create_tooltip(ui::gui_object_tag, world_state& ws, const ui::mouse_move&, ui::tagged_gui_object tw) {
+		}
+		*/
+
+		virtual bool on_lclick(ui::gui_object_tag, world_state&, const ui::lbutton_down&) final override { return true; }
+		virtual bool on_rclick(ui::gui_object_tag, world_state&, const ui::rbutton_down&) final override { return true; }
+
+		template<typename window>
+		void windowed_update(window& win, world_state& ws) {
+			auto owner = [&ws, &win]() {
+				if(win.army) {
+					return ws.get<army::owner>(win.army);
+				} else if(win.hq) {
+					return ws.get<province_state::owner>(ws.get<strategic_hq::location>(win.hq));
+				} else {
+					return nations::country_tag();
+				}
+			}();
+			auto c = ws.get<nation::current_color>(owner);
+			if(const auto go = ws.w.gui_m.tinted_icon_instances.safe_at(ui::tinted_icon_instance_tag(associated_object->type_dependant_handle)); go) {
+				go->r = float(c.r) / 255.0f;
+				go->g = float(c.g) / 255.0f;
+				go->b = float(c.b) / 255.0f;
+			}
+		}
+	};
+
+
+	ui::tagged_gui_object create_static_element(world_state& ws, ui::icon_tag handle, ui::tagged_gui_object parent, army_bg_t& b) {
+		const auto new_gobj = ws.w.gui_m.gui_objects.emplace();
+
+		const ui::icon_def& icon_def = ws.s.gui_m.ui_definitions.icons[handle];
+
+		const uint16_t rotation =
+			(icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_upright ?
+			ui::gui_object::rotation_upright :
+			((icon_def.flags & ui::icon_def::rotation_mask) == ui::icon_def::rotation_90_right ? ui::gui_object::rotation_right : ui::gui_object::rotation_left);
+
+		new_gobj.object.position = icon_def.position;
+		new_gobj.object.flags.fetch_or(rotation | ui::gui_object::interactable, std::memory_order_acq_rel);
+		new_gobj.object.align = alignment_from_definition(icon_def);
+
+		ui::detail::instantiate_graphical_object(ws.s.gui_m, ws.w.gui_m, new_gobj, icon_def.graphical_object_handle, 0, true);
+
+		new_gobj.object.size.x = int16_t(float(new_gobj.object.size.x) * icon_def.scale);
+		new_gobj.object.size.y = int16_t(float(new_gobj.object.size.y) * icon_def.scale);
+
+		new_gobj.object.associated_behavior = &b;
+		b.associated_object = &new_gobj.object;
+
+		ui::add_to_back(ws.w.gui_m, parent, new_gobj);
+
+		ws.w.gui_m.flag_minimal_update();
+		return new_gobj;
+	}
+
 	class generic_legend_window_base : public ui::window_pane {
 	public:
 		template<typename W>
@@ -226,6 +314,49 @@ namespace map_mode {
 		generic_legend_window_base
 	>;
 
+	class show_netural_cb {
+	public:
+		void update(ui::simple_button<show_netural_cb>& self,world_state& ws);
+		void button_function(ui::simple_button<show_netural_cb>& self, world_state& ws);
+	};
+
+	class self_color_icon {
+	public:
+		void update(ui::tinted_icon<self_color_icon>& self, world_state& ws);
+	};
+
+	class friendly_color_icon {
+	public:
+		void update(ui::tinted_icon<friendly_color_icon>& self, world_state& ws);
+	};
+
+	class hostile_color_icon {
+	public:
+		void update(ui::tinted_icon<hostile_color_icon>& self, world_state& ws);
+	};
+
+	class friendly_occupation_icon {
+	public:
+		void update(ui::tinted_icon<friendly_occupation_icon>& self, world_state& ws);
+	};
+
+	class hostile_occupation_icon {
+	public:
+		void update(ui::tinted_icon<hostile_occupation_icon>& self, world_state& ws);
+	};
+
+	using army_legend_window_t = ui::gui_window <
+		CT_STRING("legend_title"), ui::display_text<generic_legend_title>,
+		CT_STRING("legend_contents"), ui::multiline_text<generic_legend_contents>,
+		CT_STRING("show_neutral_check_box"), ui::simple_button<show_netural_cb>,
+		CT_STRING("self_color"), ui::tinted_icon<self_color_icon>,
+		CT_STRING("friendly_color"), ui::tinted_icon<friendly_color_icon>,
+		CT_STRING("hostile_color"), ui::tinted_icon<hostile_color_icon>,
+		CT_STRING("friendly_occupation_color"), ui::tinted_icon<friendly_occupation_icon>,
+		CT_STRING("hostile_occupation_color"), ui::tinted_icon<hostile_occupation_icon>,
+		generic_legend_window_base
+	>;
+
 	class ideology_item_base : public ui::visible_region {
 	public:
 		ideologies::ideology_tag tag;
@@ -359,7 +490,7 @@ namespace map_mode {
 
 	using unit_icon = ui::gui_window <
 		CT_STRING("frame"), ui::tinted_icon<unit_frame>,
-		CT_STRING("background"), ui::tinted_icon<unit_background>,
+		CT_STRING("background"), army_bg_t,
 		CT_STRING("type"), ui::dynamic_icon<unit_type>,
 		CT_STRING("amount"), ui::display_text<unit_amount>,
 		CT_STRING("left"), ui::dynamic_icon<unit_left_status>,
@@ -368,7 +499,7 @@ namespace map_mode {
 	>;
 
 	using unit_icon_list_window_t = ui::gui_window <
-		CT_STRING("unit_list"), ui::overlap_box<unit_icon_lb, ui::window_tag, unit_icon>,
+		CT_STRING("unit_list"), ui::overlap_box<unit_icon_lb, ui::window_tag, unit_icon, 0, true>,
 		unit_icon_list_base
 	>;
 
@@ -396,9 +527,11 @@ namespace map_mode {
 		resource_legend_window_t resource_legend_window;
 		voting_legend_window_t voting_legend_window;
 		admin_legend_window_t admin_legend_window;
+		army_legend_window_t army_legend_window;
 
 		bool showing_density = false;
 		bool showing_internal_migration = false;
+		bool showing_neutral_units = false;
 
 		std::vector< infrastructure_map_icon_window_t> infrastructure_icons_windows;
 		std::vector<ui::dynamic_icon<rgo_map_icon>> rgo_map_icons_objects;
@@ -517,9 +650,31 @@ namespace map_mode {
 		self.set_frame(ws.w.gui_m, bool(win.army) ? 0ui32 : 1ui32);
 	}
 	template<typename window_type>
-	void unit_left_status::windowed_update(ui::dynamic_icon<unit_left_status>& self, window_type & win, world_state & ws) {}
+	void unit_left_status::windowed_update(ui::dynamic_icon<unit_left_status>& self, window_type & win, world_state & ws) {
+		if(win.army) {
+			auto frac = ws.get<army::readiness>(win.army) * ws.get<army::supply>(win.army);
+			if(frac > 0.75f)
+				self.set_frame(ws.w.gui_m, 3ui32);
+			else if(frac > 0.5f)
+				self.set_frame(ws.w.gui_m, 2ui32);
+			else if(frac > 0.25f)
+				self.set_frame(ws.w.gui_m, 1ui32);
+			else
+				self.set_frame(ws.w.gui_m, 0ui32);
+		} else if(win.hq) {
+			auto mob = ws.get<strategic_hq::mobilization_level>(win.hq);
+			self.set_frame(ws.w.gui_m, 3ui32 - uint32_t(mob));
+		}
+	}
 	template<typename window_type>
-	void unit_right_status::windowed_update(ui::dynamic_icon<unit_right_status>& self, window_type & win, world_state & ws) {}
+	void unit_right_status::windowed_update(ui::dynamic_icon<unit_right_status>& self, window_type & win, world_state & ws) {
+		if(win.army) {
+			self.set_frame(ws.w.gui_m, 4ui32);
+		} else if(win.hq) {
+			auto mob = ws.get<strategic_hq::mobilization_level>(win.hq);
+			self.set_frame(ws.w.gui_m, 3ui32 - uint32_t(mob));
+		}
+	}
 	template<typename window_type>
 	void unit_frame::windowed_update(ui::tinted_icon<unit_frame>& self, window_type & win, world_state & ws) {
 		auto owner = [&ws, &win]() {
@@ -565,10 +720,32 @@ namespace map_mode {
 		if(win.tag) {
 			auto parmies = ws.get_range(ws.get<province_state::armies>(win.tag));
 			for(auto a : parmies) {
-				lb.add_item(ws, a, military::strategic_hq_tag());
+				if(ws.w.map_view.legends->showing_neutral_units) {
+					lb.add_item(ws, a, military::strategic_hq_tag());
+				} else {
+					auto owner = ws.get<army::owner>(a);
+					if(owner == ws.w.local_player_nation
+						|| ws.get<nation::overlord>(owner) == ws.w.local_player_nation
+						|| military::in_war_against(ws, owner, ws.w.local_player_nation)
+						|| military::in_war_with(ws, owner, ws.w.local_player_nation)) {
+
+						lb.add_item(ws, a, military::strategic_hq_tag());
+					}
+				}
 			}
 			if(auto h = ws.get<province_state::strat_hq>(win.tag); h && ws.get<strategic_hq::location>(h) == win.tag) {
-				lb.add_item(ws, military::army_tag(), h);
+				if(ws.w.map_view.legends->showing_neutral_units) {
+					lb.add_item(ws, military::army_tag(), h);
+				} else {
+					auto owner = ws.get<province_state::owner>(win.tag);
+					if(owner == ws.w.local_player_nation
+						|| ws.get<nation::overlord>(owner) == ws.w.local_player_nation
+						|| military::in_war_against(ws, owner, ws.w.local_player_nation)
+						|| military::in_war_with(ws, owner, ws.w.local_player_nation)) {
+
+						lb.add_item(ws, military::army_tag(), h);
+					}
+				}
 			}
 		}
 	}

@@ -56,30 +56,34 @@ namespace ui {
 			+ ui::xy_pair{ int16_t(border_size + text_extent - 1), int16_t(border_size) };
 	}
 	template<typename BASE>
-	bool edit_box<BASE>::on_keydown(gui_object_tag, world_state& ws, const key_down& m) {
-		if(m.keycode == virtual_key::DELETE_KEY || m.keycode == virtual_key::BACK) {
-			if(cursor_position > 0) {
-				cursor_position--;
-				for(int32_t i = cursor_position; i < size; ++i) {
-					contents[i] = contents[i + 1];
+	bool edit_box<BASE>::on_keydown(gui_object_tag tag, world_state& ws, const key_down& m) {
+		if(ws.w.gui_m.focus == tag) {
+			if(m.keycode == virtual_key::DELETE_KEY || m.keycode == virtual_key::BACK) {
+				if(cursor_position > 0) {
+					cursor_position--;
+					for(int32_t i = cursor_position; i < size; ++i) {
+						contents[i] = contents[i + 1];
+					}
+					size = std::max(size - 1, 0);
+					contents[size] = 0;
+
+					adjust_cursor_position(ws);
+
+					if constexpr(ui::has_on_edit<edit_box<BASE>, edit_box<BASE>&, world_state&>)
+						BASE::on_edit(*this, ws);
 				}
-				size = std::max(size - 1, 0);
-				contents[size] = 0;
-
+				ui::make_visible_and_update(ws.w.gui_m, *associated_object);
+			} else if(m.keycode == virtual_key::LEFT || m.keycode == virtual_key::NAVIGATION_LEFT) {
+				cursor_position = std::max(cursor_position - 1, 0);
 				adjust_cursor_position(ws);
-
-				if constexpr(ui::has_on_edit<edit_box<BASE>, edit_box<BASE>&, world_state&>)
-					BASE::on_edit(*this, ws);
+			} else if(m.keycode == virtual_key::RIGHT || m.keycode == virtual_key::NAVIGATION_RIGHT) {
+				cursor_position = std::min(cursor_position + 1, size);
+				adjust_cursor_position(ws);
 			}
-			ui::make_visible_and_update(ws.w.gui_m, *associated_object);
-		} else if(m.keycode == virtual_key::LEFT || m.keycode == virtual_key::NAVIGATION_LEFT) {
-			cursor_position = std::max(cursor_position - 1, 0);
-			adjust_cursor_position(ws);
-		} else if(m.keycode == virtual_key::RIGHT || m.keycode == virtual_key::NAVIGATION_RIGHT) {
-			cursor_position = std::min(cursor_position + 1, size);
-			adjust_cursor_position(ws);
+			return true;
+		} else {
+			return false;
 		}
-		return true;
 	}
 
 	template<typename BASE>

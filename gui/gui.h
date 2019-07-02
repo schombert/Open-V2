@@ -730,7 +730,7 @@ namespace ui {
 		void force_open(type_list_to_variant<data_type_list> const& v);
 	};
 
-	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0>
+	template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension = 0, bool vertical = false>
 	class overlap_box : public gui_behavior, public BASE {
 	private:
 		std::vector<ELEMENT, concurrent_allocator<ELEMENT>> contents;
@@ -945,8 +945,8 @@ namespace ui {
 	ui::tagged_gui_object create_static_element(world_state& ws, window_tag handle, tagged_gui_object parent, discrete_listbox<BASE, ELEMENT, value_type, left_expand>& b);
 	template<typename BASE, typename data_type_list, typename gui_type_list>
 	ui::tagged_gui_object create_static_element(world_state& ws, listbox_tag handle, tagged_gui_object parent, tree_view<BASE, data_type_list, gui_type_list>& b);
-	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-	ui::tagged_gui_object create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b);
+	template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+	ui::tagged_gui_object create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension, vertical>& b);
 	template<typename B>
 	ui::tagged_gui_object create_static_element(world_state& ws, icon_tag handle, tagged_gui_object parent, dynamic_transparent_icon<B>& b);
 	ui::tagged_gui_object create_static_element(world_state& ws, button_tag handle, tagged_gui_object parent, button_group_member& b);

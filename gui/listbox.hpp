@@ -593,8 +593,8 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, listbox_tag han
 	return new_obj;
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::set_self_information(world_state& ws, gui_object_tag s, int32_t sp, text_data::alignment a) {
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::set_self_information(world_state& ws, gui_object_tag s, int32_t sp, text_data::alignment a) {
 	const auto t = BASE::element_tag(ws.s.gui_m);
 	element_def_tag = t;
 
@@ -603,17 +603,17 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::set_self_info
 	subelement_alignment = a;
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-void  ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::clear_items(gui_manager& manager) {
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+void  ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::clear_items(gui_manager& manager) {
 	if (is_valid_index(self)) {
 		ui::clear_children(manager, tagged_gui_object{ *associated_object, self });
 	}
 	contents.clear();
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
 template<typename ... PARAMS>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::add_item(world_state& ws, PARAMS&& ... params) {
+void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::add_item(world_state& ws, PARAMS&& ... params) {
 	if (is_valid_index(temp) && is_valid_index(element_def_tag)) {
 		if constexpr(!ui::detail::has_set_value<ELEMENT, PARAMS...>) {
 			contents.emplace_back(std::forward<PARAMS>(params)...);
@@ -629,39 +629,64 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::add_item(worl
 	}
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_item_positions() {
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::update_item_positions() {
 	const int32_t amount = static_cast<int32_t>(contents.size());
 	if (amount == 0)
 		return;
 
-	int32_t space_consumed = spacing * (amount - 1);
-	for(int32_t n = amount - 1; n >= 0; --n)
-		space_consumed += contents[static_cast<uint32_t>(n)].associated_object->size.x;
+	if(!vertical) {
+		int32_t space_consumed = spacing * (amount - 1);
+		for(int32_t n = amount - 1; n >= 0; --n)
+			space_consumed += contents[static_cast<uint32_t>(n)].associated_object->size.x;
 
-	const int32_t overlap = amount == 1 ?
-		0 :
-		(space_consumed > associated_object->size.x ? 
+		const int32_t overlap = amount == 1 ?
+			0 :
+			(space_consumed > associated_object->size.x ?
 			(space_consumed - associated_object->size.x + amount - 2) / (amount - 1) :
-			0);
-	const int32_t adjusted_space_consumed = space_consumed - overlap * (amount - 1);
-	const int32_t base_offset =
-		subelement_alignment == text_data::alignment::left ?
-		0 :
-		(subelement_alignment == text_data::alignment::right ?
-		    (associated_object->size.x - adjusted_space_consumed) :
-			(associated_object->size.x - adjusted_space_consumed) / 2);
+				0);
+		const int32_t adjusted_space_consumed = space_consumed - overlap * (amount - 1);
+		const int32_t base_offset =
+			subelement_alignment == text_data::alignment::left ?
+			0 :
+			(subelement_alignment == text_data::alignment::right ?
+			(associated_object->size.x - adjusted_space_consumed) :
+				(associated_object->size.x - adjusted_space_consumed) / 2);
 
-	int32_t current_off = base_offset;
-	for(int32_t n = 0; n < amount; ++n) {
-		contents[static_cast<uint32_t>(n)].associated_object->position.x = int16_t(current_off);
-		current_off += contents[static_cast<uint32_t>(n)].associated_object->size.x + spacing - overlap;
+		int32_t current_off = base_offset;
+		for(int32_t n = 0; n < amount; ++n) {
+			contents[static_cast<uint32_t>(n)].associated_object->position.x = int16_t(current_off);
+			current_off += contents[static_cast<uint32_t>(n)].associated_object->size.x + spacing - overlap;
+		}
+	} else {
+		int32_t space_consumed = spacing * (amount - 1);
+		for(int32_t n = amount - 1; n >= 0; --n)
+			space_consumed += contents[static_cast<uint32_t>(n)].associated_object->size.y;
+
+		const int32_t overlap = amount == 1 ?
+			0 :
+			(space_consumed > associated_object->size.y ?
+			(space_consumed - associated_object->size.y + amount - 2) / (amount - 1) :
+				0);
+		const int32_t adjusted_space_consumed = space_consumed - overlap * (amount - 1);
+		const int32_t base_offset =
+			subelement_alignment == text_data::alignment::left ?
+			0 :
+			(subelement_alignment == text_data::alignment::right ?
+			(associated_object->size.y - adjusted_space_consumed) :
+				(associated_object->size.y - adjusted_space_consumed) / 2);
+
+		int32_t current_off = base_offset;
+		for(int32_t n = 0; n < amount; ++n) {
+			contents[static_cast<uint32_t>(n)].associated_object->position.y = int16_t(current_off);
+			current_off += contents[static_cast<uint32_t>(n)].associated_object->size.y + spacing - overlap;
+		}
 	}
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_data(gui_object_tag, world_state& s) {
-	if constexpr(ui::detail::has_populate_list<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, world_state&>) {
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::update_data(gui_object_tag, world_state& s) {
+	if constexpr(ui::detail::has_populate_list<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>&, world_state&>) {
 		if(is_valid_index(element_def_tag)) {
 			auto temp_holder = s.w.gui_m.gui_objects.emplace();
 			this->temp = temp_holder.id;
@@ -681,10 +706,10 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::update_data(g
 	}
 }
 
-template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension>
+template<typename BASE, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
 template<typename window_type>
-void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::windowed_update(window_type& w, world_state& s) {
-	if constexpr(ui::detail::has_windowed_update<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>&, window_type&, world_state&>) {
+void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>::windowed_update(window_type& w, world_state& s) {
+	if constexpr(ui::detail::has_windowed_update<BASE, ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension, vertical>&, window_type&, world_state&>) {
 		if(is_valid_index(element_def_tag)) {
 			auto temp_holder = s.w.gui_m.gui_objects.emplace();
 			this->temp = temp_holder.id;
@@ -704,8 +729,8 @@ void ui::overlap_box<BASE, tag_type, ELEMENT, vertical_extension>::windowed_upda
 	}
 }
 
-template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension>
-ui::tagged_gui_object ui::create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>& b) {
+template<typename B, typename tag_type, typename ELEMENT, int32_t vertical_extension, bool vertical>
+ui::tagged_gui_object ui::create_static_element(world_state& ws, overlapping_region_tag handle, tagged_gui_object parent, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension, vertical>& b) {
 	const ui::overlapping_region_def& definition = ws.s.gui_m.ui_definitions.get(handle);
 
 	const auto new_obj = ws.w.gui_m.gui_objects.emplace();
@@ -718,7 +743,7 @@ ui::tagged_gui_object ui::create_static_element(world_state& ws, overlapping_reg
 
 	b.set_self_information(ws, new_obj.id, static_cast<int32_t>(definition.spacing), ui::text_aligment_from_overlapping_definition(definition));
 
-	if constexpr(ui::detail::has_on_create<B, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension>&, world_state&>)
+	if constexpr(ui::detail::has_on_create<B, ui::overlap_box<B, tag_type, ELEMENT, vertical_extension, vertical>&, world_state&>)
 		b.on_create(b, ws);
 
 	ui::add_to_back(ws.w.gui_m, parent, new_obj);

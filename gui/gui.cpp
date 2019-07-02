@@ -27,6 +27,8 @@ void ui::gui_manager::destroy(tagged_gui_object g) {
 			g.object.associated_behavior->~gui_behavior();
 			concurrent_allocator<gui_behavior>().deallocate(g.object.associated_behavior, 1);
 		}
+		if(g.object.associated_behavior->associated_object == &(g.object))
+			g.object.associated_behavior->associated_object = nullptr;
 		g.object.associated_behavior = nullptr;
 	}
 	const auto type_handle = g.object.type_dependant_handle.load(std::memory_order_relaxed);
@@ -158,7 +160,7 @@ namespace ui {
 			associated_object->associated_behavior = this;
 	}
 	gui_behavior::~gui_behavior() {
-		if (associated_object)
+		if (associated_object && associated_object->associated_behavior == this)
 			associated_object->associated_behavior = nullptr;
 		associated_object = nullptr;
 	}
@@ -1017,17 +1019,66 @@ void ui::detail::render_object_type(gui_static& static_manager, const gui_manage
 		{
 			auto ti = manager.tinted_icon_instances.safe_at(tinted_icon_instance_tag(root_obj.type_dependant_handle.load(std::memory_order_acquire)));
 			if(ti) {
-				ogl.render_tinted_textured_rect(
-					position.effective_position_x,
-					position.effective_position_y,
-					position.effective_width,
-					position.effective_height,
-					ti->r,
-					ti->g,
-					ti->b,
-					*(ti->t),
-					current_rotation
-				);
+				switch(cmod) {
+					case graphics::color_modification::disabled:
+					{
+						float nc = (ti->r + ti->g + ti->b) / 4.0f;
+						ogl.render_tinted_textured_rect(
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
+							nc,
+							nc,
+							nc,
+							*(ti->t),
+							current_rotation
+						);
+						break;
+					}
+					case graphics::color_modification::interactable:
+						ogl.render_tinted_textured_rect(
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
+							ti->r + 0.1f,
+							ti->g + 0.1f,
+							ti->b + 0.1f,
+							*(ti->t),
+							current_rotation
+						);
+						break;
+					case graphics::color_modification::interactable_disabled:
+					{
+						float nc = 0.1f + (ti->r + ti->g + ti->b) / 4.0f;
+						ogl.render_tinted_textured_rect(
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
+							nc,
+							nc,
+							nc,
+							*(ti->t),
+							current_rotation
+						);
+						break;
+					}
+					case graphics::color_modification::none:
+						ogl.render_tinted_textured_rect(
+							position.effective_position_x,
+							position.effective_position_y,
+							position.effective_width,
+							position.effective_height,
+							ti->r,
+							ti->g,
+							ti->b,
+							*(ti->t),
+							current_rotation
+						);
+						break;
+				}
 			}
 			break;
 		}
@@ -1225,14 +1276,16 @@ void ui::detail::render(gui_static& static_manager, const gui_manager& manager, 
 }
 
 bool ui::set_focus(world_state& ws, tagged_gui_object g) {
-	
-	if (g.object.associated_behavior && g.object.associated_behavior->on_get_focus(g.id, ws)) {
-		if (ws.w.gui_m.focus != g.id) {
-			clear_focus(ws);
+	if(ws.w.gui_m.focus == g.id)
+		return true;
+
+	if(g.object.associated_behavior && g.object.associated_behavior->mouse_consumer(ui::xy_pair{0,0})) {
+		clear_focus(ws);
+		if(g.object.associated_behavior->on_get_focus(g.id, ws))
 			ws.w.gui_m.focus = g.id;
-		}
 		return true;
 	}
+
 	return false;
 }
 
@@ -1439,7 +1492,7 @@ bool ui::gui_manager::on_lbutton_down(world_state& ws, const lbutton_down& ld) {
 	if (false == detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const lbutton_down& ) {
 		return set_focus(ws, obj);
 	}, tagged_gui_object{ root, gui_object_tag(0) }, root.size, ui::rescale_message(ld, _scale))) {
-		focus = gui_object_tag();
+		clear_focus(ws);
 	}
 
 	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const lbutton_down& l) {
@@ -1523,22 +1576,34 @@ bool ui::gui_manager::on_mouse_move(world_state& static_manager, const mouse_mov
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(mm, _scale));
 
-	const bool found_interactable = detail::dispatch_message(*this, [_this = this](ui::tagged_gui_object obj, const ui::message_with_location& m) {
+	const bool found_interactable = detail::dispatch_message(*this, [_this = this, &static_manager](ui::tagged_gui_object obj, const ui::message_with_location& m) {
 		if(obj.object.associated_behavior) {
-			const auto consumes_mouse = obj.object.associated_behavior->mouse_consumer(ui::xy_pair{ int16_t(m.x), int16_t(m.y) });
-			if(consumes_mouse) {
-				if((obj.object.flags.load(std::memory_order_acquire) & ui::gui_object::interactable) != 0)
-					_this->selected_interactable = obj.id;
-				else
-					_this->selected_interactable = gui_object_tag();
+			if(_this->selected_interactable == obj.id) 
 				return true;
-			} else {
+			if((obj.object.flags.load(std::memory_order_acquire) & ui::gui_object::interactable) == 0)
 				return false;
+
+			const auto consumes_mouse = obj.object.associated_behavior->mouse_consumer(ui::xy_pair{ int16_t(m.x), int16_t(m.y) });
+			if(!consumes_mouse)
+				return false;
+
+			if(auto old_obj = static_manager.w.gui_m.gui_objects.safe_at(_this->selected_interactable); old_obj) {
+				if(auto b = old_obj->associated_behavior; b) {
+					b->on_lose_focus(_this->selected_interactable, static_manager);
+				}
 			}
+			obj.object.associated_behavior->on_get_focus(obj.id, static_manager);
+			_this->selected_interactable = obj.id;
+			return true;
 		}
 		return false;
 	}, tagged_gui_object{ root,gui_object_tag(0) }, root.size, ui::rescale_message(ui::message_with_location{mm.x, mm.y}, _scale));
-	if(!found_interactable) {
+	if(!found_interactable && selected_interactable) {
+		if(auto old_obj = static_manager.w.gui_m.gui_objects.safe_at(selected_interactable); old_obj) {
+			if(auto b = old_obj->associated_behavior; b) {
+				b->on_lose_focus(selected_interactable, static_manager);
+			}
+		}
 		selected_interactable = gui_object_tag();
 	}
 	if (!found_tooltip && is_valid_index(tooltip)) {
@@ -1568,6 +1633,12 @@ void ui::gui_manager::on_lbutton_up(world_state& ws, const lbutton_up&) {
 }
 
 bool ui::gui_manager::on_keydown(world_state& ws, const key_down& kd) {
+	if(is_valid_index(focus)
+		&& gui_objects.at(focus).associated_behavior
+		&& gui_objects.at(focus).associated_behavior->on_keydown(focus, ws, kd)) {
+				return true;
+	}
+
 	return detail::dispatch_message(*this, [&ws](ui::tagged_gui_object obj, const key_down& k) {
 		if (obj.object.associated_behavior)
 			return obj.object.associated_behavior->on_keydown(obj.id, ws, k);

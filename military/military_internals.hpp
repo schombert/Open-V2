@@ -125,6 +125,9 @@ namespace military {
 		ws.set<army::owner>(new_army, n);
 		ws.add_item(ws.get<nation::armies>(n), new_army);
 
+		ws.set<army::readiness>(new_army, 1.0f);
+		ws.set<army::supply>(new_army, 1.0f);
+
 		auto target_hq = ws.get<province_state::strat_hq>(location);
 		if(target_hq) {
 			ws.set<army::hq>(new_army, target_hq);

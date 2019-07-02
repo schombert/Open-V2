@@ -439,21 +439,20 @@ namespace graphics {
 		const auto wblocks = (width + block_size - 1) / block_size;
 		const auto hblocks = (height + block_size - 1) / block_size;
 
-		int32_t const index_base = in_second_set.load(std::memory_order_acquire) ? int32_t(vertices.size()) * 2 : 0;
 
 		for(int32_t j = 0; j < hblocks; ++j) {
 			for(int32_t i = 0; i < wblocks; ++i) {
 				int32_t const index_a = (i + j * (wblocks + 1)) * 2;
-				std::pair<float, float> top_left(transformed_buffer[index_a + index_base], transformed_buffer[index_a + 1 + index_base]);
+				std::pair<float, float> top_left(transformed_buffer[index_a], transformed_buffer[index_a + 1]);
 
 				int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
-				std::pair<float, float> top_right(transformed_buffer[index_b + index_base], transformed_buffer[index_b + 1 + index_base]);
+				std::pair<float, float> top_right(transformed_buffer[index_b], transformed_buffer[index_b + 1]);
 
 				int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
-				std::pair<float, float> bottom_left(transformed_buffer[index_c + index_base], transformed_buffer[index_c + 1 + index_base]);
+				std::pair<float, float> bottom_left(transformed_buffer[index_c], transformed_buffer[index_c + 1]);
 
 				int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
-				std::pair<float, float> bottom_right(transformed_buffer[index_d + index_base], transformed_buffer[index_d + 1 + index_base]);
+				std::pair<float, float> bottom_right(transformed_buffer[index_d], transformed_buffer[index_d + 1]);
 
 				bool const out_of_view =
 					(top_left.first < -1.0f && top_right.first < -1.0f && bottom_left.first < -1.0f && bottom_right.first < -1.0f)
@@ -650,7 +649,6 @@ namespace graphics {
 						ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
 						if(auto const ab = obj.object.associated_behavior; ab) {
 							ab->associated_object = nullptr;
-							obj.object.associated_behavior = nullptr;
 						}
 						ws.w.gui_m.destroy(obj);
 						t = ui::gui_object_tag();
@@ -689,7 +687,7 @@ namespace graphics {
 							ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
 							if(auto const ab = obj.object.associated_behavior; ab) {
 								ab->associated_object = nullptr;
-								obj.object.associated_behavior = nullptr;
+								//obj.object.associated_behavior = nullptr;
 							}
 							ws.w.gui_m.destroy(obj);
 							map_ui_objects[i] = ui::gui_object_tag();
@@ -698,7 +696,7 @@ namespace graphics {
 						ui::tagged_gui_object obj{ ws.w.gui_m.gui_objects.at(t) , t };
 						if(auto const ab = obj.object.associated_behavior; ab) {
 							ab->associated_object = nullptr;
-							obj.object.associated_behavior = nullptr;
+							//obj.object.associated_behavior = nullptr;
 						}
 						ws.w.gui_m.destroy(obj);
 						map_ui_objects[i] = ui::gui_object_tag();
@@ -783,19 +781,18 @@ namespace graphics {
 		int32_t const i = int32_t(x / block_size);
 		int32_t const j = int32_t(y / block_size);
 		
-		int32_t const index_base = globe.in_second_set.load(std::memory_order_acquire) ? int32_t(globe.vertices.size()) * 2 : 0;
 
 		int32_t const index_a = (i + j * (wblocks + 1)) * 2;
-		std::pair<float, float> top_left(globe.transformed_buffer[index_a + index_base], globe.transformed_buffer[index_a + 1 + index_base]);
+		std::pair<float, float> top_left(globe.transformed_buffer[index_a], globe.transformed_buffer[index_a + 1]);
 
 		int32_t const index_b = (i + 1 + j * (wblocks + 1)) * 2;
-		std::pair<float, float> top_right(globe.transformed_buffer[index_b + index_base], globe.transformed_buffer[index_b + 1 + index_base]);
+		std::pair<float, float> top_right(globe.transformed_buffer[index_b], globe.transformed_buffer[index_b + 1]);
 
 		int32_t const index_c = (i + (j + 1) * (wblocks + 1)) * 2;
-		std::pair<float, float> bottom_left(globe.transformed_buffer[index_c + index_base], globe.transformed_buffer[index_c + 1 + index_base]);
+		std::pair<float, float> bottom_left(globe.transformed_buffer[index_c], globe.transformed_buffer[index_c + 1]);
 
 		int32_t const index_d = (i + 1 + (j + 1) * (wblocks + 1)) * 2;
-		std::pair<float, float> bottom_right(globe.transformed_buffer[index_d + index_base], globe.transformed_buffer[index_d + 1 + index_base]);
+		std::pair<float, float> bottom_right(globe.transformed_buffer[index_d], globe.transformed_buffer[index_d + 1]);
 
 		result.visible = ((top_right.first - top_left.first) * (top_right.second + top_left.second) +
 				(bottom_right.first - top_right.first) * (bottom_right.second + top_right.second) +
@@ -987,14 +984,13 @@ namespace graphics {
 	}
 
 	void globe_mesh::update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection) {
-		int32_t index = in_second_set.load(std::memory_order_relaxed) ? 0 : int32_t(vertices.size()) * 2;
+		int32_t index = 0;
 		for(auto& v : vertices) {
 			const auto result = normalized_coordinates_from_base(aspect, scale, rotation, v.x, v.y, v.z, projection);
 			transformed_buffer[index] = result.first;
 			transformed_buffer[index + 1] = result.second;
 			index += 2;
 		}
-		in_second_set.store(!in_second_set.load(std::memory_order_relaxed), std::memory_order_release);
 	}
 
 	provinces::borders_manager::border_block borders_to_data(borders_set const& b_set, provinces::province_manager const& province_m) {
@@ -1170,7 +1166,7 @@ namespace graphics {
 				mesh.vertices.push_back(globe_mesh::vertex{pt.x, pt.y, pt.z});
 			}
 		}
-		mesh.transformed_buffer.resize(mesh.vertices.size() * 4);
+		mesh.transformed_buffer.resize(mesh.vertices.size() * 2);
 
 		for (int32_t j = 0; j < hblocks; ++j) {
 			for (int32_t i = 0; i <= wblocks; ++i) {

@@ -567,6 +567,39 @@ namespace map_mode {
 						default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
 					}
 				}
+			} else if(ws.w.map_view.mode == type::military) {
+				for(size_t i = 1; i < ws.s.province_m.province_container.size(); ++i) {
+					const provinces::province_tag p(static_cast<provinces::province_tag::value_base_t>(i));
+					if(i < ws.s.province_m.first_sea_province) {
+						auto owner = ws.get<province_state::owner>(p);
+						if(military::in_war_against(ws, owner, ws.w.local_player_nation)) {
+							pcolors[i * 3 + 0] = uint8_t(std::clamp(0.9f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 1] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 2] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 0] = uint8_t(std::clamp(0.9f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 1] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 2] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+						} else if(owner == ws.w.local_player_nation || ws.get<nation::overlord>(owner) == ws.w.local_player_nation) {
+							pcolors[i * 3 + 0] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 1] = uint8_t(std::clamp(0.9f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 2] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 0] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 1] = uint8_t(std::clamp(0.9f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 2] = uint8_t(std::clamp(0.2f * 255.0f, 0.0f, 255.0f));
+						} else if(military::in_war_with(ws, owner, ws.w.local_player_nation)) {
+							pcolors[i * 3 + 0] = uint8_t(std::clamp(0.05f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 1] = uint8_t(std::clamp(0.75f * 255.0f, 0.0f, 255.0f));
+							pcolors[i * 3 + 2] = uint8_t(std::clamp(0.05f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 0] = uint8_t(std::clamp(0.05f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 1] = uint8_t(std::clamp(0.75f * 255.0f, 0.0f, 255.0f));
+							scolors[i * 3 + 2] = uint8_t(std::clamp(0.05f * 255.0f, 0.0f, 255.0f));
+						} else {
+							default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+						}
+					} else {
+						default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
+					}
+				}
 			} else { // default case: color by ownership
 				for(size_t i = 0; i < ws.s.province_m.province_container.size(); ++i) {
 					const provinces::province_tag this_province(static_cast<provinces::province_tag::value_base_t>(i));
@@ -647,6 +680,7 @@ namespace map_mode {
 			ui::hide(*(ws.w.map_view.legends->resource_legend_window.associated_object));
 			ui::hide(*(ws.w.map_view.legends->voting_legend_window.associated_object));
 			ui::hide(*(ws.w.map_view.legends->admin_legend_window.associated_object));
+			ui::hide(*(ws.w.map_view.legends->army_legend_window.associated_object));
 
 			ws.w.map_view.mode = new_mode;
 			ws.w.map_view.changed.store(true, std::memory_order_release);
@@ -689,8 +723,8 @@ namespace map_mode {
 				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
 				ws.w.map.associate_map_icon_set(make_admin_icon, 24, 24);
 			} else if(ws.w.map_view.mode == type::military) {
-				// ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
-				ws.w.map.associate_map_icon_set(make_army_icon, 100, 20);
+				ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->army_legend_window.associated_object));
+				ws.w.map.associate_map_icon_set(make_army_icon, 65, 50);
 			}
 		}
 	}
@@ -700,7 +734,7 @@ namespace map_mode {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
 				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration || ws.w.map_view.mode == type::infrastructure
 				|| ws.w.map_view.mode == type::prices || ws.w.map_view.mode == type::production || ws.w.map_view.mode == type::voting
-				|| ws.w.map_view.mode == type::admin) {
+				|| ws.w.map_view.mode == type::admin || ws.w.map_view.mode == type::military) {
 				sound::play_interface_sound(ws, ws.s.sound_m.click_sound);
 				ws.w.province_w.show_province_window(ws.w.gui_m, p);
 			} else if(ws.w.map_view.mode == type::culture) {
@@ -733,7 +767,7 @@ namespace map_mode {
 			if(ws.w.map_view.mode == type::political || ws.w.map_view.mode == type::sphere || ws.w.map_view.mode == type::region
 				|| ws.w.map_view.mode == type::population || ws.w.map_view.mode == type::migration || ws.w.map_view.mode == type::infrastructure
 				|| ws.w.map_view.mode == type::prices || ws.w.map_view.mode == type::production || ws.w.map_view.mode == type::voting
-				|| ws.w.map_view.mode == type::admin) {
+				|| ws.w.map_view.mode == type::admin || ws.w.map_view.mode == type::military) {
 				ws.w.province_w.hide_province_window(ws.w.gui_m);
 			} else if(ws.w.map_view.mode == type::culture) {
 				ws.w.map_view.legends->current_culture = cultures::culture_tag();
@@ -791,6 +825,9 @@ namespace map_mode {
 		} else if(ws.w.map_view.mode == type::admin) {
 			ws.w.map_view.legends->current_province = p;
 			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->admin_legend_window.associated_object));
+		} else if(ws.w.map_view.mode == type::military) {
+			ws.w.map_view.legends->current_province = p;
+			ui::make_visible_and_update(ws.w.gui_m, *(ws.w.map_view.legends->army_legend_window.associated_object));
 		}
 	}
 
@@ -805,6 +842,7 @@ namespace map_mode {
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_resource"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->resource_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_voting"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->voting_legend_window);
 		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_admin"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->admin_legend_window);
+		ui::create_static_element(ws, std::get<ui::window_tag>(ws.s.gui_m.ui_definitions.name_to_element_map["open_v2_map_legend_army"]), ui::tagged_gui_object{ ws.w.gui_m.root, ui::gui_object_tag(0) }, ws.w.map_view.legends->army_legend_window);
 
 		{
 			legends->infrastructure_icons_windows.resize(ws.s.province_m.first_sea_province);
@@ -1038,6 +1076,17 @@ namespace map_mode {
 					cursor = ui::add_text(cursor, text_data::percent{ ef }, fmt, ws, box, lm);
 				}
 			}
+		} else if(ws.w.map_view.mode == type::military) {
+			if(auto const p = ws.w.map_view.legends->current_province; is_valid_index(p) && p != provinces::province_tag(0)) {
+				auto cursor = ui::add_text(ui::xy_pair{ 0,0 }, ws.w.province_s.province_state_container.get<province_state::name>(p), fmt, ws, box, lm);
+				auto controller = ws.w.province_s.province_state_container.get<province_state::controller>(p);
+				if(controller) {
+					cursor = ui::advance_cursor_to_newline(cursor, ws.s.gui_m, fmt, lm);
+					cursor = ui::add_text(cursor, scenario::fixed_ui::controller_label, fmt, ws, box, lm);
+					cursor = ui::advance_cursor_by_space(cursor, ws.s.gui_m, fmt);
+					cursor = ui::add_text(cursor, ws.w.nation_s.nations.get<nation::name>(controller), fmt, ws, box, lm);
+				}
+			}
 		}
 	}
 	void gradient_bar::update(ui::tinted_icon<gradient_bar>& self, world_state & ws) {
@@ -1203,5 +1252,27 @@ namespace map_mode {
 	}
 	ui::window_tag unit_icon_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_map_icon_unit"]);
+	}
+	void self_color_icon::update(ui::tinted_icon<self_color_icon>& self, world_state & ws) {
+		self.set_color(ws.w.gui_m, 0.2f, 0.9f, 0.2f);
+	}
+	void friendly_color_icon::update(ui::tinted_icon<friendly_color_icon>& self, world_state & ws) {
+		self.set_color(ws.w.gui_m, 0.05f, 0.75f, 0.05f);
+	}
+	void hostile_color_icon::update(ui::tinted_icon<hostile_color_icon>& self, world_state & ws) {
+		self.set_color(ws.w.gui_m, 0.9f, 0.2f, 0.2f);
+	}
+	void friendly_occupation_icon::update(ui::tinted_icon<friendly_occupation_icon>& self, world_state & ws) {
+		self.set_color(ws.w.gui_m, 1.0f, 0.85f, 0.07f);
+	}
+	void hostile_occupation_icon::update(ui::tinted_icon<hostile_occupation_icon>& self, world_state & ws) {
+		self.set_color(ws.w.gui_m, 0.87f, 0.41f, 0.14f);
+	}
+	void show_netural_cb::update(ui::simple_button<show_netural_cb>& self, world_state & ws) {
+		self.set_frame(ws.w.gui_m, ws.w.map_view.legends->showing_neutral_units ? 1ui32 : 0ui32);
+	}
+	void show_netural_cb::button_function(ui::simple_button<show_netural_cb>& self, world_state & ws) {
+		ws.w.map_view.legends->showing_neutral_units = !(ws.w.map_view.legends->showing_neutral_units);
+		ws.w.gui_m.flag_update();
 	}
 }

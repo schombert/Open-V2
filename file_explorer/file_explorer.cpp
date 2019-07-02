@@ -77,6 +77,7 @@ struct gui_window_handler {
 
 	void operator()(const ui::lbutton_down& m, ui::window_base&) {
 		if (!s.w.gui_m.on_lbutton_down(s, m)) {
+			ui::clear_focus(s);
 			map_dragging = true;
 			map_drag_start = std::make_pair(m.x, m.y);
 			interest = s.w.map.get_vector_for(s.w.map.normalize_screen_coordinates(m.x, m.y, s.w.gui_m.width(), s.w.gui_m.height()));
@@ -84,7 +85,7 @@ struct gui_window_handler {
 	}
 	void operator()(const ui::rbutton_down& m, ui::window_base&) {
 		if(!s.w.gui_m.on_rbutton_down(s, m)) {
-			///
+			ui::clear_focus(s);
 		}
 	}
 	void operator()(const ui::lbutton_up& m, ui::window_base&) {
@@ -179,8 +180,6 @@ struct gui_window_handler {
 	void on_idle(ui::window_base& win) {
 		map_mode::update_map_colors(s);
 
-		s.w.map.update_province_ui_positions(s);
-
 		if (s.w.gui_m.check_and_clear_update()) {
 			ui::update(s);
 		} else if (s.w.gui_m.check_and_clear_minimal_update()) {
@@ -197,6 +196,7 @@ struct gui_window_handler {
 
 	void render(graphics::open_gl_wrapper& ogl) {
 		s.w.map.render(ogl, s);
+		s.w.map.update_province_ui_positions(s);
 		ui::render(s.s.gui_m, s.w.gui_m, ogl);
 	}
 };

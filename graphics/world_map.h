@@ -76,7 +76,6 @@ namespace graphics {
 
 		std::vector<vertex> vertices;
 		std::vector<float> transformed_buffer;
-		std::atomic<bool> in_second_set = false;
 
 		void update_transformed_buffer(float aspect, float scale, Eigen::Matrix3f rotation, projection_type projection);
 

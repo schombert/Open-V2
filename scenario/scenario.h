@@ -808,8 +808,9 @@ namespace scenario {
 		constexpr uint32_t map_legend_admin = 779ui32;
 		constexpr uint32_t admin_eff_label = 780ui32;
 		constexpr uint32_t map_legend_military = 781ui32;
+		constexpr uint32_t controller_label = 782ui32;
 
-		constexpr uint32_t count = 782ui32;
+		constexpr uint32_t count = 783ui32;
 	}
 
 
