@@ -391,4 +391,17 @@ namespace military {
 			}
 		});
 	}
+
+	constexpr float distance_limit = 0.99877f; //cos(100.0 * 6.2831853071f / 40'075.0f);
+
+	auto province_in_range_of_army(world_state const& ws, army_tag t, provinces::province_tag p) -> bool {
+		auto location = ws.get<army::location>(t);
+		if(location == p)
+			return true;
+		if(ws.get<province::centroid>(location).dot(ws.get<province::centroid>(p)) > distance_limit)
+			return true;
+		if(provinces::provinces_are_same_type_adjacent(ws, location, p))
+			return true;
+		return false;
+	}
 }

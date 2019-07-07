@@ -596,6 +596,20 @@ namespace map_mode {
 						} else {
 							default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
 						}
+
+						if(ws.w.map_view.legends->selected_army) {
+							if(military::province_in_range_of_army(ws, ws.w.map_view.legends->selected_army, p)) {
+								scolors[i * 3 + 0] = 40ui8;
+								scolors[i * 3 + 1] = 200ui8;
+								scolors[i * 3 + 2] = 200ui8;
+							}
+						} else if(ws.w.map_view.legends->selected_hq) {
+							if(ws.get<province_state::strat_hq>(p) == ws.w.map_view.legends->selected_hq) {
+								scolors[i * 3 + 0] = 40ui8;
+								scolors[i * 3 + 1] = 200ui8;
+								scolors[i * 3 + 2] = 200ui8;
+							}
+						}
 					} else {
 						default_color_province(ws, p, pcolors + i * 3, scolors + i * 3);
 					}
@@ -1274,5 +1288,43 @@ namespace map_mode {
 	void show_netural_cb::button_function(ui::simple_button<show_netural_cb>& self, world_state & ws) {
 		ws.w.map_view.legends->showing_neutral_units = !(ws.w.map_view.legends->showing_neutral_units);
 		ws.w.gui_m.flag_update();
+	}
+	bool army_bg_t::on_get_focus(ui::gui_object_tag, world_state & ws) {
+		if(!associated_object)
+			return false;
+
+		ui::gui_object_tag parent_id = associated_object->parent;
+		if(!parent_id)
+			return false;
+
+		auto& parent_obj = ws.w.gui_m.gui_objects.at(parent_id);
+		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ parent_obj, parent_id });
+
+		ui::gui_object_tag parent_parent_id = parent_obj.parent;
+		if(!parent_parent_id)
+			return false;
+
+		auto& parent_parent_obj = ws.w.gui_m.gui_objects.at(parent_parent_id);
+		ui::gui_object_tag ppp_id = parent_parent_obj.parent;
+		if(!ppp_id)
+			return false;
+
+		auto& ppp_obj = ws.w.gui_m.gui_objects.at(ppp_id);
+		ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ ppp_obj, ppp_id });
+
+		if(std::holds_alternative<military::army_tag>(unit))
+			ws.w.map_view.legends->selected_army = std::get<military::army_tag>(unit);
+		else if(std::holds_alternative<military::strategic_hq_tag>(unit))
+			ws.w.map_view.legends->selected_hq = std::get<military::strategic_hq_tag>(unit);
+
+		ws.w.map_view.changed.store(true, std::memory_order_release);
+
+		return false;
+	}
+	void army_bg_t::on_lose_focus(ui::gui_object_tag, world_state & ws) {
+		ws.w.map_view.legends->selected_army = military::army_tag();
+		ws.w.map_view.legends->selected_hq = military::strategic_hq_tag();
+
+		ws.w.map_view.changed.store(true, std::memory_order_release);
 	}
 }

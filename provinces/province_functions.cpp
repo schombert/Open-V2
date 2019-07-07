@@ -10,9 +10,9 @@
 #include "concurrency_tools\\ve.h"
 
 namespace provinces {
-	
+
 	void reset_state(provinces_state& s) {
-		s.province_state_container.for_each([&s](provinces::province_tag p){
+		s.province_state_container.for_each([&s](provinces::province_tag p) {
 			s.province_state_container.set<province_state::cores>(p, set_tag<cultures::national_tag>());
 			s.province_state_container.set<province_state::fleets>(p, set_tag<military::fleet_presence>());
 			s.province_state_container.set<province_state::orders>(p, military::army_orders_tag());
@@ -49,7 +49,7 @@ namespace provinces {
 
 	void init_province_state(world_state& ws) {
 		const auto prov_count = ws.s.province_m.province_container.size();
-		
+
 		ws.w.province_s.province_distance_to.resize(prov_count * prov_count);
 		ws.w.province_s.province_path_to.resize(prov_count * prov_count);
 
@@ -121,8 +121,8 @@ namespace provinces {
 
 		ws.w.province_s.province_state_container.parallel_for_each([
 			&ws, vector_size, full_vector_size,
-			ppdt, mpdt, rpdt, cdt, mdt, ldt, pmpdt, mmpdt, rmpdt, plndt, mlndt, rlndt, pendt, mendt, rendt, pxndt, mxndt, rxndt
-		](provinces::province_tag prov_id){
+				ppdt, mpdt, rpdt, cdt, mdt, ldt, pmpdt, mmpdt, rmpdt, plndt, mlndt, rlndt, pendt, mendt, rendt, pxndt, mxndt, rxndt
+		](provinces::province_tag prov_id) {
 			if(to_index(prov_id) >= ws.s.province_m.first_sea_province)
 				return;
 
@@ -131,7 +131,7 @@ namespace provinces {
 			auto pop_range = get_range(ws.w.population_s.pop_arrays, container.get<province_state::pops>(prov_id));
 
 			auto province_full_demo = ws.w.province_s.province_demographics.get_row(prov_id);
-			
+
 			ve::set_zero(ve::to_vector_size(ws.w.province_s.province_demographics.inner_size()), province_full_demo);
 			const auto pop_demo_size = ws.w.population_s.pop_demographics.inner_size;
 
@@ -139,7 +139,7 @@ namespace provinces {
 				auto pop_demo_source = ws.w.population_s.pop_demographics.get_row(p);
 				ve::accumulate(pop_demo_size, province_full_demo, pop_demo_source, ve::serial_exact());
 
-				auto ptype =  ws.w.population_s.pops.get<pop::type>(p);
+				auto ptype = ws.w.population_s.pops.get<pop::type>(p);
 				auto needs_satisfaction = ws.w.population_s.pops.get<pop::needs_satisfaction>(p);
 
 				auto pop_size = pop_demo_source[population::total_population_tag];
@@ -228,7 +228,7 @@ namespace provinces {
 				const auto ideology_offset = population::to_demo_tag(ws, ideologies::ideology_tag(0));
 				auto max_ideology_off = maximum_index(province_full_demo.data() + to_index(ideology_offset), int32_t(ws.s.ideologies_m.ideologies_count));
 				container.set<province_state::dominant_ideology>(prov_id, ideologies::ideology_tag(static_cast<value_base_of<ideologies::ideology_tag>>(max_ideology_off)));
-				
+
 				const auto options_offset = population::to_demo_tag(ws, issues::option_tag(0));
 				auto max_opinion_off = maximum_index(province_full_demo.data() + to_index(options_offset), int32_t(ws.s.issues_m.tracked_options_count));
 				container.set<province_state::dominant_issue>(prov_id, issues::option_tag(static_cast<value_base_of<issues::option_tag>>(max_opinion_off)));
@@ -316,7 +316,7 @@ namespace provinces {
 			add_item(ws.w.nation_s.state_arrays, ws.w.nation_s.nations.get<nation::member_states>(new_owner), nations::region_state_pair{ region_id, new_state });
 
 			auto aligned_state_max = ((static_cast<uint32_t>(sizeof(economy::money_qnty_type)) * uint32_t(ws.w.nation_s.states.size()) + 31ui32) & ~31ui32) / static_cast<uint32_t>(sizeof(economy::money_qnty_type));
-			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, new_state, new_owner](nations::country_tag n){
+			ws.w.nation_s.nations.parallel_for_each([&ws, aligned_state_max, new_state, new_owner](nations::country_tag n) {
 				auto& tfmask = ws.w.nation_s.nations.get<nation::statewise_tariff_mask>(n);
 				if(get_size(ws.w.economy_s.purchasing_arrays, tfmask) < aligned_state_max)
 					resize(ws.w.economy_s.purchasing_arrays, tfmask, aligned_state_max);
@@ -365,12 +365,12 @@ namespace provinces {
 		auto avg_movement_cost =
 			(
 			((container.get<province::is_sea>(a) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(a))
-			+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(b))
-			) / 2.0;
+				+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(b))
+				) / 2.0;
 
 		auto a_owner = state_container.get<province_state::owner>(a);
 		auto b_owner = state_container.get<province_state::owner>(b);
-		
+
 		auto a_sphere_leader = a_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::sphere_leader>(a_owner)) : nations::country_tag();
 		auto a_overlord = a_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::overlord>(a_owner)) : nations::country_tag();
 		auto b_sphere_leader = b_owner ? nations::country_tag(ws.w.nation_s.nations.get<nation::sphere_leader>(b_owner)) : nations::country_tag();
@@ -413,12 +413,12 @@ namespace provinces {
 
 	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results) { // in ~km
 		auto& container = ws.s.province_m.province_container;
-		
+
 		std::fill_n(results, ws.s.province_m.province_container.size(), maximum_distance);
 		std::fill_n(p_results, ws.s.province_m.province_container.size(), province_tag());
 
 		boost::container::small_vector<province_distance, 256, concurrent_allocator<province_distance>> unfinished;
-		unfinished.push_back(province_distance{0.0f, a, false, province_tag()});
+		unfinished.push_back(province_distance{ 0.0f, a, false, province_tag() });
 
 		while(unfinished.size() != 0) {
 			province_distance current = unfinished.back();
@@ -427,7 +427,7 @@ namespace provinces {
 			results[to_index(current.id)] = current.distance;
 			p_results[to_index(current.id)] = current.origin;
 
-			
+
 
 			bool is_sea = container.get<province::is_sea>(current.id);
 			auto same_adjacent = ws.s.province_m.same_type_adjacency.get_range(current.id);
@@ -453,7 +453,7 @@ namespace provinces {
 								return;
 							}
 						}
-						province_distance t{ total_distance, p , current.used_sea, is_valid_index(current.origin) ? current.origin : p};
+						province_distance t{ total_distance, p , current.used_sea, is_valid_index(current.origin) ? current.origin : p };
 						auto end_position = std::upper_bound(unfinished.begin(), unfinished.end(), t, [](province_distance a, province_distance b) { return a.distance > b.distance; });
 						unfinished.insert(end_position, t);
 					}();
@@ -487,7 +487,7 @@ namespace provinces {
 					}
 				}
 			}
-			
+
 			//std::sort(unfinished.begin(), unfinished.end(), [](province_distance a, province_distance b) { return a.distance > b.distance; });
 		}
 	}
@@ -554,7 +554,7 @@ namespace provinces {
 
 			auto cf_value = crime_fighting_value(ws, val);
 			auto& current_crime = ws.w.province_s.province_state_container.get<province_state::crime>(val);
-			
+
 
 			std::uniform_real_distribution<float> const dist(0.0f, 1.0f);
 			auto const result = dist(get_local_generator());
@@ -594,4 +594,13 @@ namespace provinces {
 		return already_added;
 	}
 
+
+	auto provinces_are_same_type_adjacent(world_state const& ws, provinces::province_tag a, provinces::province_tag b) -> bool {
+		auto adj_range = ws.s.province_m.same_type_adjacency.get_range(a);
+		for(auto j : adj_range) {
+			if(j == b)
+				return true;
+		}
+		return false;
+	}
 }

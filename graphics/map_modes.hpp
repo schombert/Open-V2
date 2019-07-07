@@ -7,33 +7,11 @@
 namespace map_mode {
 	class army_bg_t : public ui::gui_behavior {
 	public:
+		std::variant<std::monostate, military::army_tag, military::strategic_hq_tag> unit;
+
 		virtual bool mouse_consumer(ui::xy_pair) final override { return true; }
-		virtual bool on_get_focus(ui::gui_object_tag, world_state& ws) final override {
-			if(!associated_object)
-				return false;
-
-			ui::gui_object_tag parent_id = associated_object->parent;
-			if(!parent_id)
-				return false;
-
-			auto& parent_obj = ws.w.gui_m.gui_objects.at(parent_id);
-			ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ parent_obj, parent_id });
-
-			ui::gui_object_tag parent_parent_id = parent_obj.parent;
-			if(!parent_parent_id)
-				return false;
-
-			auto& parent_parent_obj = ws.w.gui_m.gui_objects.at(parent_parent_id);
-			ui::gui_object_tag ppp_id = parent_parent_obj.parent;
-			if(!ppp_id)
-				return false;
-
-			auto& ppp_obj = ws.w.gui_m.gui_objects.at(ppp_id);
-			ui::move_to_front(ws.w.gui_m, ui::tagged_gui_object{ ppp_obj, ppp_id });
-				
-			return false;
-		}
-		virtual void on_lose_focus(ui::gui_object_tag, world_state&) final override {}
+		virtual bool on_get_focus(ui::gui_object_tag, world_state& ws) final override;
+		virtual void on_lose_focus(ui::gui_object_tag, world_state& ws) final override;
 
 		/*
 		virtual ui::tooltip_behavior has_tooltip(ui::gui_object_tag, world_state&, const ui::mouse_move&) { return ui::tooltip_behavior::tooltip; }
@@ -55,6 +33,13 @@ namespace map_mode {
 					return nations::country_tag();
 				}
 			}();
+			if(win.army) {
+				unit = win.army;
+			} else if(win.hq) {
+				unit = win.hq;
+			} else {
+				unit = std::monostate{};
+			}
 			auto c = ws.get<nation::current_color>(owner);
 			if(const auto go = ws.w.gui_m.tinted_icon_instances.safe_at(ui::tinted_icon_instance_tag(associated_object->type_dependant_handle)); go) {
 				go->r = float(c.r) / 255.0f;
@@ -543,6 +528,9 @@ namespace map_mode {
 		nations::country_tag current_nation;
 		cultures::culture_tag current_culture;
 		economy::goods_tag current_good;
+
+		military::army_tag selected_army;
+		military::strategic_hq_tag selected_hq;
 	};
 
 	template<typename W>
@@ -686,8 +674,16 @@ namespace map_mode {
 				return nations::country_tag();
 			}
 		}();
-
-		if(military::in_war_against(ws, owner, ws.w.local_player_nation)) {
+		if(win.army && ws.w.map_view.legends->selected_army == win.army) {
+			self.set_color(ws.w.gui_m, 0.157f, 0.784f, 0.784f);
+			ui::make_visible_immediate(*self.associated_object);
+		} else if(win.hq && ws.w.map_view.legends->selected_hq == win.hq) {
+			self.set_color(ws.w.gui_m, 0.157f, 0.784f, 0.784f);
+			ui::make_visible_immediate(*self.associated_object);
+		} else if(win.hq && ws.w.map_view.legends->selected_army && ws.get<army::hq>(ws.w.map_view.legends->selected_army) == win.hq) {
+			self.set_color(ws.w.gui_m, 0.157f, 0.784f, 0.784f);
+			ui::make_visible_immediate(*self.associated_object);
+		} else if(military::in_war_against(ws, owner, ws.w.local_player_nation)) {
 			self.set_color(ws.w.gui_m, 0.9f, 0.2f, 0.2f);
 			ui::make_visible_immediate(*self.associated_object);
 		} else if(owner == ws.w.local_player_nation || ws.get<nation::overlord>(owner) == ws.w.local_player_nation) {
