@@ -153,6 +153,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "parser_generator", "parser_
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gui_window_generator", "gui_window_generator\gui_window_generator.vcxproj", "{58ADCEB9-B6C6-4C01-B97B-FA9DB905DC95}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2E7D0E16-5429-4C81-A64F-BA2C11F07D3A}"
+	ProjectSection(SolutionItems) = preProject
+		README.md = README.md
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
