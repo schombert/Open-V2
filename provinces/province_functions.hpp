@@ -55,4 +55,82 @@ namespace provinces {
 		for(auto p : set)
 			fun(p);
 	}
+
+
+	template<typename F>
+	auto provinces_are_connected(world_state const& ws, provinces::province_tag start, provinces::province_tag end, float range, F const& test_fn) -> bool {
+		
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>
+			already_added;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>
+			pending_neighbor_check;
+
+		pending_neighbor_check.insert(end);
+
+		while(pending_neighbor_check.size() != 0) {
+			auto tp = *(pending_neighbor_check.end() - 1);
+			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
+
+			already_added.insert(tp);
+
+			if(test_fn(tp)) {
+				auto adj_range = ws.s.province_m.same_type_adjacency.get_range(tp);
+				for(auto a : adj_range) {
+					if(ws.get<province::centroid>(start).dot(ws.get<province::centroid>(a)) >= range
+						&& already_added.count(a) == 0
+						&& pending_neighbor_check.count(a) == 0) {
+
+						if(a == start)
+							return true;
+
+						pending_neighbor_check.insert(a);
+					}
+				}
+			}
+		}
+
+		return false;
+	}
+
+	template<typename F>
+	auto get_limited_connected_provinces(world_state const& ws, provinces::province_tag start, float range, F const& test_fn)->boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>> {
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>
+			already_added;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>
+			pending_neighbor_check;
+		boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>
+			failed_set;
+
+		already_added.insert(start);
+
+		// force addition of adjacent provinces redardless of range
+		auto adj_range = ws.s.province_m.same_type_adjacency.get_range(start);
+		for(auto a : adj_range) {
+			pending_neighbor_check.insert(a);
+		}
+
+		while(pending_neighbor_check.size() != 0) {
+			auto tp = *(pending_neighbor_check.end() - 1);
+			pending_neighbor_check.erase(pending_neighbor_check.end() - 1);
+
+			if(!test_fn(tp)) {
+				failed_set.insert(tp);
+			} else {
+				already_added.insert(tp);
+			
+				auto adj_range = ws.s.province_m.same_type_adjacency.get_range(tp);
+				for(auto a : adj_range) {
+					if(ws.get<province::centroid>(start).dot(ws.get<province::centroid>(a)) >= range
+						&& already_added.count(a) == 0
+						&& pending_neighbor_check.count(a) == 0
+						&& failed_set.count(a) == 0) {
+
+						pending_neighbor_check.insert(a);
+					}
+				}
+			}
+		}
+
+		return already_added;
+	}
 }

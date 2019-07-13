@@ -37,6 +37,11 @@ namespace provinces {
 
 	auto get_connected_owned_provinces(world_state const& ws, provinces::province_tag start) -> boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>;
 	auto provinces_are_same_type_adjacent(world_state const& ws, provinces::province_tag a, provinces::province_tag b) -> bool;
+	template<typename F>
+	auto provinces_are_connected(world_state const& ws, provinces::province_tag start, provinces::province_tag end, float range, F const& test_fn) -> bool;
+	template<typename F>
+	auto get_limited_connected_provinces(world_state const& ws, provinces::province_tag start, float range, F const& test_fn) -> boost::container::flat_set<provinces::province_tag, std::less<provinces::province_tag>, concurrent_allocator<provinces::province_tag>>;
+	
 	void silent_remove_province_owner(world_state& ws, province_tag p);
 	void silent_remove_province_controller(world_state& ws, province_tag p);
 	void silent_set_province_owner(world_state& ws, nations::country_tag new_owner, province_tag p);

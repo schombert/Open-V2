@@ -398,10 +398,17 @@ namespace military {
 		auto location = ws.get<army::location>(t);
 		if(location == p)
 			return true;
-		if(ws.get<province::centroid>(location).dot(ws.get<province::centroid>(p)) > distance_limit)
-			return true;
 		if(provinces::provinces_are_same_type_adjacent(ws, location, p))
 			return true;
+
+		auto owner = ws.get<army::owner>(t);
+		if(ws.get<province::centroid>(location).dot(ws.get<province::centroid>(p)) >= distance_limit) {
+			return provinces::provinces_are_connected(ws, p, location, distance_limit, [&ws, owner](provinces::province_tag q){
+				auto const c = ws.get<province_state::controller>(q);
+				return owner == c || has_military_access_with(ws, owner, c);
+			});
+		}
+		
 		return false;
 	}
 }
