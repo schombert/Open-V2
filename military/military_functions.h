@@ -74,4 +74,6 @@ namespace military {
 
 	auto change_army_location(world_state& ws, army_tag t, provinces::province_tag new_location) -> void;
 	auto province_in_range_of_army(world_state const& ws, army_tag t, provinces::province_tag p) -> bool;
+
+	auto update_national_borders(world_state& ws, nations::country_tag n, int16_t* counts, provinces::province_tag* rep_provinces) -> void;
 }

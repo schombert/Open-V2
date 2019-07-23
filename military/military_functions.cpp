@@ -411,4 +411,51 @@ namespace military {
 		
 		return false;
 	}
+
+
+	auto update_national_borders(world_state& ws, nations::country_tag n, uint16_t* counts, provinces::province_tag* rep_provinces) -> void {
+		auto control_set = ws.get_range(ws.get<nation::controlled_provinces>(n));
+
+		auto const nation_count = ws.size<nation::name>();
+		auto const nation_2byte_count = ve::to_2byte_vector_size(nation_count);
+
+		std::vector<Eigen::Vector3f, concurrent_allocator<Eigen::Vector3f>> centroids(nation_count);
+		std::vector<float, concurrent_allocator<float>> best_distance(nation_count);
+
+		std::fill_n(counts, nation_2byte_count, 0ui16);
+		std::fill_n(best_distance.data(), nation_count, -1.0f);
+
+		for(auto p : control_set) {
+			auto const adj_row = ws.get_row<province::same_type_adjacency>(p);
+			auto const adj_size = ws.size<province::same_type_adjacency>(p);
+			for(int32_t i = 0; i < adj_size; ++i) {
+				auto adj_controller = ws.get<province_state::controller>(adj_row[i]);
+				if(adj_controller && adj_controller != n) {
+					counts[to_index(adj_controller)] += 1ui16;
+					centroids[to_index(adj_controller)] += ws.get<province::centroid>(p);
+				}
+			}
+		}
+
+		for(int32_t j = 0; j < nation_count; ++j) {
+			if(counts[j] != 0) {
+				centroids[j].normalize();
+			}
+		}
+
+		for(auto p : control_set) {
+			auto const adj_row = ws.get_row<province::same_type_adjacency>(p);
+			auto const adj_size = ws.size<province::same_type_adjacency>(p);
+			for(int32_t i = 0; i < adj_size; ++i) {
+				auto adj_controller = ws.get<province_state::controller>(adj_row[i]);
+				if(adj_controller && adj_controller != n) {
+					float const distance = ws.get<province::centroid>(p).dot(centroids[to_index(adj_row[i])]);
+					if(distance > best_distance[to_index(adj_row[i])]) {
+						best_distance[to_index(adj_row[i])] = distance;
+						rep_provinces[to_index(adj_controller)] = adj_row[i];
+					}
+				}
+			}
+		}
+	}
 }
