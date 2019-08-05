@@ -1,0 +1,5 @@
+owner = YXC
+controller = YXC
+add_core = YXC
+trade_goods = coffee
+life_rating = 15

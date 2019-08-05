@@ -1,0 +1,5 @@
+owner = YXG
+controller = YXG
+add_core = YXG
+trade_goods = grain
+life_rating = 15

@@ -1,0 +1,5 @@
+owner = YZC
+controller = YZC
+add_core = YZC
+trade_goods = fruit
+life_rating = 15

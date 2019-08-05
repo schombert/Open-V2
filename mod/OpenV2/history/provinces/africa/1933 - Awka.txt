@@ -1,0 +1,5 @@
+owner = YZV
+controller = YZV
+add_core = YZV
+trade_goods = coal
+life_rating = 15

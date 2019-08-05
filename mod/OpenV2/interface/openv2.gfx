@@ -55,4 +55,59 @@ spriteTypes = {
 		name = "GFX_openv2_gradient"
 		texturefile = "gfx\\interface\\gradient.tga"
 	}
+	
+	spriteType = {
+		name = "GFX_openv2_rg_gradient"
+		texturefile = "gfx\\interface\\rg_gradient.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_small_port"
+		texturefile = "gfx\\interface\\port_b.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_rail_gradient"
+		texturefile = "gfx\\interface\\rail_gradient.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_white_square"
+		texturefile = "gfx\\interface\\white_square.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_legend_item_bg"
+		texturefile = "gfx\\interface\\legend_item_bg.tga"
+		noOfFrames = 2
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_unit_bar_center"
+		texturefile = "gfx\\interface\\unit_bar_center.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_unit_bar_selection"
+		texturefile = "gfx\\interface\\unit_bar_selection.tga"
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_unit_types"
+		texturefile = "gfx\\interface\\unit_types_b.tga"
+		noOfFrames = 3
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_unit_left_cap"
+		texturefile = "gfx\\interface\\left_cap.tga"
+		noOfFrames = 5
+	}
+	
+	spriteType = {
+		name = "GFX_openv2_unit_right_cap"
+		texturefile = "gfx\\interface\\right_cap.tga"
+		noOfFrames = 5
+	}
+	
 }

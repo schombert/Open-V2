@@ -1,0 +1,5 @@
+owner = YZT
+controller = YZT
+add_core = YZT
+trade_goods = cattle
+life_rating = 35

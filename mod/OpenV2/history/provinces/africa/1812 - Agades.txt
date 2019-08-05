@@ -1,0 +1,5 @@
+owner = YZQ
+controller = YZQ
+add_core = YZQ
+trade_goods = wool
+life_rating = 10

@@ -418,6 +418,15 @@ namespace cultures {
 			nt.republic_flag = s.gui_m.textures.retrieve_by_name(source_directory, republic.c_str(), republic.c_str() + republic.length());
 			nt.fascist_flag = s.gui_m.textures.retrieve_by_name(source_directory, fascist.c_str(), fascist.c_str() + fascist.length());
 			nt.monarchy_flag = s.gui_m.textures.retrieve_by_name(source_directory, monarchy.c_str(), monarchy.c_str() + monarchy.length());
+
+			if(!nt.communist_flag)
+				nt.communist_flag = nt.base_flag;
+			if(!nt.republic_flag)
+				nt.republic_flag = nt.base_flag;
+			if(!nt.fascist_flag)
+				nt.fascist_flag = nt.base_flag;
+			if(!nt.monarchy_flag)
+				nt.monarchy_flag = nt.base_flag;
 		}
 	}
 

@@ -1,0 +1,5 @@
+owner = YZO
+controller = YZO
+add_core = YZO
+trade_goods = fruit
+life_rating = 10

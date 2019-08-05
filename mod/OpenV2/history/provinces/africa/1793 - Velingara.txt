@@ -1,0 +1,5 @@
+owner = YYP
+controller = YYP
+add_core = YYP
+trade_goods = fish
+life_rating = 15

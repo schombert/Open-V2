@@ -1,0 +1,5 @@
+owner = YYD
+controller = YYD
+add_core = YYD
+trade_goods = cattle
+life_rating = 15

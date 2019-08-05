@@ -762,3 +762,221 @@ population_amount_label;Show amount
 population_density_label;Show density
 map_legend_population;Population Map
 population_label;Population:
+map_legend_relations;Relations Map
+map_relation_explanation;Relationship of $NATION$ with $TARGET$: $VALUE$
+map_legend_migration;Migration Map
+migration_external_label;External migration
+migration_internal_label;Internal migration
+migration_external_label_b;Monthly external migration:
+migration_internal_label_b;Monthly internal migration:
+possible_naval_base;Possible naval base
+possible_railroad;Possible railroad
+map_legend_infrastructure;Infrastructure Map
+map_legend_rgo;RGO Map
+OV_ALL;All
+map_legend_prices;Prices Map
+map_legend_production;Production Map
+price_label;Price:
+production_label;Quantity:
+map_legend_voting;Ideologies Map
+map_legend_admin;Administrative Map
+admin_eff_label;Administrative efficiency:
+crime_color_label;Crime present
+map_legend_military;Military Map
+show_neutral_label;Show neutral units
+self_color_label;Your provinces
+friendly_color_label;Allied provinces
+hostile_color_label;Hostile provinces
+friendly_occupation_label;Self & allied occupied
+hostile_occupation_label;Enemy occupied
+controller_label;Controller:
+YYA;Wala
+YYA_ADJ;Wala
+YYA_absolute_monarchy;Kingdom of Wala
+YYA_prussian_constitutionalism;Kingdom of Wala
+YYA_hms_government;Kingdom of Wala
+YYB;Bolgatana
+YYB_ADJ;Bolgatanan
+YYC;Dagbon
+YYC_ADJ;Dagbon
+YYC_absolute_monarchy;Kingdom of Dagbon
+YYC_prussian_constitutionalism;Kingdom of Dagbon
+YYC_hms_government;Kingdom of Dagbon
+YYD;Ashanti
+YYD_ADJ;Ashanti
+YYD_absolute_monarchy;Ashanti Empire
+YYD_prussian_constitutionalism;Ashanti Empire
+YYD_hms_government;Ashanti Empire
+YYE;Fante Confederacy
+YYE_ADJ;Fante
+YYF;Malinke Tribes
+YYF_ADJ;Malinke
+YYG;Bete Tribes
+YYG_ADJ;Bete
+YYH;Assinie
+YYH_ADJ;Assinie
+YYI;Bouna
+YYI_ADJ;Bounan
+YYI_absolute_monarchy;Bouna Kingdom
+YYI_prussian_constitutionalism;Bouna Kingdom
+YYI_hms_government;Bouna Kingdom
+YYJ;Abrom
+YYJ_ADJ;Abrom
+YYJ_absolute_monarchy;Abrom Kingdom
+YYJ_prussian_constitutionalism;Abrom Kingdom
+YYJ_hms_government;Abrom Kingdom
+YYK;Baoule
+YYK_ADJ;Baoule
+YYK_absolute_monarchy;Baoule Kingdom
+YYK_prussian_constitutionalism;Baoule Kingdom
+YYK_hms_government;Baoule Kingdom
+YYL;Kong
+YYL_ADJ;Kong
+YYL_absolute_monarchy;Kong Empire
+YYL_prussian_constitutionalism;Kong Empire
+YYL_hms_government;Kong Empire
+YYM;Kenedougou
+YYM_ADJ;Kenedougou
+YYM_absolute_monarchy;Kenedougou Kingdom
+YYM_prussian_constitutionalism;Kenedougou Kingdom
+YYM_hms_government;Kenedougou Kingdom
+YYN;Kankan
+YYN_ADJ;Kankan
+YYN_absolute_monarchy;Kankan Kingdom
+YYN_prussian_constitutionalism;Kankan Kingdom
+YYN_hms_government;Kankan Kingdom
+YYO;Futa Jallon
+YYO_ADJ;Futa Jallon
+YYP;Kaabu
+YYP_ADJ;Kaabu
+YYQ;Kayor
+YYQ_ADJ;Kayor
+YYR;Futa Toro
+YYR_ADJ;Futa Toro
+YYS;Jolof
+YYS_ADJ;Jolof
+YYS_absolute_monarchy;Kingdom of Jolof
+YYS_prussian_constitutionalism;Kingdom of Jolof
+YYS_hms_government;Kingdom of Jolof
+YYT;Bambouk
+YYT_ADJ;Bambouk
+YYU;Serer States
+YYU_ADJ;Serer
+YYU_absolute_monarchy;Serer Kingdoms
+YYU_prussian_constitutionalism;Serer Kingdoms
+YYU_hms_government;Serer Kingdoms
+YYV;Maures
+YYV_ADJ;Maure
+YYW;Tuareg Tribes
+YYW_ADJ;Tuareg
+YYX;Gao
+YYX_ADJ;Gao
+YYY;Timbuktu
+YYY_ADJ;Timbuktu
+YYZ;Massina
+YYZ_ADJ;Massinan
+YYZ_absolute_monarchy;Massina Empire
+YYZ_prussian_constitutionalism;Massina Empire
+YYZ_hms_government;Massina Empire
+YZA;Bambara
+YZA_ADJ;Bambaran
+YZA_absolute_monarchy;Bambara Empire
+YZA_prussian_constitutionalism;Bambara Empire
+YZA_hms_government;Bambara Empire
+YZB;Kaarta
+YZB_ADJ;Kaartan
+YZC;Khasso
+YZC_ADJ;Khasso
+YZD;Ouagadougou
+YZD_ADJ;Ouagadougou
+YZE;Yatenga
+YZE_ADJ;Yatengan
+YZF;Gourma
+YZF_ADJ;Gourman
+YZG;Tenkodogo
+YZG_ADJ;Tenkodogo
+YZH;Kabre Tribes
+YZH_ADJ;Kabre
+YZI;Ewe Tribes
+YZI_ADJ;Ewe
+YZJ;Aneho
+YZJ_ADJ;Aneho
+YZK;Borgu
+YZK_ADJ;Borgu
+YZL;Dahomey
+YZL_ADJ;Dahomey
+YZL_absolute_monarchy;Kingdom of Dahomey
+YZL_prussian_constitutionalism;Kingdom of Dahomey
+YZL_hms_government;Kingdom of Dahomey
+YZM;Porto-Novo
+YZM_ADJ;Porto-Novo
+YZN;Maradi
+YZN_ADJ;Maradi
+YZO;Dosso
+YZO_ADJ;Dosso
+YZO_absolute_monarchy;Dosso Kingdom
+YZO_prussian_constitutionalism;Dosso Kingdom
+YZO_hms_government;Dosso Kingdom
+YZP;Dendi
+YZP_ADJ;Dendi
+YZP_absolute_monarchy;Dendi Kingdom
+YZP_prussian_constitutionalism;Dendi Kingdom
+YZP_hms_government;Dendi Kingdom
+YZQ;Agadez
+YZQ_ADJ;Agadez
+YZQ_absolute_monarchy;Sultinate of Agadez
+YZQ_prussian_constitutionalism;Sultinate of Agadez
+YZQ_hms_government;Sultinate of Agadez
+YZR;Damagaram
+YZR_ADJ;Damagaram
+YZR_absolute_monarchy;Sultinate of Damagaram
+YZR_prussian_constitutionalism;Sultinate of Damagaram
+YZR_hms_government;Sultinate of Damagaram
+YZS;Bornu
+YZS_ADJ;Bornu
+YZT;Igala
+YZT_ADJ;Igala
+YZT_absolute_monarchy;Igala Kingdom
+YZT_prussian_constitutionalism;Igala Kingdom
+YZT_hms_government;Igala Kingdom
+YXC;Oyo
+YXC_ADJ;Oyo
+YXD;Iwo
+YXD_ADJ;Iwo
+YXD_absolute_monarchy;Iwo Kingdom
+YXD_prussian_constitutionalism;Iwo Kingdom
+YXD_hms_government;Iwo Kingdom
+YXE;Lagos
+YXE_ADJ;Lagos
+YXF;Owo
+YXF_ADJ;Owo
+YZU;Benin
+YZU_ADJ;Benin
+YZV;Onitsha
+YZV_ADJ;Onitsha
+YZV_absolute_monarchy;Onitsha Kingdom
+YZV_prussian_constitutionalism;Onitsha Kingdom
+YZV_hms_government;Onitsha Kingdom
+YZW;Aro Confederacy
+YZW_ADJ;Aro
+YZX;Adamawa
+YZX_ADJ;Adamawan
+YZX_absolute_monarchy;Adamawa Emirate
+YZX_prussian_constitutionalism;Adamawa Emirate
+YZX_hms_government;Adamawa Emirate
+YZY;Warri
+YZY_ADJ;Warri
+YZY_absolute_monarchy;Warri Kingdom
+YZY_prussian_constitutionalism;Warri Kingdom
+YZY_hms_government;Warri Kingdom
+YZZ;Ijaw States
+YZZ_ADJ;Ijaw
+YXA;Kawararafa
+YXA_ADJ;Kawararafan
+YXB;Abeokuta
+YXB_ADJ;Abeokuta
+YXG;Koya
+YXG_ADJ;Koyan
+YXG_absolute_monarchy;Koya Kingdom
+YXG_prussian_constitutionalism;Koya Kingdom
+YXG_hms_government;Koya Kingdom

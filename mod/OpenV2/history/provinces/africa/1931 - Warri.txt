@@ -1,0 +1,5 @@
+owner = YZY
+controller = YZY
+add_core = YZY
+trade_goods = tropical_wood
+life_rating = 15

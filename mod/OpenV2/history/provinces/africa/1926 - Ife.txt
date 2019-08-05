@@ -1,0 +1,5 @@
+owner = YXD
+controller = YXD
+add_core = YXD
+trade_goods = tropical_wood
+life_rating = 15

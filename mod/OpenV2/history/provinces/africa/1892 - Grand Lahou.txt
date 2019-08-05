@@ -1,0 +1,5 @@
+owner = YYG
+controller = YYG
+add_core = YYG
+trade_goods = coffee
+life_rating = 15

@@ -1,0 +1,5 @@
+owner = YZJ
+controller = YZJ
+add_core = YZJ
+trade_goods = fish
+life_rating = 15

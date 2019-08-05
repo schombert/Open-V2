@@ -1261,4 +1261,916 @@ guiTypes = {
 			format = right
 		}
 	}
+	
+	windowType = {
+		name = "open_v2_map_legend_relations"
+		position = { x = 0 y = 200 }	
+		size = { x = 160 y = 160 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 160 y = 160 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_relations"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 160
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 34 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 148
+			maxHeight = 62
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name ="gradient_icon"
+			spriteType = "GFX_openv2_rg_gradient"
+			position = { x= 10 y = 100 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 134 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 84 y = 134 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_legend_migration"
+		position = { x = 0 y = 200 }	
+		size = { x = 174 y = 216 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 174 y = 216 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_migration"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 160
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		iconType = {
+			name = "external_cb"
+			spriteType = "GFX_checkbox"
+			position = { x = 5 y = 34 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 40 }
+			name = "external_cb_label"
+			text = "migration_external_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "internal_cb"
+			spriteType = "GFX_checkbox"
+			position = { x= 5 y = 62 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 68 }
+			name = "internal_cb_label"
+			text = "migration_internal_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 12 y = 98 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 58
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name ="gradient_icon"
+			spriteType = "GFX_openv2_rg_gradient"
+			position = { x= 17 y = 156 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 190 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 98 y = 190 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_icon_infra"
+		position = { x = 0 y = 0 }	
+		size = { x = 48 y = 24 }
+		
+		iconType = {
+			name = "port_icon"
+			spriteType = "GFX_openv2_small_port"
+			position = { x = 0 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "port_level"
+			position = { x = 20 y = 4 }
+			font = "Arial18"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 24
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_legend_infrastructure"
+		position = { x = 0 y = 200 }	
+		size = { x = 170 y = 190 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 170 y = 190 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_infrastructure"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 170
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		iconType = {
+			name = "build_rr_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x = 9 y = 41 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 40 }
+			name = "possible_railroad_label"
+			text = "possible_railroad"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "build_nb_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 69 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 68 }
+			name = "possible_naval_base_label"
+			text = "possible_naval_base"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 12 y = 98 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 34
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name ="gradient_icon"
+			spriteType = "GFX_openv2_rail_gradient"
+			position = { x = 15 y = 132 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 166 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 94 y = 166 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	iconType = {
+		name = "open_v2_map_icon_resource"
+		spriteType = "GFX_resources_small"
+		position = { x = 0 y = 0 }
+		Orientation = "UPPER_LEFT"
+	}
+	
+	iconType = {
+		name = "open_v2_map_icon_crime"
+		spriteType = "GFX_crime_strip"
+		position = { x = 0 y = 0 }
+		Orientation = "UPPER_LEFT"
+		scale = 0.75
+	}
+		
+	windowType = {
+		name = "open_v2_rgo_legend_list_item"
+		position = { x = 0 y = 0 }	
+		size = { x = 130 y = 20 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 130 y = 20 }
+			quadTextureSprite = "GFX_openv2_legend_item_bg"
+		}
+		
+		iconType = {
+			name = "resource_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x = 1 y = 1 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "resource_icon"
+			spriteType = "GFX_resources_small"
+			position = { x = 0 y = 2 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "resource_name"
+			position = { x = 25 y = 2 }
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 90
+			maxHeight = 18
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	
+	windowType = {
+		name = "open_v2_map_legend_rgo"
+		position = { x = 0 y = 200 }	
+		size = { x = 160 y = 216 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 160 y = 216 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_rgo"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 160
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		instantTextBoxType={
+			position = { x = 8 y = 34 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		
+		listboxType = {
+			name = "rgo_items"
+			position = { x= 15 y = 54 }
+			size = { x = 115 y = 100 }
+			spacing = 0
+			scrollbartype = "standardlistbox_slider"
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name ="gradient_icon"
+			spriteType = "GFX_openv2_gradient"
+			position = { x= 10 y = 160 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 194 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 84 y = 194 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	
+	windowType = {
+		name = "open_v2_resource_legend_list_item"
+		position = { x = 0 y = 0 }	
+		size = { x = 130 y = 20 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 130 y = 20 }
+			quadTextureSprite = "GFX_openv2_legend_item_bg"
+		}
+		
+		iconType = {
+			name = "resource_icon"
+			spriteType = "GFX_resources_small"
+			position = { x = 0 y = 2 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "resource_name"
+			position = { x = 25 y = 2 }
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 90
+			maxHeight = 18
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	
+	windowType = {
+		name = "open_v2_map_legend_resource"
+		position = { x = 0 y = 200 }	
+		size = { x = 160 y = 232 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 160 y = 232 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 160
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		instantTextBoxType={
+			position = { x = 8 y = 34 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 36
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		
+		listboxType = {
+			name = "resource_items"
+			position = { x= 15 y = 70 }
+			size = { x = 115 y = 100 }
+			spacing = 0
+			scrollbartype = "standardlistbox_slider"
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name ="gradient_icon"
+			spriteType = "GFX_openv2_rg_gradient"
+			position = { x= 10 y = 176 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 210 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 84 y = 210 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_voting_legend_list_item"
+		position = { x = 0 y = 0 }	
+		size = { x = 130 y = 20 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 130 y = 20 }
+			quadTextureSprite = "GFX_openv2_legend_item_bg"
+		}
+		
+		iconType = {
+			name = "ideology_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x = 1 y = 1 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "ideology_name"
+			position = { x = 25 y = 2 }
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 90
+			maxHeight = 18
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_legend_voting"
+		position = { x = 0 y = 200 }	
+		size = { x = 160 y = 185 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 160 y = 185 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_voting"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 160
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		instantTextBoxType={
+			position = { x = 8 y = 34 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 36
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		
+		listboxType = {
+			name = "ideologies"
+			position = { x= 15 y = 70 }
+			size = { x = 115 y = 100 }
+			spacing = 0
+			scrollbartype = "standardlistbox_slider"
+			Orientation = "UPPER_LEFT"
+		}
+	}
+	
+	
+	windowType = {
+		name = "open_v2_map_legend_admin"
+		position = { x = 0 y = 200 }	
+		size = { x = 170 y = 180 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 170 y = 180 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_admin"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 170
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		iconType = {
+			name = "crime_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x = 9 y = 41 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 40 }
+			name = "crime_color_label"
+			text = "crime_color_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 12 y = 70 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 52
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "gradient_icon"
+			spriteType = "GFX_openv2_gradient"
+			position = { x = 15 y = 122 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 6 y = 156 }
+			name = "gradient_min"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		instantTextBoxType={
+			position = { x = 94 y = 156 }
+			name = "gradient_max"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 70
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = right
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_icon_unit"
+		position = { x = 0 y = 0 }	
+		size = { x = 65 y = 20 }
+		
+		iconType = {
+			name = "background"
+			spriteType = "GFX_openv2_unit_bar_center"
+			position = { x = 8 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "left"
+			spriteType = "GFX_openv2_unit_left_cap"
+			position = { x = -1 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "right"
+			spriteType = "GFX_openv2_unit_right_cap"
+			position = { x = 56 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		iconType = {
+			name = "type"
+			spriteType = "GFX_openv2_unit_types"
+			position = { x = 12 y = 4 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		
+		iconType = {
+			name = "frame"
+			spriteType = "GFX_openv2_unit_bar_selection"
+			position = { x = 9 y = 0 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 29 y = 4 }
+			name = "amount"
+			font = "Arial12"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 33
+			maxHeight = 14
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+	}
+	
+	windowType = {
+		name = "open_v2_map_icon_unit_container"
+		position = { x = 0 y = 0 }	
+		size = { x = 65 y = 50 }
+		
+		OverlappingElementsBoxType = {   
+			name = "unit_list"
+			position = { x = 0 y = 0 }
+			size = { x = 65 y = 50 }
+			format = center
+			spacing = 0
+			Orientation = "UPPER_LEFT"
+		}
+	}
+	
+	windowType = {
+		name = "open_v2_map_legend_army"
+		position = { x = 0 y = 200 }	
+		size = { x = 185 y = 230 }
+		
+		guiButtonType = {
+			name = "background"
+			position = { x = 0 y = 0 }
+			size = { x = 185 y = 230 }
+			quadTextureSprite = "console_background"
+		}
+		
+		instantTextBoxType={
+			position = { x = 0 y = 4 }
+			name = "legend_title"
+			text = "map_legend_military"
+			font = "vic_22"
+			borderSize = {x = 0 y = 0}	
+			maxWidth = 170
+			maxHeight = 24
+			orientation = "UPPER_LEFT"
+			format = center
+		}
+		
+		instantTextBoxType={
+			position = { x = 8 y = 34 }
+			name = "legend_contents"
+			font = "vic_16"
+			borderSize = { x = 0 y = 0 }	
+			maxWidth = 144
+			maxHeight = 54
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		guiButtonType = {
+			name = "show_neutral_check_box"
+			position = { x = 8 y = 90 }
+			size = { x = 20 y = 20 }
+			quadTextureSprite = "GFX_checkbox_default"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 90 }
+			name = "show_neutral_label"
+			text = "show_neutral_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "self_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 113 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 112 }
+			name = "self_color_label"
+			text = "self_color_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "friendly_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 134 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 135 }
+			name = "friendly_color_label"
+			text = "friendly_color_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "hostile_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 156 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType={
+			position = { x = 35 y = 157 }
+			name = "hostile_color_label"
+			text = "hostile_color_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "friendly_occupation_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 178 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			position = { x = 35 y = 179 }
+			name = "friendly_occupation_label"
+			text = "friendly_occupation_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+		
+		iconType = {
+			name = "hostile_occupation_color"
+			spriteType = "GFX_openv2_white_square"
+			position = { x= 9 y = 200 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			position = { x = 35 y = 201 }
+			name = "hostile_occupation_label"
+			text = "hostile_occupation_label"
+			font = "vic_18"
+			borderSize = {x = 0 y = 0 }	
+			maxWidth = 140
+			maxHeight = 20
+			orientation = "UPPER_LEFT"
+			format = left
+		}
+	}
 }
