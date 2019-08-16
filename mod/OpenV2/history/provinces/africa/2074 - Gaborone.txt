@@ -1,0 +1,5 @@
+owner = YCM
+controller = YCM
+add_core = YCM
+trade_goods = wool
+life_rating = 15

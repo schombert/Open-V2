@@ -1,0 +1,5 @@
+owner = YFQ
+controller = YFQ
+add_core = YFQ
+trade_goods = grain
+life_rating = 15

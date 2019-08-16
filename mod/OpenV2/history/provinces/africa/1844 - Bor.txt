@@ -1,0 +1,5 @@
+owner = YAT
+controller = YAT
+add_core = YAT
+trade_goods = grain
+life_rating = 15

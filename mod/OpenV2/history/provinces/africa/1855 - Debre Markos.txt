@@ -1,0 +1,6 @@
+owner = YDU
+controller = YDU
+add_core = YDU
+add_core = ETH
+trade_goods = cattle
+life_rating = 30

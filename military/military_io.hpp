@@ -62,3 +62,18 @@ template<typename T>
 size_t serialization::tagged_serializer<war::war_goals, T>::size(T const & obj, world_state const & ws) {
 	return serialize_stable_array_size(ws.w.military_s.war_goal_arrays, obj);
 }
+
+template<typename T>
+void serialization::tagged_serializer<border_information::hqs, T>::serialize_object(std::byte *& output, T const & obj, world_state const & ws) {
+	serialize_stable_array(output, ws.w.military_s.hq_commitment_arrays, obj);
+}
+
+template<typename T>
+void serialization::tagged_serializer<border_information::hqs, T>::deserialize_object(std::byte const *& input, T & obj, world_state & ws) {
+	deserialize_stable_array(input, ws.w.military_s.hq_commitment_arrays, obj);
+}
+
+template<typename T>
+size_t serialization::tagged_serializer<border_information::hqs, T>::size(T const & obj, world_state const & ws) {
+	return serialize_stable_array_size(ws.w.military_s.hq_commitment_arrays, obj);
+}

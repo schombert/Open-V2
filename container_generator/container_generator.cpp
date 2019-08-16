@@ -110,6 +110,9 @@ int wmain(int argc, wchar_t *argv[]) {
 		}
 		output += "\r\n";
 
+		output += "\tconstexpr int32_t max_count = " + container_size + ";\r\n";
+		output += "\r\n";
+
 		output += "\tclass alignas(64) container {\r\n"; // BEGIN: container class
 
 		// commom members

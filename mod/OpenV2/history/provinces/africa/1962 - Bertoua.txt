@@ -1,0 +1,5 @@
+owner = YAE
+controller = YAE
+add_core = YAE
+trade_goods = grain
+life_rating = 15

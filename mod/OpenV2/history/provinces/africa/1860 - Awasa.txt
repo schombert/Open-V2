@@ -1,0 +1,6 @@
+owner = YFE
+controller = YFE
+add_core = YFE
+add_core = ETH
+trade_goods = cattle
+life_rating = 30

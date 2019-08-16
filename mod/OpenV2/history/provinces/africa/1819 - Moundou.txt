@@ -1,0 +1,5 @@
+owner = YAM
+controller = YAM
+add_core = YAM
+trade_goods = cotton
+life_rating = 15

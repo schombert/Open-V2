@@ -1,0 +1,5 @@
+owner = YCW
+controller = YCW
+add_core = YCW
+trade_goods = tobacco
+life_rating = 35

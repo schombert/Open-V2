@@ -8,6 +8,9 @@
 #include "military_leader.h"
 #include "strategic_hq.h"
 #include "war.h"
+#include "border_information.h"
+#include "nations\nations_containers.h"
+#include "provinces\province_containers.h"
 
 namespace military {
 	class military_state {
@@ -18,6 +21,7 @@ namespace military {
 		army_order::container army_orders;
 		strategic_hq::container strategic_hqs;
 		military_leader::container leaders;
+		border_information::container borders;
 
 		// stable_2d_vector<economy::goods_qnty_type, army_tag, economy::goods_tag, 1024, 16> army_supplies;
 		// stable_2d_vector<uint16_t, army_tag, unit_type_tag, 1024, 16> unit_type_composition;
@@ -35,6 +39,12 @@ namespace military {
 
 		stable_variable_vector_storage_mk_2<fleet_presence, 4, 8192> fleet_presence_arrays;
 		stable_variable_vector_storage_mk_2<naval_control, 32, 8192> naval_control_arrays;
+
+		stable_variable_vector_storage_mk_2<hq_commitment_information, 1, 8192> hq_commitment_arrays;
+
+		varying_vectorizable_2d_array<nations::country_tag, nations::country_tag, uint16_t, nation::max_count> border_sizes;
+		varying_vectorizable_2d_array<nations::country_tag, nations::country_tag, provinces::province_tag, nation::max_count> border_representative_provinces;
+		varying_vectorizable_2d_array<nations::country_tag, nations::country_tag, military::border_information_tag, nation::max_count> border_info_tags;
 	};
 
 	class military_manager {

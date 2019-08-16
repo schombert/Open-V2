@@ -153,6 +153,8 @@ namespace military {
 	using army_orders_tag = tag_type<uint16_t, std::true_type, struct army_orders_tag_type>;
 	using army_composition_tag = tag_type<uint8_t, std::true_type, struct army_composition_tag_tag_type>;
 
+	using border_information_tag = tag_type<uint16_t, std::true_type, struct border_information_tag_type>;
+
 	struct war_identifier {
 		war_tag war_id;
 		bool is_attacker = false;

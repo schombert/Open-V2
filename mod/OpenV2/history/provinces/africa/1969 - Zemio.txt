@@ -1,0 +1,5 @@
+owner = YAR
+controller = YAR
+add_core = YAR
+trade_goods = cattle
+life_rating = 15

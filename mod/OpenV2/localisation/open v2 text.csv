@@ -809,9 +809,9 @@ YYD_prussian_constitutionalism;Ashanti Empire
 YYD_hms_government;Ashanti Empire
 YYE;Fante Confederacy
 YYE_ADJ;Fante
-YYF;Malinke Tribes
+YYF;Malinke Groups
 YYF_ADJ;Malinke
-YYG;Bete Tribes
+YYG;Bete Groups
 YYG_ADJ;Bete
 YYH;Assinie
 YYH_ADJ;Assinie
@@ -867,7 +867,7 @@ YYU_prussian_constitutionalism;Serer Kingdoms
 YYU_hms_government;Serer Kingdoms
 YYV;Maures
 YYV_ADJ;Maure
-YYW;Tuareg Tribes
+YYW;Tuareg Groups
 YYW_ADJ;Tuareg
 YYX;Gao
 YYX_ADJ;Gao
@@ -895,9 +895,9 @@ YZF;Gourma
 YZF_ADJ;Gourman
 YZG;Tenkodogo
 YZG_ADJ;Tenkodogo
-YZH;Kabre Tribes
+YZH;Kabre Groups
 YZH_ADJ;Kabre
-YZI;Ewe Tribes
+YZI;Ewe Groups
 YZI_ADJ;Ewe
 YZJ;Aneho
 YZJ_ADJ;Aneho
@@ -980,3 +980,355 @@ YXG_ADJ;Koyan
 YXG_absolute_monarchy;Koya Kingdom
 YXG_prussian_constitutionalism;Koya Kingdom
 YXG_hms_government;Koya Kingdom
+YAA;Banum
+YAA_ADJ;Bamum
+YAA_absolute_monarchy;Kingdom of Bamum
+YAA_prussian_constitutionalism;Kingdom of Bamum
+YAA_hms_government;Kingdom of Bamum
+YAB;Bimbia
+YAB_ADJ;Bimbian
+YAC;Duala
+YAC_ADJ;Dualan
+YAD;Mandara
+YAD_ADJ;Mandaran
+YAD_absolute_monarchy;Mandara Kingdom
+YAD_prussian_constitutionalism;Mandara Kingdom
+YAD_hms_government;Mandara Kingdom
+YAE;Maka Groups
+YAE_ADJ;Makan
+YAF;Beti-Pahuin Groups
+YAF_ADJ;Beti-Pahuin
+YAG;Obamba Confederation
+YAG_ADJ;Obamban
+YAH;Orungu
+YAH_ADJ;Orungu
+YAI;Loango
+YAI_ADJ;Loango
+YAI_absolute_monarchy;Kingdom of Loango
+YAI_prussian_constitutionalism;Kingdom of Loango
+YAI_hms_government;Kingdom of Loango
+YAJ;Mabochi Groups
+YAJ_ADJ;Mabochi
+YAK;Anziku
+YAK_ADJ;Anziku
+YAK_absolute_monarchy;Anziku Kingdom
+YAK_prussian_constitutionalism;Anziku Kingdom
+YAK_hms_government;Anziku Kingdom
+YAL;Kakongo
+YAL_ADJ;Kakongo
+YAM;Bagirmi
+YAM_ADJ;Bagirmi
+YAM_absolute_monarchy;Sultanate of Bagirmi
+YAM_prussian_constitutionalism;Sultanate of Bagirmi
+YAM_hms_government;Sultanate of Bagirmi
+YAN;Gbaya Groups
+YAN_ADJ;Gbayan
+YAO;Banda Groups
+YAO_ADJ;Bandan
+YAP;Ngbandi Groups
+YAP_ADJ;Ngbandi
+YAQ;Bangassou
+YAQ_ADJ;Bangassou
+YAR;Rafi
+YAR_ADJ;Rafi
+YAR_absolute_monarchy;Sultanate of Rafi
+YAR_prussian_constitutionalism;Sultanate of Rafi
+YAR_hms_government;Sultanate of Rafi
+YAS;Dar al Kuti
+YAS_ADJ;Dar al Kuti
+YAT;Dinka Groups
+YAT_ADJ;Dinka
+YAU;Avungara
+YAU_ADJ;Avungaran
+YAV;Bari Groups
+YAV_ADJ;Bari
+YAW;Nuer Groups
+YAW_ADJ;Nuer
+YAX;Shilluk
+YAX_ADJ;Shilluk
+YAX_absolute_monarchy;Shilluk Kingdom
+YAX_prussian_constitutionalism;Shilluk Kingdom
+YAX_hms_government;Shilluk Kingdom
+YAY;Acholi Groups
+YAY_ADJ;Acholi
+YAZ;Ankole
+YAZ_ADJ;Ankole
+YBA;Rwanda
+YBA_ADJ;Rwandan
+YBB;Kpelle Groups
+YBB_ADJ;Kpelle
+YBC;Burundi
+YBC_ADJ;Burundi
+YBD;Buganda
+YBD_ADJ;Bugandan
+YBE;Busoga
+YBE_ADJ;Busogan
+YBF;Teso Groups
+YBF_ADJ;Teso
+YBG;Ngala Groups
+YBG_ADJ;Ngalan
+YBH;Mongo Groups
+YBH_ADJ;Mongo
+YBI;Kongo
+YBI_ADJ;Kongo
+YBJ;Kwango
+YBJ_ADJ;Kwango
+YBK;Kuba
+YBK_ADJ;Kuba
+YBL;Mangbetu
+YBL_ADJ;Mangbetu
+YBM;Mbole Groups
+YBM_ADJ;Mbole
+YBN;Shi Groups
+YBN_ADJ;Shi
+YBO;Maniema Groups
+YBO_ADJ;Maniema
+YBP;Songye Groups
+YBP_ADJ;Songye
+YBQ;Luba
+YBQ_ADJ;Luban
+YBR;Kalagne
+YBR_ADJ;Kalagne
+YBS;Kazembe
+YBS_ADJ;Kazembe
+YBT;Matamba
+YBT_ADJ;Matamban
+YBU;Chokwe Groups
+YBU_ADJ;Chokwe
+YBV;Kasanje
+YBV_ADJ;Kasanje
+YBW;Ngangela Groups
+YBW_ADJ;Ngangelan
+YBX;Nyaneka Groups
+YBX_ADJ;Nyanekan
+YBY;Northern Owambo States
+YBY_ADJ;Northern Owambo
+YBY_absolute_monarchy;Northern Owambo Kingdoms
+YBY_prussian_constitutionalism;Northern Owambo Kingdoms
+YBY_hms_government;Northern Owambo Kingdoms
+YBZ;Kwisi Groups
+YBZ_ADJ;Kwisi
+YCA;Bailundo
+YCA_ADJ;Bailundo
+YCB;Ulubemba
+YCB_ADJ;Ulubemban
+YCC;Chewa
+YCC_ADJ;Chewan
+YCD;Lenja Groups
+YCD_ADJ;Lenjan
+YCE;Tonga Groups
+YCE_ADJ;Tongan
+YCF;Lozi
+YCF_ADJ;Lozi
+YCG;Angoni
+YCG_ADJ;Angoni
+YCH;Ayao
+YCH_ADJ;Ayao
+YCI;Rozvi
+YCI_ADJ;Rozvi
+YCJ;Shona States
+YCJ_ADJ;Shona
+YCJ_absolute_monarchy;Shona Kingdoms
+YCJ_prussian_constitutionalism;Shona Kingdoms
+YCJ_hms_government;Shona Kingdoms
+YCK;Batawana
+YCK_ADJ;Batawana
+YCL;Bangwato
+YCL_ADJ;Bangwato
+YCM;Bangwaketse
+YCM_ADJ;Bangwaketse
+YCN;Chikunda Groups
+YCN_ADJ;Chikunda
+YCO;Mwene Mutapa
+YCO_ADJ;Mutapan
+YCP;Gaza
+YCP_ADJ;Gaza
+YCQ;Swaziland
+YCQ_ADJ;Swazi
+YCR;Undi
+YCR_ADJ;Undi
+YCS;Kalonga
+YCS_ADJ;Kalongan
+YCT;Makonde
+YCT_ADJ;Makonde
+YCU;Quitanghona
+YCU_ADJ;Quitanghona
+YCU_absolute_monarchy;Quitanghona Sultanate
+YCU_prussian_constitutionalism;Quitanghona Sultanate
+YCU_hms_government;Quitanghona Sultanate
+YCV;Lundu
+YCV_ADJ;Lundu
+YCW;Angoche
+YCW_ADJ;Angoche
+YCW_absolute_monarchy;Angoche Sultanate
+YCW_prussian_constitutionalism;Angoche Sultanate
+YCW_hms_government;Angoche Sultanate
+YCX;Karagwe
+YCX_ADJ;Karagwe
+YCX_absolute_monarchy;Kingdom of Karagwe
+YCX_prussian_constitutionalism;Kingdom of Karagwe
+YCX_hms_government;Kingdom of Karagwe
+YCY;Maasai Groups
+YCY_ADJ;Maasai
+YCZ;Ugweno
+YCZ_ADJ;Ugweno
+YCZ_absolute_monarchy;Ugweno Kingdom
+YCZ_prussian_constitutionalism;Ugweno Kingdom
+YCZ_hms_government;Ugweno Kingdom
+YDA;Maseko Nguni
+YDA_ADJ;Nguni
+YDB;Uhehe
+YDB_ADJ;Uhehe
+YDC;Ugogo
+YDC_ADJ;Ugogo
+YDD;Urambo
+YDD_ADJ;Urambo
+YDE;Unyamwezi
+YDE_ADJ;Unyamwezi
+YDF;Unyamyembe
+YDF_ADJ;Unyamyembe
+YDG;Ufipa
+YDG_ADJ;Ufipa
+YDH;Borana Oromo Groups
+YDH_ADJ;Borana
+YDI;Geledi
+YDI_ADJ;Geledi
+YDI_absolute_monarchy;Sultanate of the Geledi
+YDI_prussian_constitutionalism;Sultanate of the Geledi
+YDI_hms_government;Sultanate of the Geledi
+YDJ;Pokomo Groups
+YDJ_ADJ;Pokomo
+YDK;Akamba
+YDK_ADJ;Akamba
+YDL;Agikuyu
+YDL_ADJ;Agikuyu
+YDM;Nandi
+YDM_ADJ;Nandi
+YDN;Aussa
+YDN_ADJ;Aussan
+YDN_absolute_monarchy;Sultanate of Aussa
+YDN_prussian_constitutionalism;Sultanate of Aussa
+YDN_hms_government;Sultanate of Aussa
+YDO;Isaaq States
+YDO_ADJ;Isaaq
+YDO_absolute_monarchy;Isaaq Sultanates
+YDO_prussian_constitutionalism;Isaaq Sultanates
+YDO_hms_government;Isaaq Sultanates
+YDP;Warsangali 
+YDP_ADJ;Warsangali 
+YDP_absolute_monarchy;Warsangali  Sultanate
+YDP_prussian_constitutionalism;Warsangali  Sultanate
+YDP_hms_government;Warsangali  Sultanate
+YDQ;Majeerteen
+YDQ_ADJ;Majeerteen
+YDQ_absolute_monarchy;Majeerteen Sultanate
+YDQ_prussian_constitutionalism;Majeerteen Sultanate
+YDQ_hms_government;Majeerteen Sultanate
+YDR;Hobyo
+YDR_ADJ;Hobyo
+YDR_absolute_monarchy;Sultanate of Hobyo
+YDR_prussian_constitutionalism;Sultanate of Hobyo
+YDR_hms_government;Sultanate of Hobyo
+YDS;Mogadishu
+YDS_ADJ;Mogadishu
+YDT;Begemder
+YDT_ADJ;Begemder
+YDU;Gojjam
+YDU_ADJ;Gojjam
+YDV;Leqa Naqamte
+YDV_ADJ;Leqa Naqamte
+YDW;Kaffa
+YDW_ADJ;Kaffa
+YDW_absolute_monarchy;Kingdom of Kaffa
+YDW_prussian_constitutionalism;Kingdom of Kaffa
+YDW_hms_government;Kingdom of Kaffa
+YDX;Wello
+YDX_ADJ;Wello
+YDY;Tigre
+YDY_ADJ;Tigre
+YDZ;Harar
+YDZ_ADJ;Harar
+YDZ_absolute_monarchy;Emirate of Harar
+YDZ_prussian_constitutionalism;Emirate of Harar
+YDZ_hms_government;Emirate of Harar
+YFA;Bale
+YFA_ADJ;Bale
+YFA_absolute_monarchy;Sultanate of Bale
+YFA_prussian_constitutionalism;Sultanate of Bale
+YFA_hms_government;Sultanate of Bale
+YFB;Arsi Oromo Groups
+YFB_ADJ;Arsi
+YFC;Shewa
+YFC_ADJ;Shewa
+YFD;Sidamo Groups
+YFD_ADJ;Sidamo
+YFE;Gibe States
+YFE_ADJ;Gibe
+YFE_absolute_monarchy;Gibe Kingdoms
+YFE_prussian_constitutionalism;Gibe Kingdoms
+YFE_hms_government;Gibe Kingdoms
+YFG;Teda Groups
+YFG_ADJ;Teda
+YFH;Kanem
+YFH_ADJ;Kanem
+YFI;Wadai
+YFI_ADJ;Wadai
+YFI_absolute_monarchy;Wadai Sultanate
+YFI_prussian_constitutionalism;Wadai Sultanate
+YFI_hms_government;Wadai Sultanate
+YFJ;Dar Runga
+YFJ_ADJ;Dar Runga
+YFK;Darfur
+YFK_ADJ;Darfur
+YFK_absolute_monarchy;Sultanate of Darfur
+YFK_prussian_constitutionalism;Sultanate of Darfur
+YFK_hms_government;Sultanate of Darfur
+YFL;Damara
+YFL_ADJ;Damara
+YFL_absolute_monarchy;Damara Kingdom
+YFL_prussian_constitutionalism;Damara Kingdom
+YFL_hms_government;Damara Kingdom
+YFM;Southern Owambo States
+YFM_ADJ;Southern Owambo
+YFM_absolute_monarchy;Southern Owambo Kingdoms
+YFM_prussian_constitutionalism;Southern Owambo Kingdoms
+YFM_hms_government;Southern Owambo Kingdoms
+YFN;Kavango States
+YFN_ADJ;Kavango
+YFN_absolute_monarchy;Kavango Kingdoms
+YFN_prussian_constitutionalism;Kavango Kingdoms
+YFN_hms_government;Kavango Kingdoms
+YFO;Aonin
+YFO_ADJ;Aonin
+YFP;Ovambanderu Groups
+YFP_ADJ;Ovambanderu
+YFQ;Oorlam Groups
+YFQ_ADJ;Oorlam
+YFR;Great Namaqualand
+YFR_ADJ;Namaqualand
+YFS;Lesotho
+YFS_ADJ;Lesotho
+YFT;Griqualand West
+YFT_ADJ;Griqualand West
+YFU;Batlhaping
+YFU_ADJ;Batlhaping
+YFV;Matabeleland
+YFV_ADJ;Matabeleland
+YFW;Potchefstroon-Winburg
+YFW_ADJ;Potchefstroon-Winburg
+YFW_democracy;Potchefstroon-Winburg Republic
+YFW_absolute_monarchy;Potchefstroon-Winburg Kingdom
+YFW_prussian_constitutionalism;Potchefstroon-Winburg Kingdom
+YFW_hms_government;Potchefstroon-Winburg Kingdom
+YFX;Mpondo
+YFX_ADJ;Mpondo
+YFY;Xhosa
+YFY_ADJ;Xhosa
+YFZ;Thembuland
+YFZ_ADJ;Thembu
+YFF;Dan
+YFF_ADJ;Dan
+YGA;Grebo
+YGA_ADJ;Grebo
+YGA;Southern Transorangia
+YGA_ADJ;Transorangian

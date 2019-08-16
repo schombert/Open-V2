@@ -1,0 +1,5 @@
+owner = YCO
+controller = YCO
+add_core = YCO
+trade_goods = grain
+life_rating = 15

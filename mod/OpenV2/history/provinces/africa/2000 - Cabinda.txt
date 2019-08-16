@@ -1,0 +1,5 @@
+owner = YAL
+controller = YAL
+add_core = YAL
+trade_goods = fruit
+life_rating = 15

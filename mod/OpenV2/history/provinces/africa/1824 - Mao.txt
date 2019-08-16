@@ -1,0 +1,5 @@
+owner = YFH
+controller = YFH
+add_core = YFH
+trade_goods = fish
+life_rating = 10

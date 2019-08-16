@@ -117,6 +117,14 @@ namespace military {
 		uint8_t truce_months = 60ui8;
 		cb_type_tag id;
 	};
+
+
+	struct hq_commitment_information {
+		float active_soldiers = 0.0f;
+
+		military::strategic_hq_tag id;
+		int8_t target_percent = 0i8;
+	};
 }
 
 START_STRUCT(military::cb_type)
@@ -229,6 +237,13 @@ namespace army_order {
 		leader, military::leader_tag
 		> ;
 		*/
+}
+
+namespace border_information {
+	struct readiness;
+	struct supply;
+	struct hqs;
+	struct stance;
 }
 
 namespace military_leader {

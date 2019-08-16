@@ -1,0 +1,5 @@
+owner = YFY
+controller = YFY
+add_core = YFY
+trade_goods = wool
+life_rating = 35

@@ -145,6 +145,7 @@
   <ItemGroup>
     <ClInclude Include="army.h" />
     <ClInclude Include="army_order.h" />
+    <ClInclude Include="border_information.h" />
     <ClInclude Include="fleet.h" />
     <ClInclude Include="military.h" />
     <ClInclude Include="military_containers.h" />
@@ -204,6 +205,12 @@
     <CustomBuild Include="military_windows.txt">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\gui_window_generator.exe military_windows.txt</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_windows.h</Outputs>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="border_information.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\container_generator.exe border_information.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">border_information.h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

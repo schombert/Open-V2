@@ -1,0 +1,5 @@
+owner = YCN
+controller = YCN
+add_core = YCN
+trade_goods = coffee
+life_rating = 15

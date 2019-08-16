@@ -1,0 +1,5 @@
+owner = YGA
+controller = YGA
+add_core = YGA
+trade_goods = tropical_wood
+life_rating = 15

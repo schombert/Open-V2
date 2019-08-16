@@ -1,0 +1,5 @@
+owner = YCH
+controller = YCH
+add_core = YCH
+trade_goods = tobacco
+life_rating = 15

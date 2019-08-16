@@ -1,0 +1,5 @@
+owner = YAI
+controller = YAI
+add_core = YAI
+trade_goods = timber
+life_rating = 15

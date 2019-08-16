@@ -1,0 +1,5 @@
+owner = YCJ
+controller = YCJ
+add_core = YCJ
+trade_goods = tobacco
+life_rating = 15

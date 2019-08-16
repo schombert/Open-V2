@@ -73,6 +73,17 @@ public:
 	static size_t size(T const& obj, world_state const& ws);
 	static size_t size();
 };
+template<typename T>
+class serialization::tagged_serializer<border_information::hqs, T> {
+public:
+	static constexpr bool has_static_size = false;
+	static constexpr bool has_simple_serialize = false;
+
+	static void serialize_object(std::byte* &output, T const& obj, world_state const& ws);
+	static void deserialize_object(std::byte const* &input, T& obj, world_state& ws);
+	static size_t size(T const& obj, world_state const& ws);
+	static size_t size();
+};
 
 namespace scenario {
 	class scenario_manager;

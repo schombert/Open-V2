@@ -1,0 +1,5 @@
+owner = YAU
+controller = YAU
+add_core = YAU
+trade_goods = grain
+life_rating = 15

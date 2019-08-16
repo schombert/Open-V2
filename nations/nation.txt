@@ -1,7 +1,7 @@
 nation, 
 sparse,
 nations::country_tag,
-400,
+700,
 
 		sphere_leader, nations::country_tag,
 		overlord, nations::country_tag,

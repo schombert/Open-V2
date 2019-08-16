@@ -1,0 +1,6 @@
+owner = YDX
+controller = YDX
+add_core = YDX
+add_core = ETH
+trade_goods = cattle
+life_rating = 30

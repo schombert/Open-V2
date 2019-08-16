@@ -1,0 +1,5 @@
+owner = YBZ
+controller = YBZ
+add_core = YBZ
+trade_goods = fish
+life_rating = 35

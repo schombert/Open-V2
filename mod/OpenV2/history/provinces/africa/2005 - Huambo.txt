@@ -1,0 +1,5 @@
+owner = YBX
+controller = YBX
+add_core = YBX
+trade_goods = fruit
+life_rating = 25

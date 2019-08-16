@@ -1,0 +1,5 @@
+owner = YFX
+controller = YFX
+add_core = YFX
+trade_goods = wool
+life_rating = 35

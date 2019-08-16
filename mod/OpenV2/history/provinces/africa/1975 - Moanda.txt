@@ -1,0 +1,5 @@
+owner = YAG
+controller = YAG
+add_core = YAG
+trade_goods = timber
+life_rating = 15

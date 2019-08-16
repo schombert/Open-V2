@@ -1,0 +1,5 @@
+owner = YFW
+controller = YFW
+add_core = YFW
+trade_goods = grain
+life_rating = 35

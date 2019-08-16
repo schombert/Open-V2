@@ -128,584 +128,586 @@ namespace nation {
 	struct has_gas_attack;
 	struct has_gas_defence;
 
+constexpr int32_t max_count = 700;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 nations::country_tag first_free;
 		 struct alignas(64) dtype_index { 
 			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
-			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_index() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400)) + 1); } 		 } m_index;
+			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_index() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700)) + 1); } 		 } m_index;
 
 		 struct alignas(64) dtype_0 { 
 			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
-			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_0() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_0() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_0;
 		 struct alignas(64) dtype_1 { 
 			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
-			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_1() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_1() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_1;
 		 struct alignas(64) dtype_2 { 
 			 uint8_t padding[(sizeof(uint64_t) + 63ui32) & ~63ui32]; 
-			 uint64_t values[(sizeof(uint64_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint64_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint64_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_2() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint64_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint64_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint64_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint64_t values[(sizeof(uint64_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint64_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint64_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_2() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint64_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint64_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint64_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_2;
 		 struct alignas(64) dtype_3 { 
 			 uint8_t padding[(sizeof(int32_t) + 63ui32) & ~63ui32]; 
-			 int32_t values[(sizeof(int32_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int32_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int32_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_3() { std::uninitialized_value_construct_n(values - 1, (sizeof(int32_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int32_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int32_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int32_t values[(sizeof(int32_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int32_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int32_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_3() { std::uninitialized_value_construct_n(values - 1, (sizeof(int32_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int32_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int32_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_3;
 		 struct alignas(64) dtype_4 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_4() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_4() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_4;
 		 struct alignas(64) dtype_5 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_5() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_5() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_5;
 		 struct alignas(64) dtype_6 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_6() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_6() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_6;
 		 struct alignas(64) dtype_7 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_7() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_7() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_7;
 		 struct alignas(64) dtype_8 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_8() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_8() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_8;
 		 struct alignas(64) dtype_9 { 
 			 uint8_t padding[(sizeof(date_tag) + 63ui32) & ~63ui32]; 
-			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_9() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 date_tag values[(sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_9() { std::uninitialized_value_construct_n(values - 1, (sizeof(date_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(date_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(date_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_9;
 		 struct alignas(64) dtype_10 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_10() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_10() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_10;
 		 struct alignas(64) dtype_11 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_11() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_11() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_11;
 		 struct alignas(64) dtype_12 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_12() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_12() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_12;
 		 struct alignas(64) dtype_13 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_13() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_13() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_13;
 		 struct alignas(64) dtype_14 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_14() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_14() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_14;
 		 struct alignas(64) dtype_15 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_15() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_15() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_15;
 		 struct alignas(64) dtype_16 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_16() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_16() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_16;
 		 struct alignas(64) dtype_17 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_17() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_17() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_17;
 		 struct alignas(64) dtype_18 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_18() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_18() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_18;
 		 struct alignas(64) dtype_19 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_19() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_19() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_19;
 		 struct alignas(64) dtype_20 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_20() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_20() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_20;
 		 struct alignas(64) dtype_21 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_21() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_21() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_21;
 		 struct alignas(64) dtype_22 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_22() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_22() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_22;
 		 struct alignas(64) dtype_23 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_23() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_23() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_23;
 		 struct alignas(64) dtype_24 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_24() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_24() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_24;
 		 struct alignas(64) dtype_25 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_25() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_25() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_25;
 		 struct alignas(64) dtype_26 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_26() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_26() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_26;
 		 struct alignas(64) dtype_27 { 
 			 uint8_t padding[(sizeof(set_tag<provinces::province_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_27() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_27() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_27;
 		 struct alignas(64) dtype_28 { 
 			 uint8_t padding[(sizeof(set_tag<provinces::province_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_28() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_28() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_28;
 		 struct alignas(64) dtype_29 { 
 			 uint8_t padding[(sizeof(set_tag<provinces::province_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_29() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<provinces::province_tag> values[(sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_29() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<provinces::province_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<provinces::province_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_29;
 		 struct alignas(64) dtype_30 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_30() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_30() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_30;
 		 struct alignas(64) dtype_31 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_31() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_31() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_31;
 		 struct alignas(64) dtype_32 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_32() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_32() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_32;
 		 struct alignas(64) dtype_33 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_33() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_33() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_33;
 		 struct alignas(64) dtype_34 { 
 			 uint8_t padding[(sizeof(set_tag<cultures::culture_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<cultures::culture_tag> values[(sizeof(set_tag<cultures::culture_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_34() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<cultures::culture_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<cultures::culture_tag> values[(sizeof(set_tag<cultures::culture_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_34() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<cultures::culture_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<cultures::culture_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_34;
 		 struct alignas(64) dtype_35 { 
 			 uint8_t padding[(sizeof(set_tag<nations::region_state_pair>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::region_state_pair> values[(sizeof(set_tag<nations::region_state_pair>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_35() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::region_state_pair>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::region_state_pair> values[(sizeof(set_tag<nations::region_state_pair>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_35() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::region_state_pair>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::region_state_pair>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_35;
 		 struct alignas(64) dtype_36 { 
 			 uint8_t padding[(sizeof(set_tag<nations::influence>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::influence> values[(sizeof(set_tag<nations::influence>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::influence>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::influence>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_36() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::influence>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::influence>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::influence>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::influence> values[(sizeof(set_tag<nations::influence>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::influence>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::influence>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_36() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::influence>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::influence>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::influence>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_36;
 		 struct alignas(64) dtype_37 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_37() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_37() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_37;
 		 struct alignas(64) dtype_38 { 
 			 uint8_t padding[(sizeof(set_tag<nations::relationship>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::relationship> values[(sizeof(set_tag<nations::relationship>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::relationship>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::relationship>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_38() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::relationship>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::relationship>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::relationship>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::relationship> values[(sizeof(set_tag<nations::relationship>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::relationship>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::relationship>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_38() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::relationship>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::relationship>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::relationship>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_38;
 		 struct alignas(64) dtype_39 { 
 			 uint8_t padding[(sizeof(set_tag<nations::truce>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::truce> values[(sizeof(set_tag<nations::truce>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::truce>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::truce>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_39() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::truce>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::truce>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::truce>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::truce> values[(sizeof(set_tag<nations::truce>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::truce>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::truce>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_39() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::truce>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::truce>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::truce>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_39;
 		 struct alignas(64) dtype_40 { 
 			 uint8_t padding[(sizeof(set_tag<nations::state_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::state_tag> values[(sizeof(set_tag<nations::state_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_40() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::state_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::state_tag> values[(sizeof(set_tag<nations::state_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_40() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::state_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::state_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_40;
 		 struct alignas(64) dtype_41 { 
 			 uint8_t padding[(sizeof(set_tag<variables::national_flag_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<variables::national_flag_tag> values[(sizeof(set_tag<variables::national_flag_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_41() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<variables::national_flag_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<variables::national_flag_tag> values[(sizeof(set_tag<variables::national_flag_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_41() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<variables::national_flag_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<variables::national_flag_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_41;
 		 struct alignas(64) dtype_42 { 
 			 uint8_t padding[(sizeof(multiset_tag<modifiers::national_modifier_tag>) + 63ui32) & ~63ui32]; 
-			 multiset_tag<modifiers::national_modifier_tag> values[(sizeof(multiset_tag<modifiers::national_modifier_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_42() { std::uninitialized_value_construct_n(values - 1, (sizeof(multiset_tag<modifiers::national_modifier_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 multiset_tag<modifiers::national_modifier_tag> values[(sizeof(multiset_tag<modifiers::national_modifier_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_42() { std::uninitialized_value_construct_n(values - 1, (sizeof(multiset_tag<modifiers::national_modifier_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<modifiers::national_modifier_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_42;
 		 struct alignas(64) dtype_43 { 
 			 uint8_t padding[(sizeof(multiset_tag<nations::timed_national_modifier>) + 63ui32) & ~63ui32]; 
-			 multiset_tag<nations::timed_national_modifier> values[(sizeof(multiset_tag<nations::timed_national_modifier>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_43() { std::uninitialized_value_construct_n(values - 1, (sizeof(multiset_tag<nations::timed_national_modifier>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>)) - 1ui32) : uint32_t(400)) + 1); }
+			 multiset_tag<nations::timed_national_modifier> values[(sizeof(multiset_tag<nations::timed_national_modifier>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_43() { std::uninitialized_value_construct_n(values - 1, (sizeof(multiset_tag<nations::timed_national_modifier>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(multiset_tag<nations::timed_national_modifier>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_43;
 		 struct alignas(64) dtype_44 { 
 			 uint8_t padding[(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>) + 63ui32) & ~63ui32]; 
-			 array_tag<economy::money_qnty_type, nations::state_tag, true> values[(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_44() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<economy::money_qnty_type, nations::state_tag, true> values[(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_44() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<economy::money_qnty_type, nations::state_tag, true>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_44;
 		 struct alignas(64) dtype_45 { 
 			 uint8_t padding[(sizeof(array_tag<military::leader_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::leader_tag, int32_t, false> values[(sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_45() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::leader_tag, int32_t, false> values[(sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_45() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_45;
 		 struct alignas(64) dtype_46 { 
 			 uint8_t padding[(sizeof(array_tag<military::leader_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::leader_tag, int32_t, false> values[(sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_46() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::leader_tag, int32_t, false> values[(sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_46() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::leader_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::leader_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_46;
 		 struct alignas(64) dtype_47 { 
 			 uint8_t padding[(sizeof(array_tag<military::army_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::army_tag, int32_t, false> values[(sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_47() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::army_tag, int32_t, false> values[(sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_47() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::army_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_47;
 		 struct alignas(64) dtype_48 { 
 			 uint8_t padding[(sizeof(array_tag<military::fleet_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::fleet_tag, int32_t, false> values[(sizeof(array_tag<military::fleet_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_48() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::fleet_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::fleet_tag, int32_t, false> values[(sizeof(array_tag<military::fleet_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_48() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::fleet_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::fleet_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_48;
 		 struct alignas(64) dtype_49 { 
 			 uint8_t padding[(sizeof(array_tag<military::army_orders_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::army_orders_tag, int32_t, false> values[(sizeof(array_tag<military::army_orders_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_49() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::army_orders_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::army_orders_tag, int32_t, false> values[(sizeof(array_tag<military::army_orders_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_49() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::army_orders_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::army_orders_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_49;
 		 struct alignas(64) dtype_50 { 
 			 uint8_t padding[(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::strategic_hq_tag, int32_t, false> values[(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_50() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::strategic_hq_tag, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::strategic_hq_tag, int32_t, false> values[(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_50() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::strategic_hq_tag, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::strategic_hq_tag, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_50;
 		 struct alignas(64) dtype_51 { 
 			 uint8_t padding[(sizeof(array_tag<military::pending_cb, int32_t, false>) + 63ui32) & ~63ui32]; 
-			 array_tag<military::pending_cb, int32_t, false> values[(sizeof(array_tag<military::pending_cb, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_51() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::pending_cb, int32_t, false>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>)) - 1ui32) : uint32_t(400)) + 1); }
+			 array_tag<military::pending_cb, int32_t, false> values[(sizeof(array_tag<military::pending_cb, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_51() { std::uninitialized_value_construct_n(values - 1, (sizeof(array_tag<military::pending_cb, int32_t, false>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(array_tag<military::pending_cb, int32_t, false>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_51;
 		 struct alignas(64) dtype_52 { 
 			 uint8_t padding[(sizeof(set_tag<military::war_identifier>) + 63ui32) & ~63ui32]; 
-			 set_tag<military::war_identifier> values[(sizeof(set_tag<military::war_identifier>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_52() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<military::war_identifier>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<military::war_identifier> values[(sizeof(set_tag<military::war_identifier>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_52() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<military::war_identifier>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<military::war_identifier>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_52;
 		 struct alignas(64) dtype_53 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_53() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_53() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_53;
 		 struct alignas(64) dtype_54 { 
 			 uint8_t padding[(sizeof(set_tag<nations::country_tag>) + 63ui32) & ~63ui32]; 
-			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400))]; 
-			 dtype_54() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(400)) + 1); }
+			 set_tag<nations::country_tag> values[(sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700))]; 
+			 dtype_54() { std::uninitialized_value_construct_n(values - 1, (sizeof(set_tag<nations::country_tag>) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(set_tag<nations::country_tag>)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_54;
 		 struct alignas(64) dtype_55 { 
 			 uint8_t padding[(sizeof(text_data::text_tag) + 63ui32) & ~63ui32]; 
-			 text_data::text_tag values[(sizeof(text_data::text_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_55() { std::uninitialized_value_construct_n(values - 1, (sizeof(text_data::text_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 text_data::text_tag values[(sizeof(text_data::text_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_55() { std::uninitialized_value_construct_n(values - 1, (sizeof(text_data::text_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_55;
 		 struct alignas(64) dtype_56 { 
 			 uint8_t padding[(sizeof(text_data::text_tag) + 63ui32) & ~63ui32]; 
-			 text_data::text_tag values[(sizeof(text_data::text_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_56() { std::uninitialized_value_construct_n(values - 1, (sizeof(text_data::text_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 text_data::text_tag values[(sizeof(text_data::text_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_56() { std::uninitialized_value_construct_n(values - 1, (sizeof(text_data::text_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(text_data::text_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(text_data::text_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_56;
 		 struct alignas(64) dtype_57 { 
 			 uint8_t padding[(sizeof(modifiers::national_modifier_tag) + 63ui32) & ~63ui32]; 
-			 modifiers::national_modifier_tag values[(sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_57() { std::uninitialized_value_construct_n(values - 1, (sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 modifiers::national_modifier_tag values[(sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_57() { std::uninitialized_value_construct_n(values - 1, (sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_57;
 		 struct alignas(64) dtype_58 { 
 			 uint8_t padding[(sizeof(modifiers::national_modifier_tag) + 63ui32) & ~63ui32]; 
-			 modifiers::national_modifier_tag values[(sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_58() { std::uninitialized_value_construct_n(values - 1, (sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 modifiers::national_modifier_tag values[(sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_58() { std::uninitialized_value_construct_n(values - 1, (sizeof(modifiers::national_modifier_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(modifiers::national_modifier_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_58;
 		 struct alignas(64) dtype_59 { 
 			 uint8_t padding[(sizeof(graphics::texture_tag) + 63ui32) & ~63ui32]; 
-			 graphics::texture_tag values[(sizeof(graphics::texture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(graphics::texture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::texture_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_59() { std::uninitialized_value_construct_n(values - 1, (sizeof(graphics::texture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(graphics::texture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::texture_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 graphics::texture_tag values[(sizeof(graphics::texture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(graphics::texture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::texture_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_59() { std::uninitialized_value_construct_n(values - 1, (sizeof(graphics::texture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(graphics::texture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::texture_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_59;
 		 struct alignas(64) dtype_60 { 
 			 uint8_t padding[(sizeof(graphics::color_rgb) + 63ui32) & ~63ui32]; 
-			 graphics::color_rgb values[(sizeof(graphics::color_rgb) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(graphics::color_rgb))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::color_rgb)) - 1ui32) : uint32_t(400))]; 
-			 dtype_60() { std::uninitialized_value_construct_n(values - 1, (sizeof(graphics::color_rgb) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(graphics::color_rgb))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::color_rgb)) - 1ui32) : uint32_t(400)) + 1); }
+			 graphics::color_rgb values[(sizeof(graphics::color_rgb) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(graphics::color_rgb))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::color_rgb)) - 1ui32) : uint32_t(700))]; 
+			 dtype_60() { std::uninitialized_value_construct_n(values - 1, (sizeof(graphics::color_rgb) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(graphics::color_rgb))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(graphics::color_rgb)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_60;
 		 struct alignas(64) dtype_61 { 
 			 uint8_t padding[(sizeof(technologies::tech_tag) + 63ui32) & ~63ui32]; 
-			 technologies::tech_tag values[(sizeof(technologies::tech_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(technologies::tech_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(technologies::tech_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_61() { std::uninitialized_value_construct_n(values - 1, (sizeof(technologies::tech_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(technologies::tech_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(technologies::tech_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 technologies::tech_tag values[(sizeof(technologies::tech_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(technologies::tech_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(technologies::tech_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_61() { std::uninitialized_value_construct_n(values - 1, (sizeof(technologies::tech_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(technologies::tech_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(technologies::tech_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_61;
 		 struct alignas(64) dtype_62 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_62() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_62() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_62;
 		 struct alignas(64) dtype_63 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_63() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_63() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_63;
 		 struct alignas(64) dtype_64 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_64() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_64() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_64;
 		 struct alignas(64) dtype_65 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_65() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_65() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_65;
 		 struct alignas(64) dtype_66 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_66() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_66() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_66;
 		 struct alignas(64) dtype_67 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_67() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_67() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_67;
 		 struct alignas(64) dtype_68 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_68() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_68() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_68;
 		 struct alignas(64) dtype_69 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_69() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_69() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_69;
 		 struct alignas(64) dtype_70 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_70() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_70() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_70;
 		 struct alignas(64) dtype_71 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_71() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_71() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_71;
 		 struct alignas(64) dtype_72 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_72() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_72() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_72;
 		 struct alignas(64) dtype_73 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_73() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_73() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_73;
 		 struct alignas(64) dtype_74 { 
 			 uint8_t padding[(sizeof(int16_t) + 63ui32) & ~63ui32]; 
-			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_74() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int16_t values[(sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_74() { std::uninitialized_value_construct_n(values - 1, (sizeof(int16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_74;
 		 struct alignas(64) dtype_75 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_75() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_75() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_75;
 		 struct alignas(64) dtype_76 { 
 			 uint8_t padding[(sizeof(uint16_t) + 63ui32) & ~63ui32]; 
-			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_76() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 uint16_t values[(sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_76() { std::uninitialized_value_construct_n(values - 1, (sizeof(uint16_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(uint16_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(uint16_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_76;
 		 struct alignas(64) dtype_77 { 
 			 uint8_t padding[(sizeof(int8_t) + 63ui32) & ~63ui32]; 
-			 int8_t values[(sizeof(int8_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int8_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int8_t)) - 1ui32) : uint32_t(400))]; 
-			 dtype_77() { std::uninitialized_value_construct_n(values - 1, (sizeof(int8_t) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(int8_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int8_t)) - 1ui32) : uint32_t(400)) + 1); }
+			 int8_t values[(sizeof(int8_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int8_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int8_t)) - 1ui32) : uint32_t(700))]; 
+			 dtype_77() { std::uninitialized_value_construct_n(values - 1, (sizeof(int8_t) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(int8_t))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(int8_t)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_77;
 		 struct alignas(64) dtype_78 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_78() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_78() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_78;
 		 struct alignas(64) dtype_79 { 
 			 uint8_t padding[(sizeof(nations::country_tag) + 63ui32) & ~63ui32]; 
-			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_79() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 nations::country_tag values[(sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_79() { std::uninitialized_value_construct_n(values - 1, (sizeof(nations::country_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(nations::country_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(nations::country_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_79;
 		 struct alignas(64) dtype_80 { 
 			 uint8_t padding[(sizeof(military::cb_type_tag) + 63ui32) & ~63ui32]; 
-			 military::cb_type_tag values[(sizeof(military::cb_type_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(military::cb_type_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::cb_type_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_80() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::cb_type_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(military::cb_type_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::cb_type_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 military::cb_type_tag values[(sizeof(military::cb_type_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(military::cb_type_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::cb_type_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_80() { std::uninitialized_value_construct_n(values - 1, (sizeof(military::cb_type_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(military::cb_type_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(military::cb_type_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_80;
 		 struct alignas(64) dtype_81 { 
 			 uint8_t padding[(sizeof(governments::party_tag) + 63ui32) & ~63ui32]; 
-			 governments::party_tag values[(sizeof(governments::party_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(governments::party_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::party_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_81() { std::uninitialized_value_construct_n(values - 1, (sizeof(governments::party_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(governments::party_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::party_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 governments::party_tag values[(sizeof(governments::party_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(governments::party_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::party_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_81() { std::uninitialized_value_construct_n(values - 1, (sizeof(governments::party_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(governments::party_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::party_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_81;
 		 struct alignas(64) dtype_82 { 
 			 uint8_t padding[(sizeof(provinces::province_tag) + 63ui32) & ~63ui32]; 
-			 provinces::province_tag values[(sizeof(provinces::province_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(provinces::province_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(provinces::province_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_82() { std::uninitialized_value_construct_n(values - 1, (sizeof(provinces::province_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(provinces::province_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(provinces::province_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 provinces::province_tag values[(sizeof(provinces::province_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(provinces::province_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(provinces::province_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_82() { std::uninitialized_value_construct_n(values - 1, (sizeof(provinces::province_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(provinces::province_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(provinces::province_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_82;
 		 struct alignas(64) dtype_83 { 
 			 uint8_t padding[(sizeof(cultures::national_tag) + 63ui32) & ~63ui32]; 
-			 cultures::national_tag values[(sizeof(cultures::national_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::national_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::national_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_83() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::national_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::national_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::national_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 cultures::national_tag values[(sizeof(cultures::national_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::national_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::national_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_83() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::national_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::national_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::national_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_83;
 		 struct alignas(64) dtype_84 { 
 			 uint8_t padding[(sizeof(cultures::culture_tag) + 63ui32) & ~63ui32]; 
-			 cultures::culture_tag values[(sizeof(cultures::culture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_84() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::culture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 cultures::culture_tag values[(sizeof(cultures::culture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_84() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::culture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_84;
 		 struct alignas(64) dtype_85 { 
 			 uint8_t padding[(sizeof(cultures::culture_tag) + 63ui32) & ~63ui32]; 
-			 cultures::culture_tag values[(sizeof(cultures::culture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_85() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::culture_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 cultures::culture_tag values[(sizeof(cultures::culture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_85() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::culture_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::culture_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::culture_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_85;
 		 struct alignas(64) dtype_86 { 
 			 uint8_t padding[(sizeof(issues::option_tag) + 63ui32) & ~63ui32]; 
-			 issues::option_tag values[(sizeof(issues::option_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(issues::option_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(issues::option_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_86() { std::uninitialized_value_construct_n(values - 1, (sizeof(issues::option_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(issues::option_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(issues::option_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 issues::option_tag values[(sizeof(issues::option_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(issues::option_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(issues::option_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_86() { std::uninitialized_value_construct_n(values - 1, (sizeof(issues::option_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(issues::option_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(issues::option_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_86;
 		 struct alignas(64) dtype_87 { 
 			 uint8_t padding[(sizeof(ideologies::ideology_tag) + 63ui32) & ~63ui32]; 
-			 ideologies::ideology_tag values[(sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_87() { std::uninitialized_value_construct_n(values - 1, (sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 ideologies::ideology_tag values[(sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_87() { std::uninitialized_value_construct_n(values - 1, (sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_87;
 		 struct alignas(64) dtype_88 { 
 			 uint8_t padding[(sizeof(cultures::religion_tag) + 63ui32) & ~63ui32]; 
-			 cultures::religion_tag values[(sizeof(cultures::religion_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_88() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::religion_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 cultures::religion_tag values[(sizeof(cultures::religion_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_88() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::religion_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_88;
 		 struct alignas(64) dtype_89 { 
 			 uint8_t padding[(sizeof(cultures::religion_tag) + 63ui32) & ~63ui32]; 
-			 cultures::religion_tag values[(sizeof(cultures::religion_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_89() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::religion_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 cultures::religion_tag values[(sizeof(cultures::religion_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_89() { std::uninitialized_value_construct_n(values - 1, (sizeof(cultures::religion_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(cultures::religion_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(cultures::religion_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_89;
 		 struct alignas(64) dtype_90 { 
 			 uint8_t padding[(sizeof(governments::government_tag) + 63ui32) & ~63ui32]; 
-			 governments::government_tag values[(sizeof(governments::government_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(governments::government_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::government_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_90() { std::uninitialized_value_construct_n(values - 1, (sizeof(governments::government_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(governments::government_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::government_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 governments::government_tag values[(sizeof(governments::government_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(governments::government_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::government_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_90() { std::uninitialized_value_construct_n(values - 1, (sizeof(governments::government_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(governments::government_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(governments::government_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_90;
 		 struct alignas(64) dtype_91 { 
 			 uint8_t padding[(sizeof(ideologies::ideology_tag) + 63ui32) & ~63ui32]; 
-			 ideologies::ideology_tag values[(sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(400))]; 
-			 dtype_91() { std::uninitialized_value_construct_n(values - 1, (sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(400)) + 1); }
+			 ideologies::ideology_tag values[(sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(700))]; 
+			 dtype_91() { std::uninitialized_value_construct_n(values - 1, (sizeof(ideologies::ideology_tag) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(ideologies::ideology_tag))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(ideologies::ideology_tag)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_91;
 		 struct alignas(64) dtype_92 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_92() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_92() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_92;
 		 struct alignas(64) dtype_93 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_93() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_93() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_93;
 		 struct alignas(64) dtype_94 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_94() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_94() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_94;
 		 struct alignas(64) dtype_95 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_95() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_95() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_95;
 		 struct alignas(64) dtype_96 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_96() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_96() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_96;
 		 struct alignas(64) dtype_97 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_97() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_97() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_97;
 		 struct alignas(64) dtype_98 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_98() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_98() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_98;
 		 struct alignas(64) dtype_99 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_99() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_99() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_99;
 		 struct alignas(64) dtype_100 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_100() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_100() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_100;
 		 struct alignas(64) dtype_101 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_101() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_101() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_101;
 		 struct alignas(64) dtype_102 { 
 			 uint8_t padding[(sizeof(float) + 63ui32) & ~63ui32]; 
-			 float values[(sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400))]; 
-			 dtype_102() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(400) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(400)) + 1); }
+			 float values[(sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700))]; 
+			 dtype_102() { std::uninitialized_value_construct_n(values - 1, (sizeof(float) <= 64 ? (uint32_t(700) + (64ui32 / uint32_t(sizeof(float))) - 1ui32) & ~(64ui32 / uint32_t(sizeof(float)) - 1ui32) : uint32_t(700)) + 1); }
 		 } m_102;
 		 struct alignas(64) dtype_103 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_103() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_103() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_103;
 		 struct alignas(64) dtype_104 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_104() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_104() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_104;
 		 struct alignas(64) dtype_105 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_105() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_105() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_105;
 		 struct alignas(64) dtype_106 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_106() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_106() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_106;
 		 struct alignas(64) dtype_107 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_107() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_107() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_107;
 		 struct alignas(64) dtype_108 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_108() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_108() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_108;
 		 struct alignas(64) dtype_109 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_109() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_109() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_109;
 		 struct alignas(64) dtype_110 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_110() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_110() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_110;
 		 struct alignas(64) dtype_111 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_111() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_111() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_111;
 		 struct alignas(64) dtype_112 { 
 			 bitfield_type padding[64]; 
-			 bitfield_type values[((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
-			 dtype_112() { std::fill_n(values - 1, 1 + ((uint32_t(400 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
+			 bitfield_type values[((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32]; 
+			 dtype_112() { std::fill_n(values - 1, 1 + ((uint32_t(700 + 7)) / 8ui32 + 63ui32) & ~63ui32, bitfield_type{ 0ui8 }); }
 		 } m_112;
 
 		 public:
 		 friend class serialization::serializer<container>;
 		 container() {
-			 for(int32_t i = 400 - 1; i >= 0; --i) {
+			 for(int32_t i = 700 - 1; i >= 0; --i) {
 				 m_index.values[i] = first_free;
 				 first_free = nations::country_tag(nations::country_tag::value_base_t(i));
 			 }
@@ -6094,7 +6096,7 @@ class serialization::serializer<nation::container> {
 		 serialization::deserialize(input, obj.size_used);
 		 serialization::deserialize_array(input, obj.m_index.values, obj.size_used);
 		obj.first_free = nations::country_tag();
-		for(int32_t i = 400 - 1; i >= obj.size_used; --i) {
+		for(int32_t i = 700 - 1; i >= obj.size_used; --i) {
 			 obj.m_index.values[i] = obj.first_free;
 			 obj.first_free = nations::country_tag(nations::country_tag::value_base_t(i));
 		}

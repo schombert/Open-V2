@@ -1,0 +1,5 @@
+owner = YAQ
+controller = YAQ
+add_core = YAQ
+trade_goods = timber
+life_rating = 15

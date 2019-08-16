@@ -1,0 +1,5 @@
+owner = YBH
+controller = YBH
+add_core = YBH
+trade_goods = timber
+life_rating = 15

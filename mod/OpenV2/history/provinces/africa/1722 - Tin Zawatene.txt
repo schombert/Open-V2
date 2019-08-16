@@ -1,0 +1,5 @@
+owner = YYW
+controller = YYW
+add_core = YYW
+trade_goods = fruit
+life_rating = 10

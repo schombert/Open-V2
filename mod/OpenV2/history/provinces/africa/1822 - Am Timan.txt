@@ -1,0 +1,5 @@
+owner = YFJ
+controller = YFJ
+add_core = YFJ
+trade_goods = fruit
+life_rating = 15

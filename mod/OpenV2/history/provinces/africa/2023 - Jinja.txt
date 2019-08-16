@@ -1,0 +1,5 @@
+owner = YBE
+controller = YBE
+add_core = YBE
+trade_goods = cotton
+life_rating = 15

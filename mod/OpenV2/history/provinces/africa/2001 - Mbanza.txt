@@ -1,0 +1,6 @@
+owner = YBI
+controller = YBI
+add_core = YBI
+trade_goods = fruit
+life_rating = 35
+colonial = 2

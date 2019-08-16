@@ -1,0 +1,5 @@
+owner = YFS
+controller = YFS
+add_core = YFS
+trade_goods = coal
+life_rating = 35

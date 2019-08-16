@@ -1,0 +1,5 @@
+owner = YCZ
+controller = YCZ
+add_core = YCZ
+trade_goods = grain
+life_rating = 35

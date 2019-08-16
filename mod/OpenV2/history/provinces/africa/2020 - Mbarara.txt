@@ -1,0 +1,5 @@
+owner = YAZ
+controller = YAZ
+add_core = YAZ
+trade_goods = cotton
+life_rating = 15

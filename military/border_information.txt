@@ -1,0 +1,9 @@
+border_information, 
+sparse,
+military::border_information_tag,
+province::container_size,
+
+		readiness, float 
+		supply, float
+		hqs, "array_tag<military::hq_commitment_information, int32_t, false>"
+		stance, int8_t

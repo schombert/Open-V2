@@ -1,0 +1,5 @@
+owner = YDJ
+controller = YDJ
+add_core = YDJ
+trade_goods = coffee
+life_rating = 15

@@ -1,0 +1,5 @@
+owner = YBN
+controller = YBN
+add_core = YBN
+trade_goods = fruit
+life_rating = 15

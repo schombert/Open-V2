@@ -1,0 +1,5 @@
+owner = YDH
+controller = YDH
+add_core = YDH
+trade_goods = cattle
+life_rating = 15
