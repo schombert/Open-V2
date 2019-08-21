@@ -1278,64 +1278,88 @@ namespace concurrent_detail {
 	}
 }
 
-template<typename T, typename index_type, bool padded>
-concurrent_cache_aligned_buffer<T, index_type, padded>::concurrent_cache_aligned_buffer(uint32_t size) :
-	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
-	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
-	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::concurrent_cache_aligned_buffer() :
+	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)))),
+	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)))),
+	_size(concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
+	assert(fixed_size != -1);
 	std::fill_n(buffer, _size, T());
 }
 
-template<typename T, typename index_type, bool padded>
-concurrent_cache_aligned_buffer<T, index_type, padded>::concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::concurrent_cache_aligned_buffer(uint32_t size) :
 	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
+	assert(fixed_size == -1);
+	std::fill_n(buffer, _size, T());
+}
+
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
+	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
+	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
+
+	assert(fixed_size == -1);
 	std::fill_n(buffer, _size, initial);
 }
 
-template<typename T, typename index_type, bool padded>
-concurrent_cache_aligned_buffer<T, index_type, padded>::~concurrent_cache_aligned_buffer() {
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::~concurrent_cache_aligned_buffer() {
 	concurrent_free_wrapper(allocated_address);
 }
 
-template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concurrent_cache_aligned_buffer(uint32_t size) :
-	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
-	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
-	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::moveable_concurrent_cache_aligned_buffer() :
+	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)))),
+	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)))),
+	_size(concurrent_detail::aligned_64_size((fixed_size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
+	assert(fixed_size != -1);
 	std::fill_n(buffer, _size, T());
 }
 
-template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::moveable_concurrent_cache_aligned_buffer(uint32_t size) :
 	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
 	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
 
+	assert(fixed_size == -1);
+	std::fill_n(buffer, _size, T());
+}
+
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial) :
+	allocated_address((T*)concurrent_alloc_wrapper(64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
+	buffer((T*)concurrent_detail::align_wrapper<T, padded>(allocated_address, 64 + concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)))),
+	_size(concurrent_detail::aligned_64_size((size + int32_t(padded)) * sizeof(T)) / sizeof(T)) {
+
+	assert(fixed_size == -1);
 	std::fill_n(buffer, _size, initial);
 }
 
-template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::~moveable_concurrent_cache_aligned_buffer() {
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::~moveable_concurrent_cache_aligned_buffer() {
 	if(allocated_address)
 		concurrent_free_wrapper(allocated_address);
 	allocated_address = nullptr;
 	buffer = nullptr;
 }
 
-template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&& o) noexcept :
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::moveable_concurrent_cache_aligned_buffer(moveable_concurrent_cache_aligned_buffer&& o) noexcept :
 	allocated_address(o.allocated_address), buffer(o.buffer), _size(o._size) {
 	o.allocated_address = nullptr;
 	o.buffer = nullptr;
 }
 
-template<typename T, typename index_type, bool padded>
-moveable_concurrent_cache_aligned_buffer<T, index_type, padded>& moveable_concurrent_cache_aligned_buffer<T, index_type, padded>::operator=(moveable_concurrent_cache_aligned_buffer&& o) noexcept {
+template<typename T, typename index_type, bool padded, int32_t fixed_size>
+moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>& moveable_concurrent_cache_aligned_buffer<T, index_type, padded, fixed_size>::operator=(moveable_concurrent_cache_aligned_buffer&& o) noexcept {
 	if(allocated_address)
 		concurrent_free_wrapper(allocated_address);
 

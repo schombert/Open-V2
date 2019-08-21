@@ -452,6 +452,30 @@ namespace ve {
 	}
 
 	namespace ve_impl {
+		struct vector_subtract_operator {
+			float* const dest;
+			float const* const subtracted;
+
+			vector_subtract_operator(float* d, float const* a) : dest(d), subtracted(a) {};
+
+			template<typename T>
+			RELEASE_INLINE void operator()(T executor) {
+				store(executor, dest, load(executor, dest) - load(executor, subtracted));
+			}
+		};
+	}
+
+	template<typename itype, typename T, typename policy = serial>
+	RELEASE_INLINE auto subtract(uint32_t size, tagged_array_view<float, itype> destination, tagged_array_view<T, itype> subtracted, policy p = serial())
+		-> std::enable_if_t<std::is_same_v<std::remove_cv_t<T>, float>, void> {
+
+		assert(destination.size >= int32_t(size));
+		assert(subtracted.size >= int32_t(size));
+
+		policy::template execute<int32_t>(size, ve_impl::vector_subtract_operator(destination.data(), subtracted.data()));
+	}
+
+	namespace ve_impl {
 	   struct vector_copy_operator {
 		   float* const dest;
 		   float const* const a;

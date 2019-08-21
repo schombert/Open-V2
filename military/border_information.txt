@@ -7,3 +7,5 @@ province::container_size,
 		supply, float
 		hqs, "array_tag<military::hq_commitment_information, int32_t, false>"
 		stance, int8_t
+		owner, nations::country_tag
+		against, nations::country_tag

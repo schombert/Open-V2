@@ -190,6 +190,8 @@ public:
 	GET_SET_GEN(w.military_s.army_orders)
 	GET_SET_GEN(w.military_s.strategic_hqs)
 	GET_SET_GEN(w.military_s.leaders)
+	GET_SET_GEN(w.military_s.borders)
+	ARRAY_BACKING_BASE(w.military_s.hq_commitment_arrays)
 	ARRAY_BACKING_BASE(w.military_s.fleet_presence_arrays)
 	ARRAY_BACKING_BASE(w.military_s.naval_control_arrays)
 	ARRAY_BACKING_BASE(w.military_s.cb_arrays)

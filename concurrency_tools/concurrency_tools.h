@@ -226,13 +226,14 @@ struct concurrent_aligned_allocator{
 	void deallocate(T* p, size_t n);
 };
 
-template<typename T, typename index_type, bool padded>
+template<typename T, typename index_type, bool padded, int32_t fixed_size = -1>
 struct concurrent_cache_aligned_buffer {
 private:
 	T* const allocated_address;
 	T* const buffer;
 	const uint32_t _size;
 public:
+	concurrent_cache_aligned_buffer();
 	concurrent_cache_aligned_buffer(uint32_t size);
 	concurrent_cache_aligned_buffer(uint32_t size, T initial_value);
 	~concurrent_cache_aligned_buffer();
@@ -270,13 +271,14 @@ public:
 	}
 };
 
-template<typename T, typename index_type, bool padded>
+template<typename T, typename index_type, bool padded, int32_t fixed_size = -1 >
 struct moveable_concurrent_cache_aligned_buffer {
 private:
 	T* allocated_address = nullptr;
 	T* buffer = nullptr;
 	uint32_t _size;
 public:
+	moveable_concurrent_cache_aligned_buffer();
 	moveable_concurrent_cache_aligned_buffer(uint32_t size);
 	moveable_concurrent_cache_aligned_buffer(uint32_t size, T initial_value);
 	~moveable_concurrent_cache_aligned_buffer();

@@ -412,6 +412,54 @@ namespace military {
 		return false;
 	}
 
+	auto move_troops_to_border(world_state& ws, military::border_information_tag b) -> void {
+		
+	}
+
+	auto move_troops_to_borders(world_state& ws) -> void {
+		concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, military::strategic_hq_tag, true, province::container_size>>
+			reserve_adjustment;
+
+		ws.w.military_s.borders.parallel_for_each([&ws, &reserve_adjustment](military::border_information_tag b) {
+			auto hq_info_range = ws.get_range(ws.get<border_information::hqs>(b));
+
+			float total_new_to_allocate = 0.0f;
+			auto& reserve_adjust = reserve_adjustment.local();
+
+			for(auto& info : hq_info_range) {
+				auto const fp_target = float(info.target_percent) / 100.0f;
+				auto const old_hq_reserve = ws.get<strategic_hq::reserve_soldiers>(info.id);
+				auto const total_available = ws.get<strategic_hq::allocated_soldiers>(info.id) + old_hq_reserve;
+
+				if(info.active_soldiers > total_available * fp_target) {
+					reserve_adjust[info.id] += info.active_soldiers - total_available * fp_target;
+					info.active_soldiers = total_available * fp_target;
+				} else {
+					total_new_to_allocate += std::min(total_available * fp_target - info.active_soldiers, old_hq_reserve);
+				}
+			}
+		});
+
+		reserve_adjustment.combine_each([&ws](moveable_concurrent_cache_aligned_buffer<float, military::strategic_hq_tag, true, province::container_size> const& buffer) {
+			ve::execute_serial_fast<military::strategic_hq_tag>(ws.w.military_s.strategic_hqs.vector_size(), [
+				rrow = ws.get_row<strategic_hq::reserve_soldiers>(),
+				arow = ws.get_row<strategic_hq::allocated_soldiers>(),
+				drow = buffer.view()
+			](auto exec) {
+					auto const diff = ve::load(exec, drow);
+					ve::store(exec, rrow, ve::load(exec, rrow) + diff);
+					ve::store(exec, arow, ve::load(exec, arow) - diff);
+				});
+		});
+	}
+
+	auto fill_hq() -> void {
+
+	}
+
+	auto fill_hqs() -> void {
+
+	}
 
 	auto update_national_borders(world_state& ws, nations::country_tag n, uint16_t* counts, provinces::province_tag* rep_provinces) -> void {
 		auto control_set = ws.get_range(ws.get<nation::controlled_provinces>(n));
