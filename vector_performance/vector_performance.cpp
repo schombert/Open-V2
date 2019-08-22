@@ -50,20 +50,20 @@ public:
 		auto vef = [apparent_price_v = this->apparent_price_v, distance_vector_v = this->distance_vector_v, state_owner_tarrifs = this->state_owner_tarrifs,
 			state_prices_copy_v = this->state_prices_copy_v, tarrif_mask_v = this->tarrif_mask_v](auto executor) {
 
-			executor.store(apparent_price_v,
+			ve::store(executor, apparent_price_v,
 				ve::multiply_and_add(
-					executor.load(distance_vector_v),
-					executor.constant(distance_factor),
-					executor.load(state_prices_copy_v) *
+					ve::load(executor, distance_vector_v),
+					distance_factor,
+					ve::load(executor, state_prices_copy_v) *
 						ve::multiply_and_add(
-							executor.load(tarrif_mask_v),
-							executor.constant(state_owner_tarrifs),
-							executor.constant(1.0f))
+							ve::load(executor, tarrif_mask_v),
+							state_owner_tarrifs,
+							1.0f)
 				)
 			);
 		};
 
-		ve::execute_serial_fast(vector_length, vef);
+		ve::execute_serial_fast<int32_t>(vector_length, vef);
 
 		return int(apparent_price_v[512]);
 	}
@@ -87,22 +87,93 @@ public:
 		auto vef = [apparent_price_v = this->apparent_price_v, distance_vector_v = this->distance_vector_v, state_owner_tarrifs = this->state_owner_tarrifs,
 			state_prices_copy_v = this->state_prices_copy_v, tarrif_mask_v = this->tarrif_mask_v](auto executor) {
 
-			executor.store(apparent_price_v,
+			ve::store(executor, apparent_price_v,
 				ve::multiply_and_add(
-					executor.load(state_prices_copy_v),
+					ve::load(executor, state_prices_copy_v),
 					ve::multiply_and_add(
-						executor.load(tarrif_mask_v),
-						executor.constant(state_owner_tarrifs),
-						executor.constant(1.0f)),
-					executor.load(distance_vector_v) *
-						executor.constant(distance_factor)
+						ve::load(executor, tarrif_mask_v),
+						state_owner_tarrifs,
+						1.0f),
+					ve::load(executor, distance_vector_v) * distance_factor
 				)
 			);
 		};
 
-		ve::execute_serial_fast(vector_length, vef);
+		ve::execute_serial_fast<int32_t>(vector_length, vef);
 
 		return int(apparent_price_v[512]);
+	}
+};
+
+constexpr int32_t vsize = 2000;
+
+class combiner_usage_a {
+public:
+	concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>> combiner;
+	moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> result;
+
+	int test_function() {
+		concurrency::parallel_for(0, 255, [_this = this](int32_t i) {
+			auto& lview = _this->combiner.local();
+			for(int32_t j = 0; j < vsize; ++j) {
+				lview[j] = float(j);
+			}
+		});
+		ve::set_zero(vsize, result.view(), ve::serial_exact{});
+
+		combiner.combine_each([r = result.view()](moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> const& i) {
+			ve::accumulate<int32_t>(uint32_t(vsize), r, i.view(), ve::serial_exact{});
+		});
+		
+		return int(result.view()[27]);
+	}
+};
+
+class combiner_usage_b {
+public:
+	concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>> combiner;
+	moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> result;
+
+	int test_function() {
+		concurrency::parallel_for(0, 255, [_this = this](int32_t i) {
+			auto& lview = _this->combiner.local();
+			for(int32_t j = 0; j < vsize; ++j) {
+				lview[j] = float(j);
+			}
+		});
+		ve::set_zero(vsize, result.view(), ve::serial_exact{});
+
+		ve::execute_serial<int32_t>(uint32_t(vsize), [_this = this, r = result.view()](auto exec) {
+			_this->combiner.combine_each([exec, r](moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> const& i) {
+				ve::store(exec, r, ve::load(exec, r) + ve::load(exec, i.view()));
+			});
+		});
+
+		return int(result.view()[27]);
+	}
+};
+
+class combiner_usage_c {
+public:
+	concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>> combiner;
+	moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> result;
+
+	int test_function() {
+		concurrency::parallel_for(0, 255, [_this = this](int32_t i) {
+			auto& lview = _this->combiner.local();
+			for(int32_t j = 0; j < vsize; ++j) {
+				lview[j] = float(j);
+			}
+		});
+		ve::set_zero(vsize, result.view(), ve::serial_exact{});
+
+		ve::execute_parallel_exact<int32_t>(uint32_t(vsize), [_this = this, r = result.view()](auto exec) {
+			_this->combiner.combine_each([exec, r](moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> const& i) {
+				ve::store(exec, r, ve::load(exec, r) + ve::load(exec, i.view()));
+			});
+		});
+
+		return int(result.view()[27]);
 	}
 };
 
@@ -150,4 +221,25 @@ int main() {
 		std::cout << to.log_function(log, "vector engine variant B apparent price update") << std::endl;
 	}
 	std::cout << apparent_price[idist(get_local_generator())] << std::endl;
+
+	{
+		test_object<40, 1000, combiner_usage_a> to;
+		std::cout << to.log_function(log, "combiner usage a") << std::endl;
+	}
+	{
+		test_object<40, 1000, combiner_usage_b> to;
+		std::cout << to.log_function(log, "combiner usage b") << std::endl;
+	}
+	{
+		test_object<40, 1000, combiner_usage_c> to;
+		std::cout << to.log_function(log, "combiner usage c") << std::endl;
+	}
+	{
+		test_object<40, 1000, combiner_usage_b> to;
+		std::cout << to.log_function(log, "combiner usage b2") << std::endl;
+	}
+	{
+		test_object<40, 1000, combiner_usage_a> to;
+		std::cout << to.log_function(log, "combiner usage a2") << std::endl;
+	}
 }

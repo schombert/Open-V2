@@ -138,7 +138,7 @@ namespace ve {
 	template<typename tag_type>
 	struct tagged_vector {
 		using wrapped_value = tag_type;
-		static_assert(sizeof(tag_type::value_base_t) <= 4);
+		static_assert(sizeof(value_base_of<tag_type>) <= 4);
 
 		__m256i value;
 
