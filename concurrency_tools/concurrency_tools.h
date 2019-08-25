@@ -807,3 +807,125 @@ int32_t minimum_index(float const* data, int32_t size);
 int32_t maximum_index(float const* data, int32_t size);
 int32_t minimum_index(double const* data, int32_t size);
 int32_t maximum_index(double const* data, int32_t size);
+
+namespace ct {
+	struct thread_context {
+		int32_t id = 0;
+	};
+
+	constexpr int32_t buffer_object_size = 128 - sizeof(void*) * 1;
+
+	struct alignas(64) ring_buffer_object_header {
+		std::atomic<uint32_t> preparation_bit = 0;
+		std::atomic<uint32_t> usage_bit = 1;
+
+		void reset_preparation() {
+			preparation_bit.store(0ui32, std::memory_order_release);
+		}
+		void reset_use() {
+			usage_bit.store(0ui32, std::memory_order_release);
+		}
+		bool test_and_reset_preparation() {
+			return _interlockedbittestandreset((long*)&preparation_bit, 0);
+		}
+		bool test_and_reset_use() {
+			return _interlockedbittestandreset((long*)&usage_bit, 0);
+		}
+		bool test_preparation() {
+			return preparation_bit.load(std::memory_order_acquire) != 0;
+		}
+		bool test_use() {
+			return usage_bit.load(std::memory_order_acquire) != 0;
+		}
+		void mark_finish_preparation() {
+			preparation_bit.store(1ui32, std::memory_order_release);
+		}
+		void mark_finish_use() {
+			usage_bit.store(1ui32, std::memory_order_release);
+		}
+	};
+
+	template<typename T>
+	void call_and_destory(thread_context c, char* ptr) {
+		T* obj = (T*)ptr;
+		(*obj)(c);
+		obj->~T();
+	}
+
+	struct alignas(64) ring_buffer_object_payload {
+		void(*fptr)(thread_context, char*) = nullptr; // must also call destructor
+		char payload_body[buffer_object_size];
+	};
+
+	struct ring_buffer_object {
+		ring_buffer_object_header header;
+		ring_buffer_object_payload payload;
+	};
+
+	class concurrent_ring_buffer {
+	public:
+		uint32_t modulus_mask = 0;
+		ring_buffer_object* buffer_contents = nullptr;
+
+		std::atomic<uint32_t> idle_front = 0;
+		std::atomic<uint32_t> idle_back = 0;
+
+		concurrent_ring_buffer(int32_t buffer_exponent) {
+			int32_t final_size = 1 << buffer_exponent;
+			modulus_mask = uint32_t(final_size - 1);
+
+			buffer_contents = (ring_buffer_object*)_aligned_malloc(final_size * sizeof(ring_buffer_object), 64);
+			std::uninitialized_default_construct_n(buffer_contents, final_size);
+		}
+
+		bool is_empty() {
+			return idle_back.load(std::memory_order_acquire) == idle_front.load(std::memory_order_acquire);
+		}
+
+		bool use_object(thread_context c) {
+			uint32_t safe_back = idle_back.load(std::memory_order_acquire);
+			for(;;) {
+				uint32_t safe_front = idle_front.load(std::memory_order_acquire);
+				if(safe_back != safe_front && buffer_contents[safe_back & modulus_mask].header.test_preparation()) {
+					if(idle_back.compare_exchange_weak(safe_back, safe_back + 1, std::memory_order_acq_rel)) {
+						ring_buffer_object& slot = buffer_contents[safe_back & modulus_mask];
+
+						slot.header.reset_preparation();
+
+						slot.payload.fptr(c, slot.payload.payload_body);
+
+						slot.header.mark_finish_use();
+
+						return true;
+					}
+				} else {
+					return false;
+				}
+			}
+		}
+
+		template<typename T>
+		void add_object(T&& t) {
+			uint32_t slot_location = idle_front.fetch_add(1, std::memory_order_acq_rel);
+			ring_buffer_object& slot = buffer_contents[slot_location & modulus_mask];
+
+			auto reset_result = slot.header.test_and_reset_use();
+			assert(reset_result);
+
+			new (slot.payload.payload_body) T(std::forward<T>(t));
+			slot.payload.fptr = call_and_destory<T>;
+
+			slot.header.mark_finish_prepration();
+		}
+
+		template<typename O, typename ... T>
+		void emplace_object(T&& ... t) {
+			new (addr) O(std::forward<T ...>(t ...));
+			slot.payload.fptr = call_and_destory<O>;
+		}
+
+		~concurrent_ring_buffer() {
+			_aligned_free(buffer_contents);
+		}
+	};
+}
