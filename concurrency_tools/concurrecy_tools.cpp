@@ -1,6 +1,11 @@
 #include "concurrency_tools.hpp"
 #include <ppl.h>
 #include <random>
+#include <Windows.h>
+
+#undef min
+#undef max
+#undef small
 
 using namespace concurrency;
 
@@ -179,4 +184,19 @@ __declspec(restrict) void* concurrent_alloc_wrapper(size_t sz) {
 
 void concurrent_free_wrapper(void* p) {
 	concurrency::Free(p);
+}
+
+namespace ct {
+	int32_t optimal_thread_count() {
+		static const int32_t total = GetActiveProcessorCount(ALL_PROCESSOR_GROUPS);
+		return total;
+	}
+	int32_t count_threads_seen() {
+		static std::atomic<int32_t> total_count = 0;
+		return total_count.fetch_add(1, std::memory_order_acq_rel);
+	}
+	int32_t thread_pool_id() {
+		static const thread_local int32_t id = count_threads_seen();
+		return id;
+	}
 }

@@ -4,6 +4,7 @@
 #include <string>
 #include <type_traits>
 #include "common\\common.h"
+#include <thread>
 
 #undef min
 #undef max
@@ -809,13 +810,106 @@ int32_t minimum_index(double const* data, int32_t size);
 int32_t maximum_index(double const* data, int32_t size);
 
 namespace ct {
+	int32_t thread_pool_id();
+	int32_t optimal_thread_count();
+
+	template<typename T>
+	class default_combiner_manager {
+	public:
+		static T make_new() { return T{}; }
+		static void reset(T& t) { t = T{}; }
+		static void combine(T& l, T const& r) { l += r; }
+	};
+
+	template<typename T, typename MANAGER = default_combiner_manager<T>>
+	class thread_local_combiner : private MANAGER {
+	private:
+		struct alignas(64) padded_item {
+			T value;
+			bool used = false;
+		};
+		padded_item* items;
+	public:
+		thread_local_combiner() {
+			items = _aligned_malloc(sizeof(padded_item) * optimal_thread_count() * 2, 64);
+			for(int32_t i = 0; i < optimal_thread_count() * 2; ++i) {
+				items[i].used = false;
+			}
+		}
+		~thread_local_combiner() {
+			for(int32_t i = 0; i < optimal_thread_count() * 2; ++i) {
+				if(items[i].used)
+					items[i].value.~T();
+			}
+			_aligned_free(items);
+		}
+
+		T& local() {
+			const auto thread_id = thread_pool_id();
+			if(!items[thread_id].used) {
+				assert(thread_id < optimal_thread_count() * 2);
+				new (&(items[thread_id].value)) T(MANAGER::make_new());
+				items[thread_id].used = true;
+			}
+			return items[thread_id].value;
+		}
+
+		void reset_all() {
+			for(int32_t i = optimal_thread_count() * 2 - 1; i >= 0; --i) {
+				if(items[i].used) {
+					MANAGER::reset(items[i].value);
+				}
+			}
+		}
+
+		void reset_post_combine() {
+			MANAGER::reset(items[0].value);
+		}
+
+		T& combine() {
+			int32_t max_used = 2;
+			for(int32_t i = 1; i < optimal_thread_count() * 2; ++i)
+				if(items[i].used)
+					max_used = i + 1;
+
+
+			int32_t step = 1 << rt_log2_round_up(max_used) - 1;
+
+			for(int32_t i = 0; i < step; ++i) {
+				if(!items[i].used) {
+					new (&(items[i].value)) T(MANAGER::make_new());
+					items[i].used = true;
+				}
+			}
+
+			for(int32_t i = 0; i < max_used - step; ++i) {
+				if(items[i + step].used) {
+					MANAGER::combine(items[i].value, items[i + step].value);
+					MANAGER::reset(items[i + step].value);
+				}
+			}
+			step /= 2;
+
+			for(; step > 0; step /= 2) {
+				for(int32_t i = 0; i < step; ++i) {
+					if(items[i + step].used) {
+						MANAGER::combine(items[i].value, items[i + step].value);
+						MANAGER::reset(items[i + step].value);
+					}
+				}
+			}
+			return items[0].value;
+		}
+	};
+
+	/*
 	struct thread_context {
 		int32_t id = 0;
 	};
 
-	constexpr int32_t buffer_object_size = 128 - sizeof(void*) * 1;
+	constexpr int32_t buffer_object_size = 128 - sizeof(void*) * 1 - sizeof(uint32_t) * 2;
 
-	struct alignas(64) ring_buffer_object_header {
+	struct ring_buffer_object_header {
 		std::atomic<uint32_t> preparation_bit = 0;
 		std::atomic<uint32_t> usage_bit = 1;
 
@@ -852,12 +946,12 @@ namespace ct {
 		obj->~T();
 	}
 
-	struct alignas(64) ring_buffer_object_payload {
+	struct ring_buffer_object_payload {
 		void(*fptr)(thread_context, char*) = nullptr; // must also call destructor
 		char payload_body[buffer_object_size];
 	};
 
-	struct ring_buffer_object {
+	struct alignas(64) ring_buffer_object {
 		ring_buffer_object_header header;
 		ring_buffer_object_payload payload;
 	};
@@ -865,43 +959,48 @@ namespace ct {
 	class concurrent_ring_buffer {
 	public:
 		uint32_t modulus_mask = 0;
-		ring_buffer_object* buffer_contents = nullptr;
+		std::vector<ring_buffer_object, aligned_allocator_64<ring_buffer_object>> buffer_contents;
 
 		std::atomic<uint32_t> idle_front = 0;
 		std::atomic<uint32_t> idle_back = 0;
+
+		enum class use_result {
+			not_present,
+			not_ready,
+			busy,
+			success
+		};
+
+		concurrent_ring_buffer(concurrent_ring_buffer const&) = default;
+		concurrent_ring_buffer(concurrent_ring_buffer&&) = default;
 
 		concurrent_ring_buffer(int32_t buffer_exponent) {
 			int32_t final_size = 1 << buffer_exponent;
 			modulus_mask = uint32_t(final_size - 1);
 
-			buffer_contents = (ring_buffer_object*)_aligned_malloc(final_size * sizeof(ring_buffer_object), 64);
-			std::uninitialized_default_construct_n(buffer_contents, final_size);
+			buffer_contents.resize(final_size);
 		}
 
 		bool is_empty() {
 			return idle_back.load(std::memory_order_acquire) == idle_front.load(std::memory_order_acquire);
 		}
 
-		bool use_object(thread_context c) {
+		use_result try_use_object(thread_context c) {
 			uint32_t safe_back = idle_back.load(std::memory_order_acquire);
-			for(;;) {
-				uint32_t safe_front = idle_front.load(std::memory_order_acquire);
-				if(safe_back != safe_front && buffer_contents[safe_back & modulus_mask].header.test_preparation()) {
-					if(idle_back.compare_exchange_weak(safe_back, safe_back + 1, std::memory_order_acq_rel)) {
-						ring_buffer_object& slot = buffer_contents[safe_back & modulus_mask];
+			uint32_t safe_front = idle_front.load(std::memory_order_acquire);
 
-						slot.header.reset_preparation();
+			if(safe_back == safe_front)
+				return use_result::not_present;
+			if(!buffer_contents[safe_back & modulus_mask].header.test_preparation())
+				return use_result::not_ready;
+			if(!idle_back.compare_exchange_weak(safe_back, safe_back + 1, std::memory_order_acq_rel))
+				return use_result::busy;
 
-						slot.payload.fptr(c, slot.payload.payload_body);
-
-						slot.header.mark_finish_use();
-
-						return true;
-					}
-				} else {
-					return false;
-				}
-			}
+			ring_buffer_object& slot = buffer_contents[safe_back & modulus_mask];
+			slot.header.reset_preparation();
+			slot.payload.fptr(c, slot.payload.payload_body);
+			slot.header.mark_finish_use();
+			return use_result::success;
 		}
 
 		template<typename T>
@@ -917,15 +1016,40 @@ namespace ct {
 
 			slot.header.mark_finish_prepration();
 		}
+	};
 
-		template<typename O, typename ... T>
-		void emplace_object(T&& ... t) {
-			new (addr) O(std::forward<T ...>(t ...));
-			slot.payload.fptr = call_and_destory<O>;
+	
+	constexpr int32_t max_division = 4;
+
+	class thread_pool {
+	public:
+		std::vector<concurrent_ring_buffer> thread_work_items;
+		std::vector<std::thread> worker_threads;
+
+		const int32_t thread_count;
+		std::atomic<int32_t> tasks_pending = 0;
+
+		thread_pool() : thread_count(optimal_thread_count()) {
+			auto const buffer_min_size = max_division * thread_count + max_division * 2;
+
+			thread_work_items.resize(thread_count, rt_log2_round_up(buffer_min_size));
+
+			for(int32_t i = 1; i < thread_count; ++i) {
+				worker_threads.emplace_back([i, _this = this]() {
+					// ...
+				});
+				worker_threads[i - 1].detach();
+			}
+			
 		}
 
-		~concurrent_ring_buffer() {
-			_aligned_free(buffer_contents);
+		void wait() {
+
+		}
+
+		~thread_pool() {
+			// join threads ?
 		}
 	};
+	*/
 }
