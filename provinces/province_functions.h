@@ -49,7 +49,8 @@ namespace provinces {
 	void silent_on_conquer_province(world_state& ws, province_tag p);
 	void enable_canal(world_state& ws, uint32_t canal_id);
 	double distance(world_state const& ws, province_tag a, province_tag b); // in km
-	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
+	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km 
+	void old_path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results); // in ~km
 	void fill_distance_arrays(world_state& ws);
 
 	void ready_initial_province_statistics(world_state& ws);

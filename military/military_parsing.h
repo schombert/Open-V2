@@ -718,7 +718,7 @@ cb_file parse_cb_file(token_generator& gen, ERR_H& err, C&& context) {
 				 switch(int32_t(cur.end - cur.start)) {
 				 case 11:
 					 if((true && (*(uint64_t*)(cur.start + 0) | 0x2020202020202020ui64) == 0x726F7F6563616570ui64 && (*(uint16_t*)(cur.start + 8) | 0x2020) == 0x6564 && (*(cur.start + 10) | 0x20) == 0x72)) {
-						 cobj.peace_order(parse_peace_order(gen, err, context), err, context);
+						 cobj.handle_peace_order(parse_peace_order(gen, err, context), err, context);
 					 } else {
 						 cobj.reserve_cb(cur, find_group_range(cur, gen, err, context), err, context);
 					 }

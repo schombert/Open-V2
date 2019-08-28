@@ -392,6 +392,28 @@ namespace provinces {
 		else
 			return float(border_transition + avg_movement_cost * acos(container.get<province::centroid>(a).dot(container.get<province::centroid>(b))) * 40'075.0 / 6.2831853071);
 	}
+	
+	constexpr float non_allied_factor = 10'000.0f;
+
+	float military_with_adjustments_distance(
+		world_state const& ws,
+		province_tag a,
+		province_tag b,
+		set_tag<nations::country_tag> source_allies) {
+
+		auto& container = ws.s.province_m.province_container;
+
+		auto avg_movement_cost =
+			(
+			((container.get<province::is_sea>(a) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(a))
+				+ ((container.get<province::is_sea>(b) ? sea_cost_multiplier : 1.0) * ws.w.province_s.modifier_values.get<modifiers::provincial_offsets::movement_cost>(b))
+				) / 2.0;
+
+		if(ws.contains_item(source_allies, ws.get<province_state::controller>(b)))
+			return float(avg_movement_cost * acos(container.get<province::centroid>(a).dot(container.get<province::centroid>(b))) * 40'075.0 / 6.2831853071);
+		else
+			return non_allied_factor * float(avg_movement_cost * acos(container.get<province::centroid>(a).dot(container.get<province::centroid>(b))) * 40'075.0 / 6.2831853071);
+	}
 
 	struct province_distance {
 		float distance;
@@ -411,7 +433,21 @@ namespace provinces {
 		});
 	}
 
-	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results) { // in ~km
+
+	template <typename ITTYPE, typename COMP>
+	void sift_up(ITTYPE first, ITTYPE pos, COMP && cmp) {
+		using std::iter_swap;
+
+		while(pos != first) {
+			auto parent = first + (pos - first - 1) / 2;
+			if(!cmp(*parent, *pos))
+				return;
+			std::iter_swap(parent, pos);
+			pos = parent;
+		}
+	}
+
+	void old_path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results) { // in ~km
 		auto& container = ws.s.province_m.province_container;
 
 		std::fill_n(results, ws.s.province_m.province_container.size(), maximum_distance);
@@ -421,6 +457,7 @@ namespace provinces {
 		unfinished.push_back(province_distance{ 0.0f, a, false, province_tag() });
 
 		while(unfinished.size() != 0) {
+			std::pop_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
 			province_distance current = unfinished.back();
 			unfinished.pop_back();
 
@@ -437,26 +474,23 @@ namespace provinces {
 
 				if(results[to_index(p)] == maximum_distance) {
 					auto distance = with_adjustments_distance(ws, current.id, p);
+					const auto total_distance = distance + current.distance;
+					
+					if(auto const f = std::find_if(unfinished.begin(), unfinished.end(), [p](province_distance const& a) { return a.id == p; });
+						f != unfinished.end()) {
 
-					[&unfinished, p, total_distance = distance + current.distance, current]() {
-						const auto lend = unfinished.end().get_ptr();
-						for(auto i = unfinished.begin().get_ptr(); i != lend; ++i) {
-							if(i->id == p) {
-								if(i->distance > total_distance) {
-									i->distance = total_distance;
-									i->used_sea = current.used_sea;
-									i->origin = current.origin;
-									auto new_upper_limit = std::upper_bound(i + 1, lend, *i, [](province_distance a, province_distance b) { return a.distance > b.distance; });
-									if(new_upper_limit != i + 1)
-										std::rotate(i, i + 1, new_upper_limit);
-								}
-								return;
-							}
+						if(f->distance > total_distance) {
+							f->distance = total_distance;
+							f->used_sea = current.used_sea;
+							f->origin = current.origin;
+
+							sift_up(unfinished.begin(), f, [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
 						}
+					} else {
 						province_distance t{ total_distance, p , current.used_sea, is_valid_index(current.origin) ? current.origin : p };
-						auto end_position = std::upper_bound(unfinished.begin(), unfinished.end(), t, [](province_distance a, province_distance b) { return a.distance > b.distance; });
-						unfinished.insert(end_position, t);
-					}();
+						unfinished.push_back(t);
+						std::push_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
+					}
 				}
 			}
 			if(current.used_sea == false || is_sea) {
@@ -464,32 +498,132 @@ namespace provinces {
 
 					if(results[to_index(p)] == maximum_distance) {
 						auto distance = with_adjustments_distance(ws, current.id, p);
+						const auto total_distance = distance + current.distance;
 
-						[&unfinished, p, total_distance = distance + current.distance, current]() {
-							const auto lend = unfinished.end().get_ptr();
-							for(auto i = unfinished.begin().get_ptr(); i != lend; ++i) {
-								if(i->id == p) {
-									if(i->distance > total_distance) {
-										i->distance = total_distance;
-										i->used_sea = true;
-										i->origin = current.origin;
-										auto new_upper_limit = std::upper_bound(i + 1, lend, *i, [](province_distance a, province_distance b) { return a.distance > b.distance; });
-										if(new_upper_limit != i + 1)
-											std::rotate(i, i + 1, new_upper_limit);
-									}
-									return;
-								}
+						if(auto const f = std::find_if(unfinished.begin(), unfinished.end(), [p](province_distance const& a) { return a.id == p; });
+							f != unfinished.end()) {
+
+							if(f->distance > total_distance) {
+								f->distance = total_distance;
+								f->used_sea = true;
+								f->origin = current.origin;
+
+								sift_up(unfinished.begin(), f, [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
 							}
-							province_distance t{ total_distance, p, true, is_valid_index(current.origin) ? current.origin : p };
-							auto end_position = std::upper_bound(unfinished.begin(), unfinished.end(), t, [](province_distance a, province_distance b) { return a.distance > b.distance; });
-							unfinished.insert(end_position, t);
-						}();
+						} else {
+							province_distance t{ total_distance, p , true, is_valid_index(current.origin) ? current.origin : p };
+							unfinished.push_back(t);
+							std::push_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
+						}
 					}
 				}
 			}
 
 			//std::sort(unfinished.begin(), unfinished.end(), [](province_distance a, province_distance b) { return a.distance > b.distance; });
 		}
+	}
+
+	// variant checks for duplication upon taking out of unfinished list rather than upon addition
+	// trades speed of insertion to list against larger list size
+
+	void path_wise_distance_cost(world_state const& ws, province_tag a, float* results, province_tag* p_results) { // in ~km
+		auto& container = ws.s.province_m.province_container;
+
+		std::fill_n(results, ws.s.province_m.province_container.size(), maximum_distance);
+		std::fill_n(p_results, ws.s.province_m.province_container.size(), province_tag());
+
+		boost::container::small_vector<province_distance, 256, concurrent_allocator<province_distance>> unfinished;
+		unfinished.push_back(province_distance{ 0.0f, a, false, province_tag() });
+
+		while(unfinished.size() != 0) {
+			std::pop_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
+			province_distance current = unfinished.back();
+			unfinished.pop_back();
+
+			if(results[to_index(current.id)] > current.distance) {
+				results[to_index(current.id)] = current.distance;
+				p_results[to_index(current.id)] = current.origin;
+
+
+
+				bool is_sea = container.get<province::is_sea>(current.id);
+				auto same_adjacent = ws.s.province_m.same_type_adjacency.get_range(current.id);
+				auto coastal_adjacent = ws.s.province_m.coastal_adjacency.get_range(current.id);
+
+				for(auto p : same_adjacent) {
+					if(results[to_index(p)] == maximum_distance) {
+						auto distance = with_adjustments_distance(ws, current.id, p);
+
+						province_distance t{ distance + current.distance, p , current.used_sea, is_valid_index(current.origin) ? current.origin : p };
+						//auto end_position = std::upper_bound(unfinished.begin(), unfinished.end(), t, [](province_distance a, province_distance b) { return a.distance > b.distance; });
+						unfinished.push_back(t);
+						std::push_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
+					}
+				}
+				if(current.used_sea == false || is_sea) {
+					for(auto p : coastal_adjacent) {
+						if(results[to_index(p)] == maximum_distance) {
+							auto distance = with_adjustments_distance(ws, current.id, p);
+
+							province_distance t{ distance + current.distance, p, true, is_valid_index(current.origin) ? current.origin : p };
+							//auto end_position = std::upper_bound(unfinished.begin(), unfinished.end(), t, [](province_distance a, province_distance b) { return a.distance > b.distance; });
+							unfinished.push_back(t);
+							std::push_heap(unfinished.begin(), unfinished.end(), [](province_distance const& a, province_distance const& b) { return a.distance > b.distance; });
+						}
+					}
+				}
+			}
+		}
+	}
+
+	struct military_province_distance {
+		float distance;
+		provinces::province_tag id;
+	};
+
+	void military_path_wise_distance_cost(world_state const& ws, province_tag a, nations::country_tag border_from, nations::country_tag border_to,
+		tagged_array_view<float, provinces::province_tag> max_distances) { // in ~km
+
+		std::fill_n(max_distances.data(), ws.s.province_m.province_container.size(), maximum_distance * non_allied_factor);
+		auto const source_owner = ws.get<province_state::owner>(a);
+		auto const source_allies = ws.get<nation::allies_in_war>(source_owner);
+
+		boost::container::small_vector<military_province_distance, 256, concurrent_allocator<military_province_distance>> unfinished;
+		unfinished.push_back(military_province_distance{ 0.0f, a, });
+
+		while(unfinished.size() != 0) {
+			std::pop_heap(unfinished.begin(), unfinished.end(), [](military_province_distance const& a, military_province_distance const& b) { return a.distance > b.distance; });
+			military_province_distance current = unfinished.back();
+			unfinished.pop_back();
+
+			if(max_distances[current.id] > current.distance) {
+				max_distances[current.id] = current.distance;
+
+				auto same_adjacent = ws.s.province_m.same_type_adjacency.get_range(current.id);
+				auto coastal_adjacent = ws.s.province_m.coastal_adjacency.get_range(current.id);
+
+				for(auto p : same_adjacent) {
+					if(max_distances[p] == maximum_distance) {
+						auto distance = military_with_adjustments_distance(ws, current.id, p, source_allies);
+
+						military_province_distance t{ distance + current.distance, p };
+						unfinished.push_back(t);
+						std::push_heap(unfinished.begin(), unfinished.end(), [](military_province_distance const& a, military_province_distance const& b) { return a.distance > b.distance; });
+					}
+				}
+				
+				for(auto p : coastal_adjacent) {
+					if(max_distances[p] == maximum_distance) {
+						auto distance = military_with_adjustments_distance(ws, current.id, p, source_allies);
+
+						military_province_distance t{ distance + current.distance, p };
+						unfinished.push_back(t);
+						std::push_heap(unfinished.begin(), unfinished.end(), [](military_province_distance const& a, military_province_distance const& b) { return a.distance > b.distance; });
+					}
+				}
+			}
+		}
+
 	}
 
 	void state_distances_manager::update(world_state const & ws) {

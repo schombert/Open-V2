@@ -177,6 +177,33 @@ public:
 	}
 };
 
+class combiner_usage_d {
+public:
+	static concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>> combiner;
+	moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize> result;
+
+	int test_function() {
+		concurrency::parallel_for(0, 255, [_this = this](int32_t i) {
+			auto& lview = _this->combiner.local();
+			for(int32_t j = 0; j < vsize; ++j) {
+				lview[j] = float(j);
+			}
+		});
+		ve::set_zero(vsize, result.view(), ve::serial_exact{});
+
+		combiner.combine_each([r = result.view()](moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>& i) {
+			ve::execute_serial<int32_t>(uint32_t(vsize), [r, t = i.view()](auto exec) {
+				ve::store(exec, r, ve::load(exec, r) + ve::load(exec, t));
+				ve::store(exec, t, 0.0f);
+			});
+		});
+
+		return int(result.view()[27]);
+	}
+};
+
+concurrency::combinable<moveable_concurrent_cache_aligned_buffer<float, int32_t, true, vsize>> combiner_usage_d::combiner;
+
 int main() {
 	logging_object log;
 
@@ -241,5 +268,9 @@ int main() {
 	{
 		test_object<40, 1000, combiner_usage_a> to;
 		std::cout << to.log_function(log, "combiner usage a2") << std::endl;
+	}
+	{
+		test_object<40, 1000, combiner_usage_d> to;
+		std::cout << to.log_function(log, "combiner usage static") << std::endl;
 	}
 }

@@ -48,7 +48,7 @@ oob_file
 peace_order
 	#value : (token) -> member_fn(add_cb)
 cb_file
-	peace_order : group(peace_order) -> member_fn(peace_order)
+	peace_order : group(peace_order) -> member_fn(handle_peace_order)
 	#any : extern(find_group_range) -> member_fn(reserve_cb)
 traits_file
 	personality : group(personalities) -> member_fn(add_personalities)

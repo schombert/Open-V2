@@ -305,7 +305,7 @@ namespace military {
 		bool(*test_trigger_fn)(world_state_t const&, triggers::trigger_tag, triggers::const_parameter, triggers::const_parameter, triggers::const_parameter),
 		void (*post_msg_fn)(bool, world_state_t& ws, nations::country_tag, nations::country_tag, cb_type_tag)>
 	RELEASE_INLINE void internal_update_player_cb_state(world_state_t& ws) {
-		if(get_player_fn(ws))
+		if(!get_player_fn(ws))
 			return;
 
 		ws.par_for_each<military::cb_type_tag>([&ws](military::cb_type_tag c) {

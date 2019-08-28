@@ -399,7 +399,7 @@ namespace military {
 
 	struct cb_file {
 		template<typename ERR, typename WS>
-		void peace_order(const peace_order&, ERR& err, WS& s) {}
+		void handle_peace_order(const peace_order&, ERR& err, WS& s) {}
 
 		template<typename ERR, typename WS>
 		void reserve_cb(token_and_type const& t, text_range r, ERR& err, WS& s) {

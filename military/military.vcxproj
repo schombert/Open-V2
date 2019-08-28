@@ -199,6 +199,8 @@
     <CustomBuild Include="military_parsing.txt">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">..\bin\parser_generator.exe military_parsing.txt</Command>
       <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">military_parsing.h</Outputs>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">..\bin\parser_generator.exe military_parsing.txt</Command>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">military_parsing.h</Outputs>
     </CustomBuild>
   </ItemGroup>
   <ItemGroup>
