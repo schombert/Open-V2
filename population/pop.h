@@ -36,6 +36,8 @@ namespace pop {
 	struct militancy;
 	struct consciousness;
 
+constexpr int32_t max_count = pop::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 population::pop_tag first_free;

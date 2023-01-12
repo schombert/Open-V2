@@ -549,7 +549,7 @@ namespace graphics {
 		const auto full_fn = root.peek_file(fallback, fallback + sizeof(fallback) - 1);
 		if (full_fn) {
 			const auto ufilename = full_fn->file_path() + u'\\' + full_fn->file_name();
-			const std::string afilename(ufilename.begin(), ufilename.end());
+			const std::string afilename(UTF16toUTF8(ufilename));
 			fonts.emplace_back(afilename.c_str());
 		} else {
 #ifdef _DEBUG
@@ -560,7 +560,7 @@ namespace graphics {
 		const auto full_fn_b = root.peek_file(sans_serif, sans_serif + sizeof(sans_serif) - 1);
 		if (full_fn_b) {
 			const auto ufilename = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
-			const std::string afilename(ufilename.begin(), ufilename.end());
+			const std::string afilename(UTF16toUTF8(ufilename));
 			fonts.emplace_back(afilename.c_str(), at(font_tag(0)));
 		} else {
 #ifdef _DEBUG
@@ -571,7 +571,7 @@ namespace graphics {
 		const auto full_fn_c = root.peek_file(fancy_font, fancy_font + sizeof(fancy_font) - 1);
 		if (full_fn_c) {
 			const auto ufilename = full_fn_c->file_path() + u'\\' + full_fn_c->file_name();
-			const std::string afilename(ufilename.begin(), ufilename.end());
+			const std::string afilename(UTF16toUTF8(ufilename));
 			fonts.emplace_back(afilename.c_str(), at(font_tag(0)));
 		} else {
 #ifdef _DEBUG

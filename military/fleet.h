@@ -21,6 +21,8 @@ namespace fleet {
 	struct size;
 	struct arrival_time;
 
+constexpr int32_t max_count = fleet::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::fleet_tag first_free;

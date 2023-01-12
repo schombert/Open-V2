@@ -3,6 +3,7 @@
 
 #pragma warning( push )
 #pragma warning( disable : 4065 )
+#pragma warning( disable : 4189 )
 
 namespace military_parsing {
 template<typename ERR_H, typename C = int32_t>

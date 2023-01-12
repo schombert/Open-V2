@@ -6,6 +6,7 @@
 #include <Windows.h>
 #include <wingdi.h>
 #include <thread>
+#include "Parsers/parsers.h"
 
 #include "soil\\SOIL.h"
 
@@ -122,12 +123,12 @@ namespace graphics {
 			const auto full_fn_b = root.peek_file(std::u16string(start, end - 3) + u"dds");
 			if (full_fn_b) {
 				std::u16string full_path = full_fn_b->file_path() + u'\\' + full_fn_b->file_name();
-				new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+				new_key = textures.emplace_back(UTF16toUTF8(full_path));
 			} else {
 				const auto full_fn = root.peek_file(start, end);
 				if(full_fn) {
 					std::u16string full_path = full_fn->file_path() + u'\\' + full_fn->file_name();
-					new_key = textures.emplace_back(std::string(full_path.begin(), full_path.end()));
+					new_key = textures.emplace_back(UTF16toUTF8(full_path));
 				} else {
 					new_key = texture_tag();
 				}

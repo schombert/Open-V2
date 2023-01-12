@@ -412,6 +412,7 @@ int wmain(int argc, wchar_t *argv[]) {
 
 			output += "#pragma warning( push )\r\n";
 			output += "#pragma warning( disable : 4065 )\r\n";
+			output += "#pragma warning( disable : 4189 )\r\n";
 			output += "\r\n";
 
 			output += "namespace ";

@@ -32,7 +32,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <FloatingPointModel>Fast</FloatingPointModel>
       <RuntimeTypeInfo>false</RuntimeTypeInfo>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard>stdcpp20</LanguageStandard>
       <CallingConvention>
       </CallingConvention>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>

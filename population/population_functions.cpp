@@ -1649,7 +1649,7 @@ namespace population {
 
 		nations::country_tag choose_nation(world_state const& ws) {
 			int32_t const nation_count = ws.w.nation_s.nations.size();
-			std::uniform_real_distribution<float> const dist(0.0f, nation_weights_sum);
+			std::uniform_real_distribution<float> dist(0.0f, nation_weights_sum);
 			auto const chosen = dist(get_local_generator());
 
 			auto const chosen_position = std::lower_bound(nation_weights.begin(), nation_weights.begin() + nation_count, chosen);
@@ -1678,7 +1678,7 @@ namespace population {
 			}
 
 			auto const total_weights = sum_province_weights_by_nation[n];
-			std::uniform_real_distribution<float> const dist(0.0f, total_weights);
+			std::uniform_real_distribution<float> dist(0.0f, total_weights);
 			auto chosen = dist(get_local_generator());
 
 			auto const chosen_position = std::lower_bound(
@@ -1776,7 +1776,7 @@ namespace population {
 				} else if(focused_type && (chances[to_index(focused_type) + 1] - chances[to_index(focused_type)]) > 0) {
 					return focused_type;
 				} else {
-					std::uniform_real_distribution<float> const dist(0.0f, total_chances);
+					std::uniform_real_distribution<float> dist(0.0f, total_chances);
 					auto const chosen = dist(get_local_generator());
 
 					auto const lb = std::lower_bound(chances + 1, chances + 1 + ws.s.population_m.count_poptypes, chosen);

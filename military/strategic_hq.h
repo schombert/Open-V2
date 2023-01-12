@@ -26,6 +26,8 @@ namespace strategic_hq {
 	struct total_non_soldier_pops;
 	struct mobilization_level;
 
+constexpr int32_t max_count = strategic_hq::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::strategic_hq_tag first_free;

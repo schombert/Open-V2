@@ -890,8 +890,8 @@ namespace economy {
 		auto const state_capital = nations::get_state_capital(ws, s);
 		auto const state_owner = ws.w.nation_s.states.get<state::owner>(s);
 
-		auto this_strata = ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask;
-		auto const ln_factor = get_life_need_factor(ws, state_owner, state_capital, this_strata);
+		//auto this_strata = ws.s.population_m.pop_types[type].flags & population::pop_type::strata_mask;
+		//auto const ln_factor = get_life_need_factor(ws, state_owner, state_capital, this_strata);
 
 		auto ln = ws.s.population_m.life_needs.get_row(type);
 
@@ -2384,7 +2384,7 @@ namespace economy {
 			}
 		}
 
-		std::uniform_real_distribution<money_qnty_type> const dist(money_qnty_type(0), profit_sum);
+		std::uniform_real_distribution<money_qnty_type> dist(money_qnty_type(0), profit_sum);
 		auto const chosen = dist(get_local_generator());
 
 		auto lb = std::lower_bound(result.begin(), result.end(), chosen, [](std::pair<artisan_type_tag, money_qnty_type> p, money_qnty_type v) { return p.second < v; });

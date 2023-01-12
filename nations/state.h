@@ -35,6 +35,8 @@ namespace state {
 	struct colonizers;
 	struct factories;
 
+constexpr int32_t max_count = 900;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 nations::state_tag first_free;
@@ -154,459 +156,459 @@ namespace state {
 		 }
 
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_slave_state>, bool> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_slave_state>, bool> get(nations::state_tag i) const {
 			 return bit_vector_test(m_0.values, to_index(i));
 		 }
 		 template<typename INDEX>
-		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, is_slave_state>> {
+		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, state::is_slave_state>> {
 			 bit_vector_set(m_0.values, to_index(i), v);
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_slave_state>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_slave_state>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
 			 return tagged_array_view<bitfield_type, nations::state_tag>(m_0.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_slave_state>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_slave_state>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<bitfield_type const, nations::state_tag>(m_0.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_colonial>, bool> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_colonial>, bool> get(nations::state_tag i) const {
 			 return bit_vector_test(m_1.values, to_index(i));
 		 }
 		 template<typename INDEX>
-		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, is_colonial>> {
+		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, state::is_colonial>> {
 			 bit_vector_set(m_1.values, to_index(i), v);
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_colonial>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_colonial>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
 			 return tagged_array_view<bitfield_type, nations::state_tag>(m_1.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_colonial>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_colonial>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<bitfield_type const, nations::state_tag>(m_1.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_protectorate>, bool> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_protectorate>, bool> get(nations::state_tag i) const {
 			 return bit_vector_test(m_2.values, to_index(i));
 		 }
 		 template<typename INDEX>
-		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, is_protectorate>> {
+		 auto set(nations::state_tag i, bool v) -> std::enable_if_t<std::is_same_v<INDEX, state::is_protectorate>> {
 			 bit_vector_set(m_2.values, to_index(i), v);
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_protectorate>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_protectorate>, tagged_array_view<bitfield_type, nations::state_tag>> get_row() {
 			 return tagged_array_view<bitfield_type, nations::state_tag>(m_2.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, is_protectorate>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::is_protectorate>, tagged_array_view<bitfield_type const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<bitfield_type const, nations::state_tag>(m_2.values, int32_t(uint32_t(size_used + 7) / 8ui32));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_religion>, cultures::religion_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_religion>, cultures::religion_tag&> get(nations::state_tag i) {
 			 return m_3.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_religion>, cultures::religion_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_religion>, cultures::religion_tag const&> get(nations::state_tag i) const {
 			 return m_3.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_religion>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_religion>> {
 			 m_3.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_religion>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_religion>> {
 			 m_3.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_religion>, tagged_array_view<cultures::religion_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_religion>, tagged_array_view<cultures::religion_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<cultures::religion_tag, nations::state_tag>(m_3.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_religion>, tagged_array_view<cultures::religion_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_religion>, tagged_array_view<cultures::religion_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<cultures::religion_tag const, nations::state_tag>(m_3.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_ideology>, ideologies::ideology_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_ideology>, ideologies::ideology_tag&> get(nations::state_tag i) {
 			 return m_4.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_ideology>, ideologies::ideology_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_ideology>, ideologies::ideology_tag const&> get(nations::state_tag i) const {
 			 return m_4.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_ideology>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_ideology>> {
 			 m_4.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_ideology>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_ideology>> {
 			 m_4.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_ideology>, tagged_array_view<ideologies::ideology_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_ideology>, tagged_array_view<ideologies::ideology_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<ideologies::ideology_tag, nations::state_tag>(m_4.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_ideology>, tagged_array_view<ideologies::ideology_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_ideology>, tagged_array_view<ideologies::ideology_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<ideologies::ideology_tag const, nations::state_tag>(m_4.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_issue>, issues::option_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_issue>, issues::option_tag&> get(nations::state_tag i) {
 			 return m_5.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_issue>, issues::option_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_issue>, issues::option_tag const&> get(nations::state_tag i) const {
 			 return m_5.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_issue>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_issue>> {
 			 m_5.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_issue>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_issue>> {
 			 m_5.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_issue>, tagged_array_view<issues::option_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_issue>, tagged_array_view<issues::option_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<issues::option_tag, nations::state_tag>(m_5.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_issue>, tagged_array_view<issues::option_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_issue>, tagged_array_view<issues::option_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<issues::option_tag const, nations::state_tag>(m_5.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, region_id>, provinces::state_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::region_id>, provinces::state_tag&> get(nations::state_tag i) {
 			 return m_6.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, region_id>, provinces::state_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::region_id>, provinces::state_tag const&> get(nations::state_tag i) const {
 			 return m_6.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, region_id>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::region_id>> {
 			 m_6.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, region_id>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::region_id>> {
 			 m_6.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, region_id>, tagged_array_view<provinces::state_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::region_id>, tagged_array_view<provinces::state_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<provinces::state_tag, nations::state_tag>(m_6.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, region_id>, tagged_array_view<provinces::state_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::region_id>, tagged_array_view<provinces::state_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<provinces::state_tag const, nations::state_tag>(m_6.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, crisis_tag>, cultures::national_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::crisis_tag>, cultures::national_tag&> get(nations::state_tag i) {
 			 return m_7.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, crisis_tag>, cultures::national_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::crisis_tag>, cultures::national_tag const&> get(nations::state_tag i) const {
 			 return m_7.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, crisis_tag>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::crisis_tag>> {
 			 m_7.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, crisis_tag>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::crisis_tag>> {
 			 m_7.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, crisis_tag>, tagged_array_view<cultures::national_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::crisis_tag>, tagged_array_view<cultures::national_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<cultures::national_tag, nations::state_tag>(m_7.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, crisis_tag>, tagged_array_view<cultures::national_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::crisis_tag>, tagged_array_view<cultures::national_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<cultures::national_tag const, nations::state_tag>(m_7.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_culture>, cultures::culture_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_culture>, cultures::culture_tag&> get(nations::state_tag i) {
 			 return m_8.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_culture>, cultures::culture_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_culture>, cultures::culture_tag const&> get(nations::state_tag i) const {
 			 return m_8.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_culture>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_culture>> {
 			 m_8.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, dominant_culture>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::dominant_culture>> {
 			 m_8.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_culture>, tagged_array_view<cultures::culture_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_culture>, tagged_array_view<cultures::culture_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<cultures::culture_tag, nations::state_tag>(m_8.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, dominant_culture>, tagged_array_view<cultures::culture_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::dominant_culture>, tagged_array_view<cultures::culture_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<cultures::culture_tag const, nations::state_tag>(m_8.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, state_capital>, provinces::province_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::state_capital>, provinces::province_tag&> get(nations::state_tag i) {
 			 return m_9.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, state_capital>, provinces::province_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::state_capital>, provinces::province_tag const&> get(nations::state_tag i) const {
 			 return m_9.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state_capital>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::state_capital>> {
 			 m_9.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state_capital>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::state_capital>> {
 			 m_9.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, state_capital>, tagged_array_view<provinces::province_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::state_capital>, tagged_array_view<provinces::province_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<provinces::province_tag, nations::state_tag>(m_9.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, state_capital>, tagged_array_view<provinces::province_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::state_capital>, tagged_array_view<provinces::province_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<provinces::province_tag const, nations::state_tag>(m_9.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, name>, text_data::text_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::name>, text_data::text_tag&> get(nations::state_tag i) {
 			 return m_10.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, name>, text_data::text_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::name>, text_data::text_tag const&> get(nations::state_tag i) const {
 			 return m_10.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, name>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::name>> {
 			 m_10.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, name>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::name>> {
 			 m_10.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, name>, tagged_array_view<text_data::text_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::name>, tagged_array_view<text_data::text_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<text_data::text_tag, nations::state_tag>(m_10.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, name>, tagged_array_view<text_data::text_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::name>, tagged_array_view<text_data::text_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<text_data::text_tag const, nations::state_tag>(m_10.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, current_tension>, float&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::current_tension>, float&> get(nations::state_tag i) {
 			 return m_11.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, current_tension>, float const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::current_tension>, float const&> get(nations::state_tag i) const {
 			 return m_11.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, current_tension>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::current_tension>> {
 			 m_11.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, current_tension>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::current_tension>> {
 			 m_11.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, current_tension>, tagged_array_view<float, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::current_tension>, tagged_array_view<float, nations::state_tag>> get_row() {
 			 return tagged_array_view<float, nations::state_tag>(m_11.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, current_tension>, tagged_array_view<float const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::current_tension>, tagged_array_view<float const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<float const, nations::state_tag>(m_11.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, administrative_efficiency>, float&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::administrative_efficiency>, float&> get(nations::state_tag i) {
 			 return m_12.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, administrative_efficiency>, float const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::administrative_efficiency>, float const&> get(nations::state_tag i) const {
 			 return m_12.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, administrative_efficiency>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::administrative_efficiency>> {
 			 m_12.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, administrative_efficiency>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::administrative_efficiency>> {
 			 m_12.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, administrative_efficiency>, tagged_array_view<float, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::administrative_efficiency>, tagged_array_view<float, nations::state_tag>> get_row() {
 			 return tagged_array_view<float, nations::state_tag>(m_12.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, administrative_efficiency>, tagged_array_view<float const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::administrative_efficiency>, tagged_array_view<float const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<float const, nations::state_tag>(m_12.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, total_population>, float&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::total_population>, float&> get(nations::state_tag i) {
 			 return m_13.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, total_population>, float const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::total_population>, float const&> get(nations::state_tag i) const {
 			 return m_13.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, total_population>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::total_population>> {
 			 m_13.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, total_population>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::total_population>> {
 			 m_13.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, total_population>, tagged_array_view<float, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::total_population>, tagged_array_view<float, nations::state_tag>> get_row() {
 			 return tagged_array_view<float, nations::state_tag>(m_13.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, total_population>, tagged_array_view<float const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::total_population>, tagged_array_view<float const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<float const, nations::state_tag>(m_13.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, flashpoint_tension_focuses>, set_tag<nations::country_tag>&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::flashpoint_tension_focuses>, set_tag<nations::country_tag>&> get(nations::state_tag i) {
 			 return m_14.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, flashpoint_tension_focuses>, set_tag<nations::country_tag> const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::flashpoint_tension_focuses>, set_tag<nations::country_tag> const&> get(nations::state_tag i) const {
 			 return m_14.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, flashpoint_tension_focuses>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::flashpoint_tension_focuses>> {
 			 m_14.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, flashpoint_tension_focuses>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::flashpoint_tension_focuses>> {
 			 m_14.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, flashpoint_tension_focuses>, tagged_array_view<set_tag<nations::country_tag>, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::flashpoint_tension_focuses>, tagged_array_view<set_tag<nations::country_tag>, nations::state_tag>> get_row() {
 			 return tagged_array_view<set_tag<nations::country_tag>, nations::state_tag>(m_14.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, flashpoint_tension_focuses>, tagged_array_view<set_tag<nations::country_tag> const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::flashpoint_tension_focuses>, tagged_array_view<set_tag<nations::country_tag> const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<set_tag<nations::country_tag> const, nations::state_tag>(m_14.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, project>, nations::pop_project&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::project>, nations::pop_project&> get(nations::state_tag i) {
 			 return m_15.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, project>, nations::pop_project const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::project>, nations::pop_project const&> get(nations::state_tag i) const {
 			 return m_15.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, project>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::project>> {
 			 m_15.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, project>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::project>> {
 			 m_15.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, project>, tagged_array_view<nations::pop_project, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::project>, tagged_array_view<nations::pop_project, nations::state_tag>> get_row() {
 			 return tagged_array_view<nations::pop_project, nations::state_tag>(m_15.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, project>, tagged_array_view<nations::pop_project const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::project>, tagged_array_view<nations::pop_project const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<nations::pop_project const, nations::state_tag>(m_15.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner_national_focus>, modifiers::national_focus_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner_national_focus>, modifiers::national_focus_tag&> get(nations::state_tag i) {
 			 return m_16.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner_national_focus>, modifiers::national_focus_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner_national_focus>, modifiers::national_focus_tag const&> get(nations::state_tag i) const {
 			 return m_16.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, owner_national_focus>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::owner_national_focus>> {
 			 m_16.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, owner_national_focus>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::owner_national_focus>> {
 			 m_16.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner_national_focus>, tagged_array_view<modifiers::national_focus_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner_national_focus>, tagged_array_view<modifiers::national_focus_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<modifiers::national_focus_tag, nations::state_tag>(m_16.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner_national_focus>, tagged_array_view<modifiers::national_focus_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner_national_focus>, tagged_array_view<modifiers::national_focus_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<modifiers::national_focus_tag const, nations::state_tag>(m_16.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner>, nations::country_tag&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner>, nations::country_tag&> get(nations::state_tag i) {
 			 return m_17.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner>, nations::country_tag const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner>, nations::country_tag const&> get(nations::state_tag i) const {
 			 return m_17.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, owner>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::owner>> {
 			 m_17.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, owner>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::owner>> {
 			 m_17.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner>, tagged_array_view<nations::country_tag, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner>, tagged_array_view<nations::country_tag, nations::state_tag>> get_row() {
 			 return tagged_array_view<nations::country_tag, nations::state_tag>(m_17.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, owner>, tagged_array_view<nations::country_tag const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::owner>, tagged_array_view<nations::country_tag const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<nations::country_tag const, nations::state_tag>(m_17.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, colonizers>, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::colonizers>, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>&> get(nations::state_tag i) {
 			 return m_18.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, colonizers>, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count> const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::colonizers>, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count> const&> get(nations::state_tag i) const {
 			 return m_18.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, colonizers>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::colonizers>> {
 			 m_18.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, colonizers>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::colonizers>> {
 			 m_18.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, colonizers>, tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::colonizers>, tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>, nations::state_tag>> get_row() {
 			 return tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>, nations::state_tag>(m_18.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, colonizers>, tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count> const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::colonizers>, tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count> const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count> const, nations::state_tag>(m_18.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, factories>, std::array<economy::factory_instance, state::factories_count>&> get(nations::state_tag i) {
+		 std::enable_if_t<std::is_same_v<INDEX, state::factories>, std::array<economy::factory_instance, state::factories_count>&> get(nations::state_tag i) {
 			 return m_19.values[to_index(i)];
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, factories>, std::array<economy::factory_instance, state::factories_count> const&> get(nations::state_tag i) const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::factories>, std::array<economy::factory_instance, state::factories_count> const&> get(nations::state_tag i) const {
 			 return m_19.values[to_index(i)];
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, factories>> {
+		 auto set(nations::state_tag i, value_type v) -> std::enable_if_t<std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::factories>> {
 			 m_19.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX, typename value_type>
-		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, factories>> {
+		 auto set(nations::state_tag i, value_type const& v) -> std::enable_if_t<!std::is_trivially_copyable_v<value_type> && std::is_same_v<INDEX, state::factories>> {
 			 m_19.values[to_index(i)] = v;
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, factories>, tagged_array_view<std::array<economy::factory_instance, state::factories_count>, nations::state_tag>> get_row() {
+		 std::enable_if_t<std::is_same_v<INDEX, state::factories>, tagged_array_view<std::array<economy::factory_instance, state::factories_count>, nations::state_tag>> get_row() {
 			 return tagged_array_view<std::array<economy::factory_instance, state::factories_count>, nations::state_tag>(m_19.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 		 template<typename INDEX>
-		 std::enable_if_t<std::is_same_v<INDEX, factories>, tagged_array_view<std::array<economy::factory_instance, state::factories_count> const, nations::state_tag>> get_row() const {
+		 std::enable_if_t<std::is_same_v<INDEX, state::factories>, tagged_array_view<std::array<economy::factory_instance, state::factories_count> const, nations::state_tag>> get_row() const {
 			 return tagged_array_view<std::array<economy::factory_instance, state::factories_count> const, nations::state_tag>(m_19.values, ve::to_vector_size(uint32_t(size_used)));
 		 }
 
@@ -624,27 +626,27 @@ namespace state {
 		 }
 		 void resize(int32_t) {}
 		 void release(nations::state_tag i) {
-			 set<is_slave_state>(i, false);
-			 set<is_colonial>(i, false);
-			 set<is_protectorate>(i, false);
-			 set<dominant_religion>(i, cultures::religion_tag());
-			 set<dominant_ideology>(i, ideologies::ideology_tag());
-			 set<dominant_issue>(i, issues::option_tag());
-			 set<region_id>(i, provinces::state_tag());
-			 set<crisis_tag>(i, cultures::national_tag());
-			 set<dominant_culture>(i, cultures::culture_tag());
-			 set<state_capital>(i, provinces::province_tag());
-			 set<name>(i, text_data::text_tag());
-			 set<current_tension>(i, float());
-			 set<administrative_efficiency>(i, float());
-			 set<total_population>(i, float());
-			 set<flashpoint_tension_focuses>(i, set_tag<nations::country_tag>());
-			 set<project>(i, nations::pop_project());
-			 set<owner_national_focus>(i, modifiers::national_focus_tag());
-			 set<owner>(i, nations::country_tag());
-			 set<colonizers>(i, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>());
-			 set<factories>(i, std::array<economy::factory_instance, state::factories_count>());
-			 m_index.values[to_index(first_free)] = i;
+			 set<state::is_slave_state>(i, false);
+			 set<state::is_colonial>(i, false);
+			 set<state::is_protectorate>(i, false);
+			 set<state::dominant_religion>(i, cultures::religion_tag());
+			 set<state::dominant_ideology>(i, ideologies::ideology_tag());
+			 set<state::dominant_issue>(i, issues::option_tag());
+			 set<state::region_id>(i, provinces::state_tag());
+			 set<state::crisis_tag>(i, cultures::national_tag());
+			 set<state::dominant_culture>(i, cultures::culture_tag());
+			 set<state::state_capital>(i, provinces::province_tag());
+			 set<state::name>(i, text_data::text_tag());
+			 set<state::current_tension>(i, float());
+			 set<state::administrative_efficiency>(i, float());
+			 set<state::total_population>(i, float());
+			 set<state::flashpoint_tension_focuses>(i, set_tag<nations::country_tag>());
+			 set<state::project>(i, nations::pop_project());
+			 set<state::owner_national_focus>(i, modifiers::national_focus_tag());
+			 set<state::owner>(i, nations::country_tag());
+			 set<state::colonizers>(i, std::array<std::pair<nations::country_tag, int32_t>, state::colonizers_count>());
+			 set<state::factories>(i, std::array<economy::factory_instance, state::factories_count>());
+			 m_index.values[to_index(i)] = first_free;
 			 first_free = i;
 			 if(size_used - 1 == to_index(i)) {
 				 for(int32_t j = size_used; j >= 0; --j) {

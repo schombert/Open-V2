@@ -31,6 +31,8 @@ namespace military_leader {
 	struct is_attached;
 	struct is_general;
 
+constexpr int32_t max_count = military_leader::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::leader_tag first_free;

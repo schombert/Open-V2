@@ -1273,7 +1273,8 @@ namespace population {
 
 		for(const auto& file : poptype_files) {
 			const auto fname = file.file_name();
-			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(fname.begin(), fname.end() - 4ui32) : std::string("");
+			const auto ufname = UTF16toUTF8(fname);
+			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(ufname.begin(), ufname.end() - 4ui32) : std::string("");
 			const auto name_tag = text_data::get_thread_safe_text_handle(text_function, clipped_unicode.c_str(), clipped_unicode.c_str() + clipped_unicode.size());
 
 			++manager.count_poptypes;
@@ -1357,7 +1358,8 @@ namespace population {
 
 		for(const auto& file : poptype_files) {
 			const auto fname = file.file_name();
-			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(fname.begin(), fname.end() - 4ui32) : std::string("");
+			const auto ufname = UTF16toUTF8(fname);
+			const auto clipped_unicode = fname.size() >= 4ui64 ? std::string(ufname.begin(), ufname.end() - 4ui32) : std::string("");
 			const auto name_tag = text_data::get_thread_safe_text_handle(s.gui_m.text_data_sequences, clipped_unicode.c_str(), clipped_unicode.c_str() + clipped_unicode.size());
 
 			const auto poptype_tag = s.population_m.named_pop_type_index.at(name_tag);

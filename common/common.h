@@ -34,7 +34,13 @@
 #define EIGEN_INITIALIZE_MATRICES_BY_ZERO
 #define EIGEN_NO_MALLOC
 
+
+#pragma warning( push )
+#pragma warning(disable:5054)
+
 #include "Eigen\\Dense"
+
+#pragma warning( pop )
 
 #ifdef __llvm__
 #pragma clang diagnostic pop
@@ -780,6 +786,58 @@ RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<std::is_
 template<typename INDEX, typename tag_type> \
 RELEASE_INLINE auto resize(tag_type t, int32_t sz) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, void> { \
 	container_name.resize(sz); \
+}
+
+#define GET_SET_TDV(index_name, container_name) \
+template<typename INDEX, typename tag_type, typename inner_tag_type> \
+RELEASE_INLINE auto get(tag_type t, inner_tag_type u) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get(t,u)), void>, decltype(container_name.get(t,u))> { \
+	return container_name.get(t,u); \
+} \
+template<typename INDEX, typename tag_type, typename inner_tag_type> \
+RELEASE_INLINE auto get(tag_type t, inner_tag_type u) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get(t,u)), void>, decltype(container_name.get(t,u))> { \
+	return container_name.get(t,u); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get_row(tag_type t) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, decltype(container_name.get_row(t))> { \
+	return container_name.get_row(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, decltype(container_name.get_row(t))> { \
+	return container_name.get_row(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, int32_t> { \
+	return int32_t(container_name.size(t)); \
+}
+
+#define GET_SET_TFV_VV(index_name, container_name) \
+template<typename INDEX, typename tag_type, typename inner_tag_type> \
+RELEASE_INLINE auto get(tag_type t, inner_tag_type u) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get(t,u)), void>, decltype(container_name.get(t,u))> { \
+	return container_name.get(t,u); \
+} \
+template<typename INDEX, typename tag_type, typename inner_tag_type> \
+RELEASE_INLINE auto get(tag_type t, inner_tag_type u) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get(t,u)), void>, decltype(container_name.get(t,u))> { \
+	return container_name.get(t,u); \
+} \
+template<typename INDEX, typename tag_type, typename inner_tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, inner_tag_type u, value_type v) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && std::is_trivially_copyable_v<value_type> && !std::is_same_v<decltype(container_name.get(t,u)), void>, void> { \
+	return container_name.set(t, u, v); \
+} \
+template<typename INDEX, typename tag_type, typename inner_tag_type, typename value_type> \
+RELEASE_INLINE auto set(tag_type t, inner_tag_type u, value_type const& v) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_trivially_copyable_v<value_type> && !std::is_same_v<decltype(container_name.get(t,u)), void>, void> { \
+	return container_name.set(t, u, v); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get_row(tag_type t) noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, decltype(container_name.get_row(t))> { \
+	return container_name.get_row(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto get_row(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, decltype(container_name.get_row(t))> { \
+	return container_name.get_row(t); \
+} \
+template<typename INDEX, typename tag_type> \
+RELEASE_INLINE auto size(tag_type t) const noexcept -> std::enable_if_t<std::is_same_v<INDEX, index_name> && !std::is_same_v<decltype(container_name.get_row(t)), void>, int32_t> { \
+	return int32_t(container_name.size(t)); \
 }
 
 #define ARRAY_BACKING(container_name) \

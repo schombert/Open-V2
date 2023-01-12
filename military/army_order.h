@@ -20,6 +20,8 @@ namespace army_order {
 	struct target;
 	struct leader;
 
+constexpr int32_t max_count = army_order::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::army_orders_tag first_free;

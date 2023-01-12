@@ -62,6 +62,8 @@ namespace province_state {
 	struct orders;
 	struct strat_hq;
 
+constexpr int32_t max_count = province_state::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 

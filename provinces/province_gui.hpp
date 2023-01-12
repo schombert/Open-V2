@@ -6,6 +6,7 @@
 #include "gui\\gui.hpp"
 #include "simple_mpl\\simple_mpl.hpp"
 #include "commands\\commands.h"
+#include "province_functions.h"
 
 namespace provinces {
 

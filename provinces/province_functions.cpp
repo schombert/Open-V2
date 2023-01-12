@@ -690,13 +690,13 @@ namespace provinces {
 			auto& current_crime = ws.w.province_s.province_state_container.get<province_state::crime>(val);
 
 
-			std::uniform_real_distribution<float> const dist(0.0f, 1.0f);
+			std::uniform_real_distribution<float> dist(0.0f, 1.0f);
 			auto const result = dist(get_local_generator());
 
 			if(result < cf_value) {
 				current_crime = modifiers::provincial_modifier_tag();
 			} else if(!current_crime) {
-				std::uniform_int_distribution<int32_t> const idist(0, int32_t(ws.s.modifiers_m.crimes.size()));
+				std::uniform_int_distribution<int32_t> idist(0, int32_t(ws.s.modifiers_m.crimes.size()));
 				auto const index = idist(get_local_generator());
 				auto prov_owner = province_owner(ws, val);
 

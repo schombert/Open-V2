@@ -514,19 +514,19 @@ int wmain(int argc, wchar_t *argv[]) {
 						output += "\t\t\t } else {\r\n";
 
 					// dynamic case
-					output += "\t\t\t\t if constexpr(ui::detail::can_create_dynamic<" + win.base + ", world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {\r\n";
-					output += "\t\t\t\t\t if(!" + win.base + "::create_dynamic(ws, window, *i, rn_s, rn_e)) {\r\n";
-					output += "\t\t\t\t\t\t std::visit([&ws, &window](auto tag) {\r\n";
-					output += "\t\t\t\t\t\t\t if constexpr(!std::is_same_v<decltype(tag), std::monostate>)\r\n";
-					output += "\t\t\t\t\t\t\t\t ui::create_dynamic_element(ws, tag, window);\r\n";
-					output += "\t\t\t\t\t\t }, *i);\r\n";
-					output += "\t\t\t\t\t }\r\n";
-					output += "\t\t\t\t } else {\r\n";
+					//output += "\t\t\t\t if constexpr(ui::detail::can_create_dynamic<" + win.base + ", world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {\r\n";
+					output += "\t\t\t\t if(!ui::detail::can_create_dynamic_s<" + win.base + ", world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {\r\n";
 					output += "\t\t\t\t\t std::visit([&ws, &window](auto tag) {\r\n";
 					output += "\t\t\t\t\t\t if constexpr(!std::is_same_v<decltype(tag), std::monostate>)\r\n";
 					output += "\t\t\t\t\t\t\t ui::create_dynamic_element(ws, tag, window);\r\n";
 					output += "\t\t\t\t\t }, *i);\r\n";
 					output += "\t\t\t\t }\r\n";
+					//output += "\t\t\t\t } else {\r\n";
+					//output += "\t\t\t\t\t std::visit([&ws, &window](auto tag) {\r\n";
+					//output += "\t\t\t\t\t\t if constexpr(!std::is_same_v<decltype(tag), std::monostate>)\r\n";
+					//output += "\t\t\t\t\t\t\t ui::create_dynamic_element(ws, tag, window);\r\n";
+					//output += "\t\t\t\t\t }, *i);\r\n";
+					//output += "\t\t\t\t }\r\n";
 
 
 					if(win.members.size() > 0)

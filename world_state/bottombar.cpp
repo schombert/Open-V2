@@ -40,7 +40,8 @@ namespace current_state {
 		auto const map_center = ws.w.map.map_coordinates_from_screen(std::pair<float, float>(0.0f,0.0f));
 		auto new_location = ui::xy_pair{ int16_t(map_center.first / float(ws.s.province_m.province_map_width) * 266.0f) - 15,
 				int16_t((map_center.second / float(ws.s.province_m.province_map_height)) * 133.0f - 9.0f - 15) };
-		ws.w.bottombar_w.win->mmap.location.associated_object->position = new_location;
+		if(ws.w.bottombar_w.win->mmap.location.associated_object)
+			ws.w.bottombar_w.win->mmap.location.associated_object->position = new_location;
 	}
 	ui::window_tag log_items_lb::element_tag(ui::gui_static & m) {
 		return std::get<ui::window_tag>(m.ui_definitions.name_to_element_map["open_v2_logtext"]);

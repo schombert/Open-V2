@@ -302,7 +302,7 @@ namespace graphics {
 		for(const auto& f : gui_files) {
 			auto open_f = f.open_file();
 			if(open_f) {
-				e.file = std::string(f.file_name().begin(), f.file_name().end()); // just dropping unicode
+				e.file = UTF16toUTF8(f.file_name()); // just dropping unicode
 
 				const auto sz = open_f->size();
 				auto buffer = new char[sz];

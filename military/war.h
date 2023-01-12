@@ -29,6 +29,8 @@ namespace war {
 	struct is_great_war;
 	struct is_world_war;
 
+constexpr int32_t max_count = war::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::war_tag first_free;

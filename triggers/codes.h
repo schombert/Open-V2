@@ -3,6 +3,9 @@
 #include "Parsers\\parsers.hpp"
 
 namespace triggers {
+	using parameter = union_tag;
+	using const_parameter = parameter;
+	
 	RELEASE_INLINE nations::country_tag to_nation(const_parameter v) { return v; }
 	RELEASE_INLINE nations::state_tag to_state(const_parameter v) { return v; }
 	RELEASE_INLINE provinces::province_tag to_prov(const_parameter v) { return v; }

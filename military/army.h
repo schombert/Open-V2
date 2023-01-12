@@ -27,6 +27,8 @@ namespace army {
 	struct composition;
 	struct arrival_time;
 
+constexpr int32_t max_count = army::container_size;
+
 	class alignas(64) container {
 		 int32_t size_used = 0;
 		 military::army_tag first_free;

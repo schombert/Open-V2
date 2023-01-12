@@ -9,6 +9,7 @@
 #include "issues\\issues.h"
 #include "concurrency_tools\\ve.h"
 #include "concurrency_tools/ve_avx2.h"
+#include "codes.h"
 
 namespace scenario {
 	class scenario_manager;
@@ -139,8 +140,7 @@ namespace triggers {
 		constexpr parameter(int32_t v) noexcept : value(v) {}
 	};*/
 
-	using parameter = union_tag;
-	using const_parameter = parameter;
+	
 
 
 	static_assert(sizeof(trigger_payload) == 2);

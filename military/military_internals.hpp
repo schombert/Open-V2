@@ -893,7 +893,7 @@ namespace military {
 		const auto adjusted_mod = nat_mod + 1.0f;
 		const auto cb_speed = ve::load(type, ws.get_row<::cb_type::construction_speed_direct>());
 		const auto base_speed = cb_speed * ss.cb_generation_base_speed * 0.01f;
-		const auto old_value = ve::load(n, ws.get_row<nation::cb_construction_progress>());
+		//const auto old_value = ve::load(n, ws.get_row<nation::cb_construction_progress>());
 
 		return adjusted_mod * base_speed;
 	}

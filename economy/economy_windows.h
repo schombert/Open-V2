@@ -592,14 +592,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<good_filter_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!good_filter_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<good_filter_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -736,14 +729,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<gp_investment_subwindow_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!gp_investment_subwindow_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<gp_investment_subwindow_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -896,14 +882,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<state_pop_display_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!state_pop_display_window_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<state_pop_display_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -1729,14 +1708,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<factory_display_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!factory_display_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<factory_display_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -1901,14 +1873,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<goods_category_label_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!goods_category_label_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<goods_category_label_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -2221,14 +2186,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<production_info_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!production_info_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<production_info_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -2419,14 +2377,7 @@ public:
 			 auto rn = ws.s.gui_m.nmaps.get_raw_name(*i);
 			 const char* rn_s = rn.get_str(ws.s.gui_m.ui_definitions.name_data);
 			 const char* rn_e = rn_s + rn.length();
-				 if constexpr(ui::detail::can_create_dynamic<production_info_pane_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!production_info_pane_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<production_info_pane_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -3163,14 +3114,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<investment_country_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!investment_country_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<investment_country_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -3503,14 +3447,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<factory_filter_buttons_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!factory_filter_buttons_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<factory_filter_buttons_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -3843,14 +3780,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<investment_filter_buttons_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!investment_filter_buttons_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<investment_filter_buttons_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -4671,14 +4601,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<investment_pane_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!investment_pane_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<investment_pane_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -4941,14 +4864,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<state_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!state_window_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<state_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -5197,14 +5113,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<project_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!project_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<project_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -5693,14 +5602,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<production_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!production_window_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<production_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -5891,14 +5793,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<factory_worker_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!factory_worker_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<factory_worker_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -6053,14 +5948,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<factory_construction_cost_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!factory_construction_cost_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<factory_construction_cost_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -6251,14 +6139,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<factory_type_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!factory_type_item_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<factory_type_item_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);
@@ -6885,14 +6766,7 @@ public:
 #endif
 				 std::visit(vhelper, *i);
 			 } else {
-				 if constexpr(ui::detail::can_create_dynamic<build_factory_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>) {
-					 if(!build_factory_window_base::create_dynamic(ws, window, *i, rn_s, rn_e)) {
-						 std::visit([&ws, &window](auto tag) {
-							 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
-								 ui::create_dynamic_element(ws, tag, window);
-						 }, *i);
-					 }
-				 } else {
+				 if(!ui::detail::can_create_dynamic_s<build_factory_window_base, world_state&, ui::tagged_gui_object, ui::element_tag, char const*, char const*>::run(*this, ws, window, *i, rn_s, rn_e)) {
 					 std::visit([&ws, &window](auto tag) {
 						 if constexpr(!std::is_same_v<decltype(tag), std::monostate>)
 							 ui::create_dynamic_element(ws, tag, window);

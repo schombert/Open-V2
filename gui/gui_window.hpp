@@ -11,7 +11,7 @@ namespace ui {
 		struct window_get {
 			template<typename T>
 			static T apply(T&&) {
-				static_assert(false, "no matching element found for that name");
+				static_assert(std::is_same_v<T, void>, "no matching element found for that name");
 			}
 		};
 		template<typename i, typename INDEX, typename TYPE, typename ...REST>
@@ -34,13 +34,25 @@ namespace ui {
 		};
 
 		template<typename RESULT, typename BASE, typename ... REST>
-		struct can_create_dynamic_s : public std::false_type {};
+		struct can_create_dynamic_si : public std::false_type {
+			template<typename WS, typename TGUO, typename ET>
+			static bool run(BASE&, WS&, TGUO, ET, char const*, char const*) {
+				return false;
+			}
+		};
 		template<typename BASE, typename ... REST>
-		struct can_create_dynamic_s<decltype(void(std::declval<BASE>().create_dynamic(std::declval<REST>()...))), BASE, REST...> : public std::true_type {};
-
+		struct can_create_dynamic_si<decltype(void(std::declval<BASE>().create_dynamic(std::declval<REST>()...))), BASE, REST...> : public std::true_type {
+			template<typename WS, typename TGUO, typename ET>
+			static bool run(BASE& base, WS& ws, TGUO tguo, ET et, char const* a, char const* b) {
+				return base.create_dynamic(ws, tguo, et, a, b);
+			}
+		};
 
 		template<typename BASE, typename ... REST>
-		constexpr bool can_create_dynamic = can_create_dynamic_s<void, BASE, REST ...>::value;
+		using can_create_dynamic_s = can_create_dynamic_si<void, BASE, REST ...>;
+
+		template<typename BASE, typename ... REST>
+		constexpr bool can_create_dynamic = can_create_dynamic_si<void, BASE, REST ...>::value;
 	}
 }
 

@@ -1537,7 +1537,7 @@ namespace nations {
 		auto current_sphere_leader = ws.w.nation_s.nations.get<nation::sphere_leader>(n);
 
 		auto const increase_cost = ws.s.modifiers_m.global_defines.increaseopinion_influence_cost;
-		auto const sphere_cost = ws.s.modifiers_m.global_defines.addtosphere_influence_cost;
+		//auto const sphere_cost = ws.s.modifiers_m.global_defines.addtosphere_influence_cost;
 		auto const remove_sphere_cost = ws.s.modifiers_m.global_defines.removefromsphere_influence_cost;
 
 		boost::container::small_vector<std::pair<nations::country_tag, influence*>, 16> inf_ptrs;

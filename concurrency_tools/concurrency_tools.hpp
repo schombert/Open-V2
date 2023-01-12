@@ -4,6 +4,7 @@
 #include <cstdlib>
 #include "simple_serialize\\simple_serialize.hpp"
 #include <ppl.h>
+#include <atomic>
 
 #undef max
 #undef min
@@ -1764,7 +1765,7 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::emplace_at(tag_type location, P
 	}
 
 	new (&(local_index[block_index])) T(std::forward<P>(params) ...);
-	keys[block_index].store((uint32_t)-2, std::memory_order_release);
+	keys[block_index].store((uint32_t)-2, std::memory_order::memory_order_release);
 
 	return local_index[block_index];
 }
@@ -1774,14 +1775,14 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::ensure_reserved(tag_type locati
 	const uint32_t block_num = static_cast<uint32_t>(to_index(location)) >> bit_shift;
 	const uint32_t block_index = static_cast<uint32_t>(to_index(location)) & (block - 1);
 
-	while (first_free_index.load(std::memory_order_relaxed) < block_num) {
+	while (first_free_index.load(std::memory_order::memory_order_relaxed) < block_num) {
 		create_new_block();
 	}
 
-	const auto local_index = index_array[block_num].load(std::memory_order_aquire);
+	const auto local_index = index_array[block_num].load(std::memory_order::memory_order_aquire);
 	std::atomic<uint32_t>* const keys = (std::atomic<uint32_t>*)(local_index + block);
 
-	while (keys[block_index].load(std::memory_order_aquire) == (uint32_t)-2) {
+	while (keys[block_index].load(std::memory_order::memory_order_aquire) == (uint32_t)-2) {
 		emplace();
 	}
 
@@ -1792,12 +1793,12 @@ T& fixed_sz_deque<T, block, index_sz, tag_type>::ensure_reserved(tag_type locati
 template<typename T, uint32_t block, uint32_t index_sz, typename tag_type>
 template<typename ...P>
 tagged_object<T, tag_type> fixed_sz_deque<T, block, index_sz, tag_type>::emplace(P&& ... params) {
-	concurrent_key_pair_helper free_spot(first_free.load(std::memory_order_acquire));
+	concurrent_key_pair_helper free_spot(first_free.load(std::memory_order::memory_order_acquire));
 
 	while (true) {
 		if (free_spot.parts.index == (uint32_t)-1) {
 			create_new_block();
-			free_spot = concurrent_key_pair_helper(first_free.load(std::memory_order_acquire));
+			free_spot = concurrent_key_pair_helper(first_free.load(std::memory_order::memory_order_acquire));
 		}
 		while (free_spot.parts.index != (uint32_t)-1) {
 			const auto block_num = (free_spot.parts.index) >> bit_shift;
