@@ -27,7 +27,7 @@ void ui::gui_manager::destroy(tagged_gui_object g) {
 			g.object.associated_behavior->~gui_behavior();
 			concurrent_allocator<gui_behavior>().deallocate(g.object.associated_behavior, 1);
 		}
-		if(g.object.associated_behavior->associated_object == &(g.object))
+		if(g.object.associated_behavior && g.object.associated_behavior->associated_object == &(g.object))
 			g.object.associated_behavior->associated_object = nullptr;
 		g.object.associated_behavior = nullptr;
 	}
